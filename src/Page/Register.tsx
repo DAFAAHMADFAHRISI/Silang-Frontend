@@ -1,4 +1,11 @@
 import React, { useState } from 'react';
+import { Listbox } from '@headlessui/react';
+
+const institutions = [
+  { value: '', label: 'Select Institution', disabled: true },
+  { value: 'instansi1', label: 'Instansi 1' },
+  { value: 'instansi2', label: 'Instansi 2' },
+];
 
 const Register: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('register');
@@ -11,7 +18,7 @@ const Register: React.FC = () => {
     confirmPassword: '',
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -60,25 +67,38 @@ const Register: React.FC = () => {
               onChange={handleChange}
               className="bg-transparent border border-gray-700 rounded-md px-4 py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400"
             />
+            {/* Custom Dropdown Institution */}
             <div className="relative">
-              <select
-                name="institution"
+              <Listbox
                 value={form.institution}
-                onChange={handleChange}
-                className="bg-transparent border border-gray-700 rounded-md px-4 py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400 w-full appearance-none"
+                onChange={val => setForm(f => ({ ...f, institution: val }))}
               >
-                <option value="" disabled>Select Institution</option>
-                <option value="instansi1">Instansi 1</option>
-                <option value="instansi2">Instansi 2</option>
-              </select>
-              {/* Garis vertikal */}
-              <div className="pointer-events-none absolute top-2 bottom-2 right-10 w-px bg-white" />
-              {/* Chevron icon */}
-              <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
+                <Listbox.Button className="bg-transparent border border-gray-700 rounded-md px-4 py-3 text-left w-full text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400 flex items-center">
+                  {institutions.find(i => i.value === form.institution)?.label || 'Select Institution'}
+                  {/* Garis vertikal */}
+                  <span className="pointer-events-none absolute top-2 bottom-2 right-10 w-px bg-white" />
+                  {/* Chevron icon */}
+                  <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </span>
+                </Listbox.Button>
+                <Listbox.Options className="absolute z-10 mt-1 w-full bg-[#232834] border border-gray-700 rounded-md shadow-lg text-gray-200">
+                  {institutions.map(option => (
+                    <Listbox.Option
+                      key={option.value}
+                      value={option.value}
+                      disabled={option.disabled}
+                      className={({ active, selected }) =>
+                        `px-4 py-2 cursor-pointer select-none ${active ? 'bg-blue-600 text-white' : ''} ${selected ? 'font-semibold' : ''} ${option.disabled ? 'opacity-50 cursor-not-allowed' : ''}`
+                      }
+                    >
+                      {option.label}
+                    </Listbox.Option>
+                  ))}
+                </Listbox.Options>
+              </Listbox>
             </div>
             <input
               type="password"
