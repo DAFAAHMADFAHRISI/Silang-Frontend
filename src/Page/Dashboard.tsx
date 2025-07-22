@@ -1,6 +1,8 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center text-gray-200 text-center relative">
       <img
@@ -20,11 +22,13 @@ const Dashboard: React.FC = () => {
       <div className="mt-10 flex gap-2 justify-center">
         <button
           className="px-8 py-2.5 rounded-3xl border border-blue-600 bg-transparent text-blue-400 font-medium text-base cursor-pointer transition-colors duration-200 hover:bg-blue-600 hover:text-white"
+          onClick={() => navigate('/login')}
         >
           Login
         </button>
         <button
           className="px-8 py-2.5 rounded-3xl border border-blue-600 bg-transparent text-blue-400 font-medium text-base cursor-pointer transition-colors duration-200 hover:bg-blue-600 hover:text-white"
+          onClick={() => navigate('/register')}
         >
           Register
         </button>
