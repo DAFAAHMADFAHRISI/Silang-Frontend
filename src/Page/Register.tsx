@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Listbox } from '@headlessui/react';
 
 const institutions = [
@@ -9,6 +10,7 @@ const institutions = [
 
 const Register: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('register');
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     fullName: '',
     email: '',
@@ -29,7 +31,7 @@ const Register: React.FC = () => {
         <div className="flex mb-8 border-b border-gray-700">
           <button
             className={`flex-1 text-lg pb-2 font-medium transition-colors duration-200 ${activeTab === 'login' ? 'text-gray-300' : 'text-gray-400'} focus:outline-none`}
-            onClick={() => setActiveTab('login')}
+            onClick={() => navigate('/login')}
           >
             Login
           </button>
