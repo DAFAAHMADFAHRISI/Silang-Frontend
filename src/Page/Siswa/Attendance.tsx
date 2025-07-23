@@ -1,5 +1,7 @@
 import React from 'react';
 
+const Divider = () => <div className="border-t border-white/30 my-6 w-full" />;
+
 const attendanceData = [
   {
     name: 'Dafa Ahmad Fahrisi',
@@ -82,8 +84,9 @@ const attendanceData = [
 
 const Attendance: React.FC = () => {
   return (
-    <div>
+    <div className="min-h-screen bg-gray-900 text-white pt-1 px-6 pb-6">
       <h1 className="text-3xl font-bold text-white mb-4">Attendance</h1>
+      <Divider />
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-4">
         <input
           type="text"
@@ -105,6 +108,7 @@ const Attendance: React.FC = () => {
           </button>
         </div>
       </div>
+      <Divider />
       <div className="overflow-x-auto rounded-lg">
         <table className="min-w-full bg-gray-900 border border-gray-700 text-white">
           <thead>
@@ -161,6 +165,7 @@ const Attendance: React.FC = () => {
           </tbody>
         </table>
       </div>
+      <Divider />
       {/* Pagination and Rows */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4">
         <div className="flex items-center gap-2">

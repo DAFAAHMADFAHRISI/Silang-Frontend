@@ -1,5 +1,7 @@
 import React from 'react';
 
+const Divider = () => <div className="border-t border-white/30 my-6 w-full" />;
+
 const tasks = [
   {
     title: 'Lakukan test dan debug pada aplikasi silang',
@@ -46,7 +48,7 @@ const tasks = [
 
 const Todo: React.FC = () => {
   return (
-    <div>
+    <div className="min-h-screen bg-gray-900 text-white pt-1 px-6 pb-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
         <h1 className="text-3xl font-bold text-white">To Do Management</h1>
         <div className="flex flex-1 md:justify-end gap-2 items-center">
@@ -68,6 +70,7 @@ const Todo: React.FC = () => {
           </button>
         </div>
       </div>
+      <Divider />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {tasks.map((task, idx) => (
           <div key={idx} className="bg-gray-900 border border-gray-700 rounded-xl p-6 text-white flex flex-col">
@@ -129,6 +132,7 @@ const Todo: React.FC = () => {
           </div>
         ))}
       </div>
+      <Divider />
       {/* Pagination and Rows */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-2">
