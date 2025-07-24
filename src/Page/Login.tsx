@@ -8,9 +8,43 @@ const Login: React.FC = () => {
     email: '',
     password: '',
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    const payload = new URLSearchParams();
+    payload.append('email', form.email);
+    payload.append('password', form.password);
+
+    try {
+      const res = await fetch('http://localhost:3000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: payload.toString(),
+      });
+      const data = await res.json();
+      if (res.ok && data.token) {
+        localStorage.setItem('token', data.token);
+        if (data.nama) localStorage.setItem('nama', data.nama);
+        navigate('/DashboardSiswa');
+      } else {
+        setError(data.message || 'Login gagal.');
+      }
+    } catch (err) {
+      setError('Network error.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -33,7 +67,7 @@ const Login: React.FC = () => {
         </div>
         {/* Login Form */}
         {activeTab === 'login' && (
-          <form className="flex flex-col gap-2">
+          <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
             <input
               type="email"
               name="email"
@@ -50,11 +84,13 @@ const Login: React.FC = () => {
               onChange={handleChange}
               className="bg-transparent border border-gray-700 rounded-md px-4 py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400"
             />
+            {error && <div className="text-red-400 text-sm">{error}</div>}
             <button
               type="submit"
               className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md transition-colors duration-200"
+              disabled={loading}
             >
-              Login
+              {loading ? 'Logging in...' : 'Login'}
             </button>
             {/* Jarak separator diperkecil maksimal */}
             <div className="flex items-center my-0">
