@@ -8,6 +8,7 @@ import Todo from './Page/Siswa/Todo';
 import Attendance from './Page/Siswa/Attendance';
 import Report from './Page/Siswa/Report';
 import Layout from './LayoutSiswa/Layout';
+import Profile from './Page/Siswa/Profile';
 
 import './App.css';
 
@@ -22,6 +23,7 @@ function App() {
         <Route path='/TodoSiswa' element={<Layout><Todo /></Layout>} />
         <Route path='/AttendanceSiswa' element={<Layout><Attendance /></Layout>} />
         <Route path='/ReportSiswa' element={<Layout><Report /></Layout>} />
+        <Route path='/ProfileSiswa' element={<Layout><Profile /></Layout>} />
       </Routes>
     </Router>
   );
