@@ -12,16 +12,68 @@ const Register: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('register');
   const navigate = useNavigate();
   const [form, setForm] = useState({
-    fullName: '',
+    nama: '',
     email: '',
-    phone: '',
-    institution: '',
     password: '',
+    no_hp: '',
+    kelamin: '1',
+    asal_institusi_id: '',
     confirmPassword: '',
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    // Map frontend form fields to API fields
+    const payload = new URLSearchParams();
+    payload.append('nama', form.nama);
+    payload.append('email', form.email);
+    payload.append('password', form.password);
+    payload.append('no_hp', form.no_hp);
+    payload.append('kelamin', form.kelamin);
+    payload.append('asal_institusi_id', form.asal_institusi_id);
+
+    try {
+      const res = await fetch('http://localhost:3000/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: payload.toString(),
+      });
+      const data = await res.json();
+      if (res.status === 201) {
+        setSuccess(data.message || 'Registration successful!');
+        setForm({
+          nama: '',
+          email: '',
+          password: '',
+          no_hp: '',
+          kelamin: '1',
+          asal_institusi_id: '',
+          confirmPassword: '',
+        });
+        setTimeout(() => {
+          navigate('/login');
+        }, 1500); // Redirect setelah 1.5 detik
+      } else {
+        setError(data.message || 'Registration failed.');
+      }
+    } catch (err) {
+      setError('Network error.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -44,64 +96,23 @@ const Register: React.FC = () => {
         </div>
         {/* Register Form */}
         {activeTab === 'register' && (
-          <form className="flex flex-col gap-4">
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <input
               type="text"
-              name="fullName"
-              placeholder="Full Name"
-              value={form.fullName}
+              name="nama"
+              placeholder="Nama"
+              value={form.nama}
               onChange={handleChange}
               className="bg-transparent border border-gray-700 rounded-md px-4 py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400"
             />
             <input
               type="email"
               name="email"
-              placeholder="Email Address"
+              placeholder="Email"
               value={form.email}
               onChange={handleChange}
               className="bg-transparent border border-gray-700 rounded-md px-4 py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400"
             />
-            <input
-              type="tel"
-              name="phone"
-              placeholder="Phone Number"
-              value={form.phone}
-              onChange={handleChange}
-              className="bg-transparent border border-gray-700 rounded-md px-4 py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400"
-            />
-            {/* Custom Dropdown Institution */}
-            <div className="relative">
-              <Listbox
-                value={form.institution}
-                onChange={val => setForm(f => ({ ...f, institution: val }))}
-              >
-                <Listbox.Button className="bg-transparent border border-gray-700 rounded-md px-4 py-3 text-left w-full text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400 flex items-center">
-                  {institutions.find(i => i.value === form.institution)?.label || 'Select Institution'}
-                  {/* Garis vertikal */}
-                  <span className="pointer-events-none absolute top-2 bottom-2 right-10 w-px bg-white" />
-                  {/* Chevron icon */}
-                  <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </span>
-                </Listbox.Button>
-                <Listbox.Options className="absolute z-10 mt-1 w-full bg-[#232834] border border-gray-700 rounded-md shadow-lg text-gray-200">
-                  {institutions.map(option => (
-                    <Listbox.Option
-                      key={option.value}
-                      value={option.value}
-                      disabled={option.disabled}
-                      className={({ active, selected }) =>
-                        `px-4 py-2 cursor-pointer select-none ${active ? 'bg-blue-600 text-white' : ''} ${selected ? 'font-semibold' : ''} ${option.disabled ? 'opacity-50 cursor-not-allowed' : ''}`
-                      }
-                    >
-                      {option.label}
-                    </Listbox.Option>
-                  ))}
-                </Listbox.Options>
-              </Listbox>
-            </div>
             <input
               type="password"
               name="password"
@@ -111,18 +122,60 @@ const Register: React.FC = () => {
               className="bg-transparent border border-gray-700 rounded-md px-4 py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400"
             />
             <input
+              type="tel"
+              name="no_hp"
+              placeholder="No HP"
+              value={form.no_hp}
+              onChange={handleChange}
+              className="bg-transparent border border-gray-700 rounded-md px-4 py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400"
+            />
+            <div className="flex gap-4 items-center">
+              <label className="text-gray-200">Kelamin:</label>
+              <label className="text-gray-200">
+                <input
+                  type="radio"
+                  name="kelamin"
+                  value="1"
+                  checked={form.kelamin === '1'}
+                  onChange={handleChange}
+                /> Laki-laki
+              </label>
+              <label className="text-gray-200">
+                <input
+                  type="radio"
+                  name="kelamin"
+                  value="2"
+                  checked={form.kelamin === '2'}
+                  onChange={handleChange}
+                /> Perempuan
+              </label>
+            </div>
+            <select
+              name="asal_institusi_id"
+              value={form.asal_institusi_id}
+              onChange={handleChange}
+              className="bg-transparent border border-gray-700 rounded-md px-4 py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400"
+            >
+              <option value="">Pilih Institusi</option>
+              <option value="1">SMK Negeri 1 Sumenep</option>
+              <option value="2">SMK Negeri 2 Pamekasan</option>
+            </select>
+            <input
               type="password"
               name="confirmPassword"
-              placeholder="Confirm Password"
+              placeholder="Konfirmasi Password"
               value={form.confirmPassword}
               onChange={handleChange}
               className="bg-transparent border border-gray-700 rounded-md px-4 py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400"
             />
+            {error && <div className="text-red-400 text-sm">{error}</div>}
+            {success && <div className="text-green-400 text-sm">{success}</div>}
             <button
               type="submit"
               className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md transition-colors duration-200"
+              disabled={loading}
             >
-              Register
+              {loading ? 'Registering...' : 'Register'}
             </button>
           </form>
         )}
