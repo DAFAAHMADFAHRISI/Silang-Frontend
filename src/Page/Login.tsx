@@ -42,6 +42,8 @@ const Login: React.FC = () => {
           navigate('/DashboardSiswa');
         } else if (data.role === 'admin' || data.role === 'superadmin') {
           navigate('/DashboardSuperAdmin');
+        } else if (data.role === 'mentor') {
+          navigate('/DashboardMentor');
         } else {
           navigate('/');
         }

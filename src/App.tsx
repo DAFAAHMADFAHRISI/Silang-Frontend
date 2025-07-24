@@ -10,6 +10,7 @@ import Report from './Page/Siswa/Report';
 import Layout from './LayoutSiswa/Layout';
 import Profile from './Page/Siswa/Profile';
 import DashboardSuperAdmin from './Page/SuperAdmin/Dashboard';
+import DashboardMentor from './Page/Mentor/Dashboard';
 
 import './App.css';
 
@@ -26,6 +27,7 @@ function App() {
         <Route path='/ReportSiswa' element={<Layout><Report /></Layout>} />
         <Route path='/ProfileSiswa' element={<Layout><Profile /></Layout>} />
         <Route path='/DashboardSuperAdmin' element={<DashboardSuperAdmin />} />
+        <Route path='/DashboardMentor' element={<DashboardMentor />} />
       </Routes>
     </Router>
   );

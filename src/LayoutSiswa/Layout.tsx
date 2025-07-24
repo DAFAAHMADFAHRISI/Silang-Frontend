@@ -28,7 +28,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       { to: '/ReportSiswa', icon: 'fa fa-file-alt', label: 'Report' },
     ];
   } else if (role === 'mentor' || role === 'guru') {
-    menuItems = [];
+    menuItems = [
+      { to: '/DashboardMentor', icon: 'fa fa-columns', label: 'Dashboard' },
+    ];
   }
 
   return (
