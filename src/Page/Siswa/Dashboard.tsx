@@ -214,7 +214,7 @@ const Dashboard: React.FC = () => {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white pt-1 px-6 pb-6">
+    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
       {/* Header */}
       <div className="mb-6 mt-0">
         <div className="flex items-center space-x-3">

@@ -139,7 +139,7 @@ const AttendanceCard = ({ row }: { row: AttendanceRow }) => (
 
 const Attendance: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white pt-1 px-6 pb-6">
+    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
       <div className="mb-6 mt-0">
         <div className="flex items-center space-x-3">
           <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
@@ -169,18 +169,6 @@ const Attendance: React.FC = () => {
           <button className="bg-fuchsia-600 hover:bg-fuchsia-700 text-white px-4 py-2 rounded flex items-center">
             <span className="mr-1">⏺</span> Check In/Out
           </button>
-        </div>
-      </div>
-      <Divider />
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-6 flex items-center space-x-2">
-          <UserCheck className="w-6 h-6 text-green-400" />
-          <span>Absensi Siswa</span>
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {attendanceData.map((row, idx) => (
-            <AttendanceCard key={idx} row={row} />
-          ))}
         </div>
       </div>
       <Divider />

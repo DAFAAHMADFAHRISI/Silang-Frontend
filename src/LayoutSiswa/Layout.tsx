@@ -10,11 +10,11 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   return (
-    <div className="flex flex-col min-h-screen bg-gray-900">
+    <div className="h-screen flex flex-col bg-gray-900 overflow-hidden">
       <Header />
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <aside className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col py-6 px-2">
+        <aside className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col py-6 px-2 overflow-y-auto">
           <nav className="flex flex-col space-y-2">
             <Link
               to="/DashboardSiswa"
@@ -47,7 +47,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </nav>
         </aside>
         {/* Main Content */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 overflow-y-auto">
           {children}
         </main>
       </div>

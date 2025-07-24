@@ -57,7 +57,7 @@ const ReportCard = ({ row }: { row: ReportRow }) => (
 
 const Report: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white pt-1 px-6 pb-6">
+    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
       <div className="mb-6 mt-0">
         <div className="flex items-center space-x-3">
           <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
