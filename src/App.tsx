@@ -9,6 +9,9 @@ import Attendance from './Page/Siswa/Attendance';
 import Report from './Page/Siswa/Report';
 import Layout from './LayoutSiswa/Layout';
 import Profile from './Page/Siswa/Profile';
+import LayoutSuperAdmin from './LayoutSuperAdmin/Layout';
+import DashboardSuperAdmin from './Page/SuperAdmin/Dashboard';
+
 
 import './App.css';
 
@@ -24,6 +27,7 @@ function App() {
         <Route path='/AttendanceSiswa' element={<Layout><Attendance /></Layout>} />
         <Route path='/ReportSiswa' element={<Layout><Report /></Layout>} />
         <Route path='/ProfileSiswa' element={<Layout><Profile /></Layout>} />
+        <Route path='/DashboardSuperAdmin' element={<DashboardSuperAdmin />} />
       </Routes>
     </Router>
   );
