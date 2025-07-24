@@ -1,5 +1,5 @@
 import React from "react";
-import Layout from "../../LayoutSiswa/Layout";
+import Layout from "../../Layout/Layout";
 import { Users, UserCheck, Clock, CheckCircle, TrendingUp } from "lucide-react";
 
 // StatCard diambil dari Dashboard siswa agar identik

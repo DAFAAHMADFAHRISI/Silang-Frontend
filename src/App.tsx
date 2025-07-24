@@ -7,7 +7,7 @@ import DashboardSiswa from './Page/Siswa/Dashboard';
 import Todo from './Page/Siswa/Todo';
 import Attendance from './Page/Siswa/Attendance';
 import Report from './Page/Siswa/Report';
-import Layout from './LayoutSiswa/Layout';
+import Layout from './Layout/Layout';
 import Profile from './Page/Siswa/Profile';
 import DashboardSuperAdmin from './Page/SuperAdmin/Dashboard';
 import DashboardMentor from './Page/Mentor/Dashboard';

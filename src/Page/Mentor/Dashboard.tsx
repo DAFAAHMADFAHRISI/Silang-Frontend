@@ -1,5 +1,5 @@
 import React from "react";
-import Layout from "../../LayoutSiswa/Layout";
+import Layout from "../../Layout/Layout";
 import { Users, UserCheck, Clock, CheckCircle, AlertCircle, Calendar, Award, TrendingUp, Mail } from "lucide-react";
 
 const Divider: React.FC = () => <div className="border-t border-gray-700/50 my-8 w-full" />;
