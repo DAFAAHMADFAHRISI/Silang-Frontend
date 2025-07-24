@@ -36,7 +36,15 @@ const Login: React.FC = () => {
       if (res.ok && data.token) {
         localStorage.setItem('token', data.token);
         if (data.nama) localStorage.setItem('nama', data.nama);
-        navigate('/DashboardSiswa');
+        if (data.role) localStorage.setItem('role', data.role);
+        // Redirect sesuai role
+        if (data.role === 'siswa') {
+          navigate('/DashboardSiswa');
+        } else if (data.role === 'admin' || data.role === 'superadmin') {
+          navigate('/DashboardSuperAdmin');
+        } else {
+          navigate('/');
+        }
       } else {
         setError(data.message || 'Login gagal.');
       }

@@ -1,5 +1,5 @@
 import React from "react";
-import LayoutSuperAdmin from "../../LayoutSuperAdmin/Layout";
+import Layout from "../../LayoutSiswa/Layout";
 import { Users, UserCheck, Clock, CheckCircle, TrendingUp } from "lucide-react";
 
 // StatCard diambil dari Dashboard siswa agar identik
@@ -61,7 +61,7 @@ const Dashboard: React.FC = () => {
   ];
 
   return (
-    <LayoutSuperAdmin>
+    <Layout>
       <div className="p-6">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2 flex items-center space-x-3">
           <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
@@ -80,7 +80,7 @@ const Dashboard: React.FC = () => {
         </div>
         <hr className="border-gray-700 mt-6" />
       </div>
-    </LayoutSuperAdmin>
+    </Layout>
   );
 };
 

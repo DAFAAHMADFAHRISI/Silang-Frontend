@@ -9,9 +9,7 @@ import Attendance from './Page/Siswa/Attendance';
 import Report from './Page/Siswa/Report';
 import Layout from './LayoutSiswa/Layout';
 import Profile from './Page/Siswa/Profile';
-import LayoutSuperAdmin from './LayoutSuperAdmin/Layout';
 import DashboardSuperAdmin from './Page/SuperAdmin/Dashboard';
-
 
 import './App.css';
 
