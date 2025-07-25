@@ -13,6 +13,8 @@ import DashboardSuperAdmin from './Page/SuperAdmin/Dashboard';
 import DashboardMentor from './Page/Mentor/Dashboard';
 import DashboardGuru from './Page/Guru/Dashboard';
 import UserManagement from './Page/SuperAdmin/User Management';
+import Institusi from './Page/SuperAdmin/Institusi';
+
 
 import './App.css';
 
@@ -32,6 +34,7 @@ function App() {
         <Route path='/DashboardMentor' element={<DashboardMentor />} />
         <Route path='/DashboardGuru' element={<DashboardGuru />} />
         <Route path='/UserManagement' element={<UserManagement />} />
+        <Route path='/Institusi' element={<Institusi />} />
       </Routes>
     </Router>
   );
