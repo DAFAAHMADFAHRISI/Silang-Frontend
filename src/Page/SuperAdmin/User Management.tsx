@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../../Layout/Layout';
+import Institusi from './Institusi';
 
 const Divider: React.FC = () => <div className="border-t border-gray-700/50 my-8 w-full" />;
 
 interface UserRow {
+  id?: number;
   nama: string;
   email: string;
   kelamin: string;
@@ -29,9 +31,67 @@ interface UserDetail {
 const UserManagement: React.FC = () => {
   const [userData, setUserData] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [detail, setDetail] = useState<UserDetail | null>(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [institusiList, setInstitusiList] = useState<{id:number, nama_institusi:string}[]>([]);
+  const [notif, setNotif] = useState<string|null>(null);
+
+  const handleDelete = async (id?: number) => {
+    if (!id) return;
+    if (!window.confirm('Yakin ingin menghapus user ini?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:3000/api/users/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setNotif('User berhasil dihapus!');
+        // Refresh user table
+        const res2 = await fetch('http://localhost:3000/api/users', { headers: { Authorization: `Bearer ${token}` } });
+        const json2 = await res2.json();
+        setUserData(Array.isArray(json2) ? json2 : []);
+        setTimeout(() => setNotif(null), 2000);
+      } else {
+        setNotif(json.message || 'Gagal menghapus user');
+      }
+    } catch {
+      setNotif('Gagal menghapus user');
+    }
+  };
+
+  // Tambahkan fungsi handleRefresh
+  const handleRefresh = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:3000/api/users', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const json = await res.json();
+      setUserData(Array.isArray(json) ? json : []);
+    } catch {
+      setUserData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch institusi list for dropdown
+  useEffect(() => {
+    if (!showModal) return;
+    const fetchInstitusi = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch('http://localhost:3000/api/institusi', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const json = await res.json();
+        setInstitusiList(Array.isArray(json) ? json : []);
+      } catch {}
+    };
+    fetchInstitusi();
+  }, [showModal]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -53,29 +113,6 @@ const UserManagement: React.FC = () => {
     };
     fetchUsers();
   }, []);
-
-  // Fetch detail user jika selectedId berubah
-  useEffect(() => {
-    if (selectedId === null) return;
-    const fetchDetail = async () => {
-      setLoadingDetail(true);
-      try {
-        const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:3000/api/users/${selectedId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const json = await res.json();
-        setDetail(json);
-      } catch (err) {
-        setDetail(null);
-      } finally {
-        setLoadingDetail(false);
-      }
-    };
-    fetchDetail();
-  }, [selectedId]);
 
   return (
     <Layout>
@@ -99,10 +136,10 @@ const UserManagement: React.FC = () => {
             className="bg-gray-800 text-white px-4 py-2 rounded focus:outline-none border border-gray-700 w-full md:w-64"
           />
           <div className="flex gap-2 items-center">
-            <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center">
+            <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center" onClick={handleRefresh}>
               <span className="mr-1">⟳</span> Refresh
             </button>
-            <button className="bg-fuchsia-600 hover:bg-fuchsia-700 text-white px-4 py-2 rounded flex items-center">
+            <button className="bg-fuchsia-600 hover:bg-fuchsia-700 text-white px-4 py-2 rounded flex items-center" onClick={() => setShowModal(true)}>
               <span className="mr-1">＋</span> Tambah User
             </button>
           </div>
@@ -126,12 +163,13 @@ const UserManagement: React.FC = () => {
                   <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Role</th>
                   <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Asal Institusi</th>
                   <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Created At</th>
+                  <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider">Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {userData.map((row, idx) => (
                   <tr
-                    key={idx}
+                    key={row.id ?? idx}
                     className={
                       `transition-colors duration-150 ${idx % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800/70'} hover:bg-blue-950/60`
                     }
@@ -162,58 +200,101 @@ const UserManagement: React.FC = () => {
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap text-gray-300 font-medium">{row.asal_institusi}</td>
                     <td className="px-3 py-2 whitespace-nowrap text-gray-400 text-xs font-mono">{new Date(row.created_at).toLocaleString('id-ID')}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-center">
+                      {typeof row.id !== 'undefined' ? (
+                        <button type="button" onClick={() => handleDelete(row.id)} className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs font-bold shadow-sm">
+                          Hapus
+                        </button>
+                      ) : (
+                        <span className="text-gray-500 text-xs">-</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           )}
         </div>
-        {/* User Detail Section */}
-        {selectedId && (
-          <div className="mt-6 flex justify-center">
-            <div className="w-full max-w-xl bg-gray-800 rounded-xl shadow-lg border border-gray-700 p-6">
-              {loadingDetail ? (
-                <div className="text-center text-gray-400">Loading detail...</div>
-              ) : detail ? (
-                <>
-                  <h2 className="text-2xl font-bold mb-4 text-white flex items-center gap-2">
-                    <span className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-3 py-1 rounded-lg text-lg font-bold">ID #{detail.id}</span>
-                    <span>{detail.nama}</span>
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
-                    <div>
-                      <div className="text-xs text-gray-400">Email</div>
-                      <div className="font-semibold text-white">{detail.email}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-400">No HP</div>
-                      <div className="font-semibold text-white">{detail.no_hp}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-400">Kelamin</div>
-                      <div className="font-semibold text-white capitalize">{detail.kelamin}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-400">Role</div>
-                      <div className="font-semibold text-white capitalize">{detail.role}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-400">Asal Institusi</div>
-                      <div className="font-semibold text-white">{detail.asal_institusi_id}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-400">Created At</div>
-                      <div className="font-semibold text-white">{new Date(detail.created_at).toLocaleString('id-ID')}</div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-400">Updated At</div>
-                      <div className="font-semibold text-white">{new Date(detail.updated_at).toLocaleString('id-ID')}</div>
-                    </div>
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-gray-900 rounded-xl shadow-2xl p-8 w-full max-w-lg border border-gray-700 relative">
+              <button onClick={() => setShowModal(false)} className="absolute top-3 right-3 text-gray-400 hover:text-white text-xl">&times;</button>
+              <h2 className="text-2xl font-bold mb-4 text-white">Tambah User</h2>
+              <form className="space-y-4" onSubmit={async e => {
+                e.preventDefault();
+                const form = e.target as HTMLFormElement;
+                const fd = new FormData(form);
+                setNotif(null);
+                try {
+                  const token = localStorage.getItem('token');
+                  const res = await fetch('http://localhost:3000/api/users/create', {
+                    method: 'POST',
+                    headers: { Authorization: `Bearer ${token}` },
+                    body: fd,
+                  });
+                  const json = await res.json();
+                  if (res.ok) {
+                    setNotif('User berhasil ditambahkan!');
+                    setShowModal(false);
+                    // Refresh user table
+                    setTimeout(() => setNotif(null), 2000);
+                    // Re-fetch user data
+                    const res2 = await fetch('http://localhost:3000/api/users', { headers: { Authorization: `Bearer ${token}` } });
+                    const json2 = await res2.json();
+                    setUserData(Array.isArray(json2) ? json2 : []);
+                  } else {
+                    setNotif(json.message || 'Gagal menambah user');
+                  }
+                } catch {
+                  setNotif('Gagal menambah user');
+                }
+              }} encType="multipart/form-data">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-300 mb-1">Nama</label>
+                    <input name="nama" required className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white" />
                   </div>
-                </>
-              ) : (
-                <div className="text-center text-red-400">Gagal mengambil detail user.</div>
-              )}
+                  <div>
+                    <label className="block text-sm text-gray-300 mb-1">Email</label>
+                    <input name="email" type="email" required className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-300 mb-1">No HP</label>
+                    <input name="no_hp" required className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-300 mb-1">Role</label>
+                    <select name="role" required className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white">
+                      <option value="mentor">Mentor</option>
+                      <option value="guru">Guru</option>
+                      <option value="siswa">Siswa</option>
+                      <option value="superadmin">Superadmin</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-300 mb-1">Kelamin</label>
+                    <select name="kelamin" required className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white">
+                      <option value="laki-laki">Laki-laki</option>
+                      <option value="perempuan">Perempuan</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-300 mb-1">Foto Profile</label>
+                    <input name="foto_profile" type="file" accept="image/*" className="w-full text-gray-300" />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-sm text-gray-300 mb-1">Asal Institusi</label>
+                    <select name="asal_institusi_id" required className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white">
+                      <option value="">Pilih Institusi</option>
+                      {institusiList.map(i => (
+                        <option key={i.id} value={i.id}>{i.nama_institusi}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded">Simpan</button>
+                {notif && <div className="mt-2 text-center text-sm text-green-400">{notif}</div>}
+              </form>
             </div>
           </div>
         )}
