@@ -44,6 +44,8 @@ const Login: React.FC = () => {
           navigate('/DashboardSuperAdmin');
         } else if (data.role === 'mentor') {
           navigate('/DashboardMentor');
+        } else if (data.role === 'guru') {
+          navigate('/DashboardGuru');
         } else {
           navigate('/');
         }

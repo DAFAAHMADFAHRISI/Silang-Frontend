@@ -27,9 +27,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       { to: '/AttendanceSiswa', icon: 'fa fa-calendar-check', label: 'Attendance' },
       { to: '/ReportSiswa', icon: 'fa fa-file-alt', label: 'Report' },
     ];
-  } else if (role === 'mentor' || role === 'guru') {
+  } else if (role === 'mentor') {
     menuItems = [
       { to: '/DashboardMentor', icon: 'fa fa-columns', label: 'Dashboard' },
+    ];
+  } else if (role === 'guru') {
+    menuItems = [
+      { to: '/DashboardGuru', icon: 'fa fa-columns', label: 'Dashboard' },
     ];
   }
 
