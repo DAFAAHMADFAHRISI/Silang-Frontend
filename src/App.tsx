@@ -12,6 +12,7 @@ import Profile from './Page/Siswa/Profile';
 import DashboardSuperAdmin from './Page/SuperAdmin/Dashboard';
 import DashboardMentor from './Page/Mentor/Dashboard';
 import DashboardGuru from './Page/Guru/Dashboard';
+import UserManagement from './Page/SuperAdmin/User Management';
 
 import './App.css';
 
@@ -30,6 +31,7 @@ function App() {
         <Route path='/DashboardSuperAdmin' element={<DashboardSuperAdmin />} />
         <Route path='/DashboardMentor' element={<DashboardMentor />} />
         <Route path='/DashboardGuru' element={<DashboardGuru />} />
+        <Route path='/UserManagement' element={<UserManagement />} />
       </Routes>
     </Router>
   );
