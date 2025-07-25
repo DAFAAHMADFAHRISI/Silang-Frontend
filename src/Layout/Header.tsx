@@ -66,7 +66,14 @@ const Header: React.FC = () => {
               </button>
               <button
                 className="w-full text-left px-6 py-3 text-white hover:bg-gray-700 text-lg rounded"
-                onClick={() => { setOpen(false); navigate('/Login'); }}
+                onClick={() => {
+                  setOpen(false);
+                  localStorage.removeItem('token');
+                  localStorage.removeItem('nama');
+                  localStorage.removeItem('role');
+                  // Hapus data lain jika perlu
+                  navigate('/Login');
+                }}
               >
                 Log out
               </button>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../../Layout/Layout';
+import { useNavigate } from 'react-router-dom';
 
 const Divider: React.FC = () => <div className="border-t border-gray-700/50 my-8 w-full" />;
 
@@ -17,6 +18,16 @@ const Institusi: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [notif, setNotif] = useState<string|null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Proteksi: redirect jika tidak ada token
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/Login');
+      return;
+    }
+  }, [navigate]);
 
   const handleRefresh = async () => {
     setLoading(true);
