@@ -11,7 +11,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
   // Ambil role dari localStorage
   const role = localStorage.getItem('role');
-
+  
   // Menu berdasarkan role
   let menuItems: { to: string; icon: string; label: string }[] = [];
   if (role === 'superadmin') {
@@ -21,6 +21,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       { to: '/UserManagement', icon: 'fa fa-users-cog', label: 'User Management' },
       { to: '/DataTugas', icon: 'fa fa-tasks', label: 'Data Tugas' },
       { to: '/DataJadwal', icon: 'fa fa-calendar-alt', label: 'Data Jadwal' },
+      { to: '/DataAbsensi', icon: 'fa fa-users', label: 'Data Absensi' },
     ];
   } else if (role === 'siswa') {
     menuItems = [
