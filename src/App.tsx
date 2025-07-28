@@ -19,6 +19,7 @@ import DataJadwal from './Page/SuperAdmin/Data Jadwal';
 import DataAbsensi from './Page/SuperAdmin/Data Absensi';
 import DataMentorSiswa from './Page/SuperAdmin/Data Mentor-Siswa';
 import DataGuruSiswa from './Page/SuperAdmin/Data Guru - Siswa';
+import DataRekap from './Page/SuperAdmin/Data Rekap';
 
 
 import './App.css';
@@ -45,6 +46,7 @@ function App() {
         <Route path='/DataAbsensi' element={<DataAbsensi />} />
         <Route path='/DataMentorSiswa' element={<DataMentorSiswa />} />
         <Route path='/DataGuruSiswa' element={<DataGuruSiswa />} />
+        <Route path='/DataRekap' element={<DataRekap />} />
       </Routes>
     </Router>
   );
