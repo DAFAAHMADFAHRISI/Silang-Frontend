@@ -16,6 +16,7 @@ import UserManagement from './Page/SuperAdmin/User Management';
 import Institusi from './Page/SuperAdmin/Institusi';
 import DataTugas from './Page/SuperAdmin/Data Tugas';
 import DataJadwal from './Page/SuperAdmin/Data Jadwal';
+import DataAbsensi from './Page/SuperAdmin/Data Absensi';
 
 
 import './App.css';
@@ -39,6 +40,7 @@ function App() {
         <Route path='/Institusi' element={<Institusi />} />
         <Route path='/DataTugas' element={<DataTugas />} />
         <Route path='/DataJadwal' element={<DataJadwal />} />
+        <Route path='/DataAbsensi' element={<DataAbsensi />} />
       </Routes>
     </Router>
   );
