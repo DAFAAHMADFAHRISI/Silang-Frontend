@@ -24,6 +24,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       { to: '/DataAbsensi', icon: 'fa fa-users', label: 'Data Absensi' },
       { to: '/DataMentorSiswa', icon: 'fa fa-users', label: 'Data Mentor - Siswa' },
       { to: '/DataGuruSiswa', icon: 'fa fa-users', label: 'Data Guru - Siswa' },
+      { to: '/DataRekap', icon: 'fa fa-users', label: 'Data Rekap' },
     ];
   } else if (role === 'siswa') {
     menuItems = [
