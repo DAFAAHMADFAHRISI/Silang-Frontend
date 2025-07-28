@@ -22,7 +22,9 @@ interface RekapData {
 const DataRekap: React.FC = () => {
   const [rekapData, setRekapData] = useState<RekapData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,6 +58,8 @@ const DataRekap: React.FC = () => {
         throw new Error('Token tidak ditemukan. Silakan login ulang.');
       }
 
+      console.log('Fetching rekap data from API...');
+      
       const response = await fetch('http://localhost:3000/api/rekap', {
         method: 'GET',
         headers: {
@@ -64,6 +68,8 @@ const DataRekap: React.FC = () => {
           'Authorization': `Bearer ${token}`,
         },
       });
+      
+      console.log('API Response Status:', response.status);
       
       if (response.status === 401) {
         // Token expired or invalid
@@ -82,14 +88,91 @@ const DataRekap: React.FC = () => {
       }
       
       const data = await response.json();
-      setRekapData(data);
+      console.log('API Response Data:', data);
+      
+      // Validate data structure
+      const validatedData = validateRekapData(data);
+      setRekapData(validatedData);
+      console.log('Data successfully loaded:', validatedData);
+      
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Gagal mengambil data rekap.';
       setError(errorMessage);
       console.error('Error fetching rekap data:', err);
     } finally {
       setLoading(false);
+      setRefreshing(false); // Ensure refreshing is false after fetch
     }
+  };
+
+  const validateRekapData = (data: any): RekapData[] => {
+    if (!Array.isArray(data)) {
+      throw new Error('Format data tidak valid. Data harus berupa array.');
+    }
+    
+    return data.map((guru, index) => {
+      // Validate guru object structure
+      if (!guru.guru_id || typeof guru.guru_id !== 'number') {
+        throw new Error(`Data guru ke-${index + 1}: guru_id tidak valid atau tidak ditemukan.`);
+      }
+      
+      if (!guru.nama_guru || typeof guru.nama_guru !== 'string') {
+        throw new Error(`Data guru ke-${index + 1}: nama_guru tidak valid atau tidak ditemukan.`);
+      }
+      
+      if (!Array.isArray(guru.siswa)) {
+        throw new Error(`Data guru ke-${index + 1}: siswa harus berupa array.`);
+      }
+      
+      // Validate siswa array
+      const validatedSiswa = guru.siswa.map((siswa: any, siswaIndex: number) => {
+        const requiredFields = ['id', 'nama_siswa', 'institusi', 'total_tugas', 'tugas_selesai', 'total_nilai', 'rata_rata_nilai'];
+        const missingFields = requiredFields.filter(field => !(field in siswa));
+        
+        if (missingFields.length > 0) {
+          throw new Error(`Data siswa ke-${siswaIndex + 1} pada guru ${guru.nama_guru}: field yang hilang: ${missingFields.join(', ')}`);
+        }
+        
+        if (typeof siswa.id !== 'number' || typeof siswa.nama_siswa !== 'string' || 
+            typeof siswa.institusi !== 'string' || typeof siswa.total_tugas !== 'number' || 
+            typeof siswa.tugas_selesai !== 'number' || typeof siswa.total_nilai !== 'number' || 
+            typeof siswa.rata_rata_nilai !== 'number') {
+          throw new Error(`Data siswa ke-${siswaIndex + 1} pada guru ${guru.nama_guru}: tipe data tidak valid.`);
+        }
+        
+        return {
+          id: siswa.id,
+          nama_siswa: siswa.nama_siswa,
+          institusi: siswa.institusi,
+          total_tugas: siswa.total_tugas,
+          tugas_selesai: siswa.tugas_selesai,
+          total_nilai: siswa.total_nilai,
+          rata_rata_nilai: siswa.rata_rata_nilai
+        };
+      });
+      
+      return {
+        guru_id: guru.guru_id,
+        nama_guru: guru.nama_guru,
+        siswa: validatedSiswa
+      };
+    });
+  };
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    setError(null);
+    await fetchRekapData();
+  };
+
+  const toggleCardExpansion = (guruId: number) => {
+    const newExpandedCards = new Set(expandedCards);
+    if (newExpandedCards.has(guruId)) {
+      newExpandedCards.delete(guruId);
+    } else {
+      newExpandedCards.add(guruId);
+    }
+    setExpandedCards(newExpandedCards);
   };
 
   const handleLogout = () => {
@@ -131,8 +214,14 @@ const DataRekap: React.FC = () => {
     return (
       <Layout>
         <div className="p-6">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                <p className="text-gray-400 text-lg">Memuat data rekap...</p>
+                <p className="text-gray-500 text-sm mt-2">Mengambil data dari API</p>
+              </div>
+            </div>
           </div>
         </div>
       </Layout>
@@ -210,57 +299,17 @@ const DataRekap: React.FC = () => {
             <span className="text-white">Rekap Guru & Siswa</span>
           </h2>
           <button
-            onClick={fetchRekapData}
+            onClick={handleRefresh}
             className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
+            disabled={refreshing}
           >
-            <i className="fa fa-refresh mr-2"></i>
-            Refresh
+            {refreshing ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mx-2"></div>
+            ) : (
+              <i className="fa fa-refresh mr-2"></i>
+            )}
+            {refreshing ? 'Mengambil Data...' : 'Refresh'}
           </button>
-        </div>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl p-6 text-white">
-            <div className="flex items-center space-x-3">
-              <UserCheck className="w-8 h-8" />
-              <div>
-                <p className="text-sm opacity-90">Total Guru</p>
-                <p className="text-2xl font-bold">{totalGuru}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-6 text-white">
-            <div className="flex items-center space-x-3">
-              <Users className="w-8 h-8" />
-              <div>
-                <p className="text-sm opacity-90">Total Siswa</p>
-                <p className="text-2xl font-bold">{totalSiswa}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl p-6 text-white">
-            <div className="flex items-center space-x-3">
-              <FileText className="w-8 h-8" />
-              <div>
-                <p className="text-sm opacity-90">Total Tugas</p>
-                <p className="text-2xl font-bold">{totalTugas}</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl p-6 text-white">
-            <div className="flex items-center space-x-3">
-              <Award className="w-8 h-8" />
-              <div>
-                <p className="text-sm opacity-90">Rata-rata Nilai</p>
-                <p className="text-2xl font-bold">
-                  {totalSiswa > 0 ? Math.round(totalNilai / totalSiswa) : 0}
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Guru Cards Grid */}
@@ -272,9 +321,14 @@ const DataRekap: React.FC = () => {
             const totalTugasSelesaiGuru = guru.siswa.reduce((sum, siswa) => sum + siswa.tugas_selesai, 0);
             const totalNilaiGuru = guru.siswa.reduce((sum, siswa) => sum + siswa.total_nilai, 0);
             const rataRataNilaiGuru = totalSiswaGuru > 0 ? Math.round(totalNilaiGuru / totalSiswaGuru) : 0;
+            const isExpanded = expandedCards.has(guru.guru_id);
 
             return (
-              <div key={index} className={`${guruConfig.bg} rounded-xl p-6 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300`}>
+              <div 
+                key={index} 
+                className={`${guruConfig.bg} rounded-xl p-6 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 cursor-pointer`}
+                onClick={() => toggleCardExpansion(guru.guru_id)}
+              >
                 <div className="flex items-start justify-between mb-4">
                   <h3 className="font-bold text-lg leading-tight pr-4">{guru.nama_guru}</h3>
                   <div className="flex items-center space-x-1 bg-white/20 px-3 py-1 rounded-full text-sm font-medium">
@@ -284,7 +338,7 @@ const DataRekap: React.FC = () => {
                 </div>
                 
                 <div className="space-y-4">
-                  {/* Guru Statistics */}
+                  {/* Guru Statistics - Always Visible */}
                   <div className="bg-white/10 rounded-lg p-4 backdrop-blur-sm">
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div className="flex items-center space-x-2">
@@ -306,7 +360,7 @@ const DataRekap: React.FC = () => {
                     </div>
                   </div>
                   
-                  {/* Progress Bar */}
+                  {/* Progress Bar - Always Visible */}
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span>Progress Tugas</span>
@@ -324,48 +378,55 @@ const DataRekap: React.FC = () => {
                     </div>
                   </div>
                   
-                  {/* Siswa List */}
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2 text-sm">
-                      <User className="w-4 h-4" />
-                      <span className="font-medium">Daftar Siswa:</span>
-                    </div>
-                    <div className="bg-white/10 rounded-lg p-3 max-h-48 overflow-y-auto">
-                      {guru.siswa.map((siswa, siswaIndex) => (
-                        <div key={siswaIndex} className="mb-3 last:mb-0">
-                          <div className="flex items-center justify-between text-sm mb-2">
-                            <div className="flex items-center space-x-2">
-                              <div className="w-2 h-2 bg-white rounded-full"></div>
-                              <span className="font-medium">{siswa.nama_siswa}</span>
-                            </div>
-                            <span className="text-xs opacity-75">{siswa.institusi}</span>
-                          </div>
-                          
-                          <div className="ml-4 space-y-1 text-xs">
-                            <div className="flex justify-between">
-                              <span>Tugas: {siswa.total_tugas}</span>
-                              <span>Selesai: {siswa.tugas_selesai}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Total Nilai: {siswa.total_nilai}</span>
-                              <span className={getGradeColor(siswa.rata_rata_nilai)}>
-                                Rata-rata: {siswa.rata_rata_nilai}
-                              </span>
+                  {/* Siswa List - Only visible when expanded */}
+                  {isExpanded && (
+                    <div className="space-y-2 border-t border-white/20 pt-4">
+                      <div className="flex items-center space-x-2 text-sm">
+                        <User className="w-4 h-4" />
+                        <span className="font-medium">Daftar Siswa:</span>
+                      </div>
+                      <div className="bg-white/10 rounded-lg p-3 max-h-48 overflow-y-auto">
+                        {guru.siswa.map((siswa, siswaIndex) => (
+                          <div key={siswaIndex} className="mb-3 last:mb-0">
+                            <div className="flex items-center justify-between text-sm mb-2">
+                              <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-white rounded-full"></div>
+                                <span className="font-medium">{siswa.nama_siswa}</span>
+                              </div>
+                              <span className="text-xs opacity-75">{siswa.institusi}</span>
                             </div>
                             
-                            {/* Individual Progress Bar */}
-                            <div className="w-full bg-white/20 rounded-full h-1 mt-1">
-                              <div 
-                                className="bg-white h-1 rounded-full transition-all duration-300"
-                                style={{ 
-                                  width: `${siswa.total_tugas > 0 ? (siswa.tugas_selesai / siswa.total_tugas) * 100 : 0}%` 
-                                }}
-                              ></div>
+                            <div className="ml-4 space-y-1 text-xs">
+                              <div className="flex justify-between">
+                                <span>Tugas: {siswa.total_tugas}</span>
+                                <span>Selesai: {siswa.tugas_selesai}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Total Nilai: {siswa.total_nilai}</span>
+                                <span className={getGradeColor(siswa.rata_rata_nilai)}>
+                                  Rata-rata: {siswa.rata_rata_nilai}
+                                </span>
+                              </div>
+                              
+                              {/* Individual Progress Bar */}
+                              <div className="w-full bg-white/20 rounded-full h-1 mt-1">
+                                <div 
+                                  className="bg-white h-1 rounded-full transition-all duration-300"
+                                  style={{ 
+                                    width: `${siswa.total_tugas > 0 ? (siswa.tugas_selesai / siswa.total_tugas) * 100 : 0}%` 
+                                  }}
+                                ></div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
+                  )}
+                  
+                  {/* Click indicator */}
+                  <div className="text-center text-xs opacity-75">
+                    {isExpanded ? 'Klik untuk sembunyikan detail' : 'Klik untuk lihat detail siswa'}
                   </div>
                 </div>
               </div>
