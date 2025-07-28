@@ -19,6 +19,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       { to: '/DashboardSuperAdmin', icon: 'fa fa-columns', label: 'Dashboard' },
       { to: '/Institusi', icon: 'fa fa-university', label: 'Data Institusi' },
       { to: '/UserManagement', icon: 'fa fa-users-cog', label: 'User Management' },
+      { to: '/DataTugas', icon: 'fa fa-tasks', label: 'Data Tugas' },
     ];
   } else if (role === 'siswa') {
     menuItems = [
