@@ -23,6 +23,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       { to: '/DataJadwal', icon: 'fa fa-calendar-alt', label: 'Data Jadwal' },
       { to: '/DataAbsensi', icon: 'fa fa-users', label: 'Data Absensi' },
       { to: '/DataMentorSiswa', icon: 'fa fa-users', label: 'Data Mentor - Siswa' },
+      { to: '/DataGuruSiswa', icon: 'fa fa-users', label: 'Data Guru - Siswa' },
     ];
   } else if (role === 'siswa') {
     menuItems = [
