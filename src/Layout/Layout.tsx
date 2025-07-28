@@ -20,6 +20,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       { to: '/Institusi', icon: 'fa fa-university', label: 'Data Institusi' },
       { to: '/UserManagement', icon: 'fa fa-users-cog', label: 'User Management' },
       { to: '/DataTugas', icon: 'fa fa-tasks', label: 'Data Tugas' },
+      { to: '/DataJadwal', icon: 'fa fa-calendar-alt', label: 'Data Jadwal' },
     ];
   } else if (role === 'siswa') {
     menuItems = [
