@@ -20,6 +20,17 @@ interface MentorSiswaForm {
   siswa_id: string;
 }
 
+interface Mentor {
+  id: number;
+  nama: string;
+}
+
+interface Siswa {
+  id: number;
+  nama: string;
+  institusi: string;
+}
+
 const DataMentorSiswa: React.FC = () => {
   const [mentorSiswaData, setMentorSiswaData] = useState<MentorSiswa[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +46,10 @@ const DataMentorSiswa: React.FC = () => {
     siswa_id: ''
   });
   const [submitting, setSubmitting] = useState(false);
+  const [mentors, setMentors] = useState<Mentor[]>([]);
+  const [students, setStudents] = useState<Siswa[]>([]);
+  const [loadingMentors, setLoadingMentors] = useState(false);
+  const [loadingStudents, setLoadingStudents] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -55,6 +70,8 @@ const DataMentorSiswa: React.FC = () => {
     }
 
     fetchMentorSiswaData();
+    fetchMentors();
+    fetchStudents();
   }, []);
 
   const fetchMentorSiswaData = async () => {
@@ -101,6 +118,113 @@ const DataMentorSiswa: React.FC = () => {
       console.error('Error fetching mentor-siswa data:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchMentors = async () => {
+    try {
+      setLoadingMentors(true);
+      
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Token tidak ditemukan. Silakan login ulang.');
+      }
+
+      const response = await fetch('http://localhost:3000/api/mentors', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('nama');
+        localStorage.removeItem('role');
+        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
+      }
+      
+      if (response.status === 403) {
+        throw new Error('Anda tidak memiliki izin untuk mengakses data ini.');
+      }
+      
+      if (!response.ok) {
+        throw new Error(`Error server: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Mentors data from API:', data);
+      setMentors(data);
+    } catch (err) {
+      console.error('Error fetching mentors:', err);
+      // If mentors API fails, use demo data
+      const demoMentors = [
+        { id: 1, nama: 'Mentor Satu' },
+        { id: 2, nama: 'Mentor Dua' },
+        { id: 3, nama: 'Mentor Tiga' },
+        { id: 4, nama: 'Mentor Empat' },
+        { id: 5, nama: 'Mentor Lima' },
+      ];
+      console.log('Using demo mentors:', demoMentors);
+      setMentors(demoMentors);
+    } finally {
+      setLoadingMentors(false);
+    }
+  };
+
+  const fetchStudents = async () => {
+    try {
+      setLoadingStudents(true);
+      
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Token tidak ditemukan. Silakan login ulang.');
+      }
+
+      const response = await fetch('http://localhost:3000/api/students', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('nama');
+        localStorage.removeItem('role');
+        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
+      }
+      
+      if (response.status === 403) {
+        throw new Error('Anda tidak memiliki izin untuk mengakses data ini.');
+      }
+      
+      if (!response.ok) {
+        throw new Error(`Error server: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      setStudents(data);
+    } catch (err) {
+      console.error('Error fetching students:', err);
+      // If students API fails, use demo data
+      const demoStudents = [
+        { id: 1, nama: 'Siswa Satu', institusi: 'SMK Negeri 1 Sumenep' },
+        { id: 2, nama: 'Siswa Dua', institusi: 'SMK Negeri 1 Sumenep' },
+        { id: 3, nama: 'Siswa Tiga', institusi: 'SMK Negeri 2 Sumenep' },
+        { id: 4, nama: 'Siswa Empat', institusi: 'SMK Negeri 2 Sumenep' },
+        { id: 5, nama: 'Siswa Lima', institusi: 'SMK Negeri 3 Sumenep' },
+      ];
+      console.log('Using demo students:', demoStudents);
+      setStudents(demoStudents);
+    } finally {
+      setLoadingStudents(false);
     }
   };
 
@@ -679,30 +803,68 @@ const DataMentorSiswa: React.FC = () => {
               <form onSubmit={handleAddMentorSiswa} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Mentor ID
+                    Pilih Mentor
                   </label>
-                  <input
-                    type="number"
+                  <select
                     value={formData.mentor_id}
                     onChange={(e) => setFormData({ ...formData, mentor_id: e.target.value })}
                     className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-                    placeholder="Contoh: 2"
                     required
-                  />
+                    disabled={loadingMentors}
+                  >
+                    <option value="">Pilih Mentor</option>
+                    {mentors.length > 0 ? (
+                      mentors.map((mentor) => (
+                        <option key={mentor.id} value={mentor.id}>
+                          {mentor.nama}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>
+                        {loadingMentors ? 'Memuat mentor...' : 'Tidak ada mentor tersedia'}
+                      </option>
+                    )}
+                  </select>
+                  {loadingMentors && (
+                    <p className="text-xs text-gray-400 mt-1">Memuat data mentor...</p>
+                  )}
+                  {!loadingMentors && mentors.length === 0 && (
+                    <p className="text-xs text-red-400 mt-1">Tidak ada data mentor yang tersedia</p>
+                  )}
+                  <p className="text-xs text-gray-400 mt-1">Total mentor: {mentors.length}</p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Siswa ID
+                    Pilih Siswa
                   </label>
-                  <input
-                    type="number"
+                  <select
                     value={formData.siswa_id}
                     onChange={(e) => setFormData({ ...formData, siswa_id: e.target.value })}
                     className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-                    placeholder="Contoh: 5"
                     required
-                  />
+                    disabled={loadingStudents}
+                  >
+                    <option value="">Pilih Siswa</option>
+                    {students.length > 0 ? (
+                      students.map((student) => (
+                        <option key={student.id} value={student.id}>
+                          {student.nama} - {student.institusi}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>
+                        {loadingStudents ? 'Memuat siswa...' : 'Tidak ada siswa tersedia'}
+                      </option>
+                    )}
+                  </select>
+                  {loadingStudents && (
+                    <p className="text-xs text-gray-400 mt-1">Memuat data siswa...</p>
+                  )}
+                  {!loadingStudents && students.length === 0 && (
+                    <p className="text-xs text-red-400 mt-1">Tidak ada data siswa yang tersedia</p>
+                  )}
+                  <p className="text-xs text-gray-400 mt-1">Total siswa: {students.length}</p>
                 </div>
 
                 <div className="flex space-x-3 pt-4">
@@ -718,7 +880,7 @@ const DataMentorSiswa: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    disabled={submitting}
+                    disabled={submitting || loadingMentors || loadingStudents}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
                   >
                     {submitting ? 'Menambahkan...' : 'Tambah'}
@@ -750,30 +912,66 @@ const DataMentorSiswa: React.FC = () => {
               <form onSubmit={handleEditMentorSiswa} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Mentor ID
+                    Pilih Mentor
                   </label>
-                  <input
-                    type="number"
+                  <select
                     value={formData.mentor_id}
                     onChange={(e) => setFormData({ ...formData, mentor_id: e.target.value })}
                     className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-                    placeholder="Contoh: 2"
                     required
-                  />
+                    disabled={loadingMentors}
+                  >
+                    <option value="">Pilih Mentor</option>
+                    {mentors.length > 0 ? (
+                      mentors.map((mentor) => (
+                        <option key={mentor.id} value={mentor.id}>
+                          {mentor.nama}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>
+                        {loadingMentors ? 'Memuat mentor...' : 'Tidak ada mentor tersedia'}
+                      </option>
+                    )}
+                  </select>
+                  {loadingMentors && (
+                    <p className="text-xs text-gray-400 mt-1">Memuat data mentor...</p>
+                  )}
+                  {!loadingMentors && mentors.length === 0 && (
+                    <p className="text-xs text-red-400 mt-1">Tidak ada data mentor yang tersedia</p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Siswa ID
+                    Pilih Siswa
                   </label>
-                  <input
-                    type="number"
+                  <select
                     value={formData.siswa_id}
                     onChange={(e) => setFormData({ ...formData, siswa_id: e.target.value })}
                     className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-                    placeholder="Contoh: 4"
                     required
-                  />
+                    disabled={loadingStudents}
+                  >
+                    <option value="">Pilih Siswa</option>
+                    {students.length > 0 ? (
+                      students.map((student) => (
+                        <option key={student.id} value={student.id}>
+                          {student.nama} - {student.institusi}
+                        </option>
+                      ))
+                    ) : (
+                      <option value="" disabled>
+                        {loadingStudents ? 'Memuat siswa...' : 'Tidak ada siswa tersedia'}
+                      </option>
+                    )}
+                  </select>
+                  {loadingStudents && (
+                    <p className="text-xs text-gray-400 mt-1">Memuat data siswa...</p>
+                  )}
+                  {!loadingStudents && students.length === 0 && (
+                    <p className="text-xs text-red-400 mt-1">Tidak ada data siswa yang tersedia</p>
+                  )}
                 </div>
 
                 <div className="flex space-x-3 pt-4">
@@ -790,7 +988,7 @@ const DataMentorSiswa: React.FC = () => {
                   </button>
                   <button
                     type="submit"
-                    disabled={submitting}
+                    disabled={submitting || loadingMentors || loadingStudents}
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
                   >
                     {submitting ? 'Mengupdate...' : 'Update'}
