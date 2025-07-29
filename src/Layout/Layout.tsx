@@ -40,6 +40,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   } else if (role === 'guru') {
     menuItems = [
       { to: '/DashboardGuru', icon: 'fa fa-columns', label: 'Dashboard' },
+      { to: '/DataTugasGuru', icon: 'fa fa-tasks', label: 'Data Tugas' },
     ];
   }
 
