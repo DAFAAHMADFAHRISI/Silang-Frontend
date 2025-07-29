@@ -41,6 +41,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     menuItems = [
       { to: '/DashboardGuru', icon: 'fa fa-tachometer-alt', label: 'Dashboard' },
       { to: '/DataTugasGuru', icon: 'fa fa-clipboard-list', label: 'Data Tugas' },
+      { to: '/DataAbsensiGuru', icon: 'fa fa-user-check', label: 'Data Absensi' },
     ];
   }
 

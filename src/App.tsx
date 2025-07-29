@@ -21,6 +21,7 @@ import DataMentorSiswa from './Page/SuperAdmin/Data Mentor-Siswa';
 import DataGuruSiswa from './Page/SuperAdmin/Data Guru - Siswa';
 import DataRekap from './Page/SuperAdmin/Data Rekap';
 import DataTugasGuru from './Page/Guru/Data Tugas';
+import DataAbsensiGuru from './Page/Guru/Data Absensi';
 
 
 import './App.css';
@@ -41,6 +42,7 @@ function App() {
         <Route path='/DashboardMentor' element={<DashboardMentor />} />
         <Route path='/DashboardGuru' element={<DashboardGuru />} />
         <Route path='/DataTugasGuru' element={<DataTugasGuru />} />
+        <Route path='/DataAbsensiGuru' element={<DataAbsensiGuru />} />
         <Route path='/UserManagement' element={<UserManagement />} />
         <Route path='/Institusi' element={<Institusi />} />
         <Route path='/DataTugas' element={<DataTugas />} />
