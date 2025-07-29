@@ -16,31 +16,31 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   let menuItems: { to: string; icon: string; label: string }[] = [];
   if (role === 'superadmin') {
     menuItems = [
-      { to: '/DashboardSuperAdmin', icon: 'fa fa-columns', label: 'Dashboard' },
+      { to: '/DashboardSuperAdmin', icon: 'fa fa-tachometer-alt', label: 'Dashboard' },
       { to: '/Institusi', icon: 'fa fa-university', label: 'Data Institusi' },
-      { to: '/UserManagement', icon: 'fa fa-users-cog', label: 'User Management' },
-      { to: '/DataTugas', icon: 'fa fa-tasks', label: 'Data Tugas' },
+      { to: '/UserManagement', icon: 'fa fa-user-cog', label: 'User Management' },
+      { to: '/DataTugas', icon: 'fa fa-clipboard-list', label: 'Data Tugas' },
       { to: '/DataJadwal', icon: 'fa fa-calendar-alt', label: 'Data Jadwal' },
-      { to: '/DataAbsensi', icon: 'fa fa-users', label: 'Data Absensi' },
-      { to: '/DataMentorSiswa', icon: 'fa fa-users', label: 'Data Mentor - Siswa' },
-      { to: '/DataGuruSiswa', icon: 'fa fa-users', label: 'Data Guru - Siswa' },
-      { to: '/DataRekap', icon: 'fa fa-users', label: 'Data Rekap' },
+      { to: '/DataAbsensi', icon: 'fa fa-user-check', label: 'Data Absensi' },
+      { to: '/DataMentorSiswa', icon: 'fa fa-chalkboard-teacher', label: 'Data Mentor - Siswa' },
+      { to: '/DataGuruSiswa', icon: 'fa fa-user-graduate', label: 'Data Guru - Siswa' },
+      { to: '/DataRekap', icon: 'fa fa-chart-bar', label: 'Data Rekap' },
     ];
   } else if (role === 'siswa') {
     menuItems = [
-      { to: '/DashboardSiswa', icon: 'fa fa-columns', label: 'Dashboard' },
+      { to: '/DashboardSiswa', icon: 'fa fa-tachometer-alt', label: 'Dashboard' },
       { to: '/TodoSiswa', icon: 'fa fa-tasks', label: 'To Do' },
       { to: '/AttendanceSiswa', icon: 'fa fa-calendar-check', label: 'Attendance' },
       { to: '/ReportSiswa', icon: 'fa fa-file-alt', label: 'Report' },
     ];
   } else if (role === 'mentor') {
     menuItems = [
-      { to: '/DashboardMentor', icon: 'fa fa-columns', label: 'Dashboard' },
+      { to: '/DashboardMentor', icon: 'fa fa-tachometer-alt', label: 'Dashboard' },
     ];
   } else if (role === 'guru') {
     menuItems = [
-      { to: '/DashboardGuru', icon: 'fa fa-columns', label: 'Dashboard' },
-      { to: '/DataTugasGuru', icon: 'fa fa-tasks', label: 'Data Tugas' },
+      { to: '/DashboardGuru', icon: 'fa fa-tachometer-alt', label: 'Dashboard' },
+      { to: '/DataTugasGuru', icon: 'fa fa-clipboard-list', label: 'Data Tugas' },
     ];
   }
 

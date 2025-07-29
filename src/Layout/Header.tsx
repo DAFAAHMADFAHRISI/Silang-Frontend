@@ -59,13 +59,13 @@ const Header: React.FC = () => {
           {open && (
             <div className="absolute right-0 top-full mt-2 w-60 bg-[#232834] rounded shadow-lg z-50 border border-gray-700 py-2 flex flex-col gap-1">
               <button
-                className="w-full text-left px-6 py-3 text-white hover:bg-gray-700 text-lg rounded"
+                className="w-full text-left px-6 py-1 text-white hover:bg-gray-700 text-base rounded font-semibold"
                 onClick={() => { setOpen(false); navigate('/ProfileSiswa'); }}
               >
                 Profile
               </button>
               <button
-                className="w-full text-left px-6 py-3 text-white hover:bg-gray-700 text-lg rounded"
+                className="w-full text-left px-6 py-1 text-white hover:bg-gray-700 text-base rounded font-semibold"
                 onClick={() => {
                   setOpen(false);
                   localStorage.removeItem('token');
