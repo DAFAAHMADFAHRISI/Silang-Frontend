@@ -23,6 +23,7 @@ import DataRekap from './Page/SuperAdmin/Data Rekap';
 import DataTugasGuru from './Page/Guru/Data Tugas';
 import DataAbsensiGuru from './Page/Guru/Data Absensi';
 import DataRekapGuru from './Page/Guru/Data Rekap';
+import TugasMentor from './Page/Mentor/TugasMentor';
 
 
 import './App.css';
@@ -53,6 +54,7 @@ function App() {
         <Route path='/DataMentorSiswa' element={<DataMentorSiswa />} />
         <Route path='/DataGuruSiswa' element={<DataGuruSiswa />} />
         <Route path='/DataRekap' element={<DataRekap />} />
+        <Route path='/TugasMentor' element={<TugasMentor />} />
       </Routes>
     </Router>
   );
