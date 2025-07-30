@@ -36,6 +36,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   } else if (role === 'mentor') {
     menuItems = [
       { to: '/DashboardMentor', icon: 'fa fa-tachometer-alt', label: 'Dashboard' },
+      { to: '/TugasMentor', icon: 'fa fa-clipboard-list', label: 'Data Tugas' },
     ];
   } else if (role === 'guru') {
     menuItems = [
