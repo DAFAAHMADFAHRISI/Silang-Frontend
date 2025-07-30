@@ -37,6 +37,13 @@ const Login: React.FC = () => {
         localStorage.setItem('token', data.token);
         if (data.nama) localStorage.setItem('nama', data.nama);
         if (data.role) localStorage.setItem('role', data.role);
+        if (data.id) localStorage.setItem('user_id', data.id.toString());
+        if (data.mentor_id) localStorage.setItem('mentor_id', data.mentor_id.toString());
+        if (data.user_id) localStorage.setItem('user_id', data.user_id.toString());
+        
+        // Store complete user data for debugging
+        localStorage.setItem('user_data', JSON.stringify(data));
+        
         // Redirect sesuai role
         if (data.role === 'siswa') {
           navigate('/DashboardSiswa');

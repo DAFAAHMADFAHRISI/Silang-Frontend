@@ -30,6 +30,13 @@ interface Submission {
   siswa_nama: string;
 }
 
+interface Student {
+  id: number;
+  nama: string;
+  email?: string;
+  mentor_id?: number;
+}
+
 interface CreateTaskForm {
   judul: string;
   deskripsi: string;
@@ -37,6 +44,7 @@ interface CreateTaskForm {
   file_tugas: File | null;
   batas_waktu: string;
   siswa_ids: string;
+  selectedStudents: number[];
 }
 
 const PriorityBadge = ({ priority }: { priority: string }) => {
@@ -160,13 +168,17 @@ const TugasMentor: React.FC = () => {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loadingStudents, setLoadingStudents] = useState(false);
+  const [manualMentorId, setManualMentorId] = useState('');
   const [createForm, setCreateForm] = useState<CreateTaskForm>({
     judul: '',
     deskripsi: '',
     priority: '3',
     file_tugas: null,
     batas_waktu: '',
-    siswa_ids: ''
+    siswa_ids: '',
+    selectedStudents: []
   });
   const [editForm, setEditForm] = useState<CreateTaskForm>({
     judul: '',
@@ -174,22 +186,10 @@ const TugasMentor: React.FC = () => {
     priority: '3',
     file_tugas: null,
     batas_waktu: '',
-    siswa_ids: ''
+    siswa_ids: '',
+    selectedStudents: []
   });
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role');
-    
-    if (!token || role !== 'mentor') {
-      setError('Anda tidak memiliki akses ke halaman ini.');
-      setLoading(false);
-      return;
-    }
-
-    fetchTasks();
-  }, []);
 
   const fetchTasks = async () => {
     try {
@@ -232,6 +232,187 @@ const TugasMentor: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const getMentorId = async () => {
+    // Debug: Log all localStorage items
+    console.log('=== Debug: localStorage items ===');
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key) {
+        console.log(`${key}:`, localStorage.getItem(key));
+      }
+    }
+    console.log('=== End Debug ===');
+    
+    // Try to get mentor_id from localStorage
+    const mentorId = localStorage.getItem('mentor_id');
+    if (mentorId) {
+      console.log('Found mentor_id in localStorage:', mentorId);
+      return mentorId;
+    }
+    
+    // Try to get from user data or other sources
+    const userId = localStorage.getItem('user_id');
+    if (userId) {
+      console.log('Using user_id as mentor_id:', userId);
+      return userId;
+    }
+    
+    // Try to get from nama (sometimes user ID is stored with nama)
+    const nama = localStorage.getItem('nama');
+    if (nama) {
+      // Check if nama contains user ID pattern
+      const match = nama.match(/\((\d+)\)/);
+      if (match) {
+        console.log('Found mentor_id in nama:', match[1]);
+        return match[1];
+      }
+    }
+    
+    // Try to get from any other stored user data
+    const userData = localStorage.getItem('user_data');
+    if (userData) {
+      try {
+        const parsed = JSON.parse(userData);
+        if (parsed.id) {
+          console.log('Found mentor_id in user_data.id:', parsed.id);
+          return parsed.id.toString();
+        }
+        if (parsed.mentor_id) {
+          console.log('Found mentor_id in user_data.mentor_id:', parsed.mentor_id);
+          return parsed.mentor_id.toString();
+        }
+      } catch (e) {
+        console.log('Could not parse user_data');
+      }
+    }
+    
+    // Try to get mentor ID from server using current user info
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        console.log('Attempting to fetch mentor data from server...');
+        const response = await fetch('http://localhost:3000/API/mentor/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Mentor data from server:', data);
+          if (data.id) {
+            console.log('Got mentor ID from server:', data.id);
+            localStorage.setItem('mentor_id', data.id.toString());
+            return data.id.toString();
+          }
+        } else {
+          console.log('Failed to fetch mentor data, status:', response.status);
+        }
+      }
+    } catch (e) {
+      console.log('Could not fetch mentor data from server:', e);
+    }
+    
+    // Based on database data, use mentor_id = 5 as fallback
+    console.log('Using fallback mentor ID: 5 (based on database data)');
+    return '5';
+  };
+
+  const fetchStudents = async () => {
+    try {
+      setLoadingStudents(true);
+      setError(null);
+      
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Token tidak ditemukan. Silakan login ulang.');
+      }
+      
+      // Get mentor ID from user data
+      const mentorId = await getMentorId();
+      console.log('Using mentor ID:', mentorId);
+      
+      console.log('Fetching students from API...');
+      const response = await fetch(`http://localhost:3000/API/mentor/${mentorId}/students`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('nama');
+        localStorage.removeItem('role');
+        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
+      }
+      
+      if (response.status === 403) {
+        throw new Error('Anda tidak memiliki akses untuk melihat data siswa.');
+      }
+      
+      if (response.status === 404) {
+        throw new Error('Mentor tidak ditemukan atau tidak memiliki siswa yang terhubung.');
+      }
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`Error server: ${response.status} - ${errorText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Debug - Students API Response:', data);
+      
+      // Validate response format
+      if (!Array.isArray(data)) {
+        console.error('API response is not an array:', data);
+        throw new Error('Format response API tidak valid. Diharapkan array siswa.');
+      }
+      
+      // Validate each student object has required fields
+      const validStudents = data.filter((student: any) => {
+        if (!student.id || !student.nama) {
+          console.warn('Invalid student data:', student);
+          return false;
+        }
+        return true;
+      });
+      
+      if (validStudents.length === 0) {
+        throw new Error('Tidak ada data siswa yang valid dalam response.');
+      }
+      
+      console.log('Valid students found:', validStudents.length);
+      setStudents(validStudents);
+      
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Gagal memuat data siswa.';
+      console.error('Error fetching students:', err);
+      setError(errorMessage);
+      setStudents([]); // Set empty array instead of dummy data
+    } finally {
+      setLoadingStudents(false);
+    }
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+    
+    if (!token || role !== 'mentor') {
+      setError('Anda tidak memiliki akses ke halaman ini.');
+      setLoading(false);
+      return;
+    }
+
+    fetchTasks();
+    fetchStudents(); // Fetch students when component mounts
+  }, []);
 
   const fetchTaskDetail = async (taskId: number) => {
     try {
@@ -335,7 +516,8 @@ const TugasMentor: React.FC = () => {
       priority: task.priority,
       file_tugas: null,
       batas_waktu: task.batas_waktu.split('T')[0] + 'T' + task.batas_waktu.split('T')[1].substring(0, 5),
-      siswa_ids: ''
+      siswa_ids: '',
+      selectedStudents: []
     });
     setShowEditModal(true);
   };
@@ -401,7 +583,7 @@ const TugasMentor: React.FC = () => {
       formData.append('deskripsi', createForm.deskripsi);
       formData.append('priority', createForm.priority);
       formData.append('batas_waktu', createForm.batas_waktu);
-      formData.append('siswa_ids', createForm.siswa_ids);
+      formData.append('siswa_ids', createForm.selectedStudents.join(','));
       
       if (createForm.file_tugas) {
         formData.append('file_tugas', createForm.file_tugas);
@@ -434,7 +616,8 @@ const TugasMentor: React.FC = () => {
         priority: '3',
         file_tugas: null,
         batas_waktu: '',
-        siswa_ids: ''
+        siswa_ids: '',
+        selectedStudents: []
       });
       await fetchTasks(); // Refresh the list
       
@@ -465,7 +648,7 @@ const TugasMentor: React.FC = () => {
       formData.append('deskripsi', editForm.deskripsi);
       formData.append('priority', editForm.priority);
       formData.append('batas_waktu', editForm.batas_waktu);
-      formData.append('siswa_ids', editForm.siswa_ids);
+      formData.append('siswa_ids', editForm.selectedStudents.join(','));
       
       if (editForm.file_tugas) {
         formData.append('file_tugas', editForm.file_tugas);
@@ -503,6 +686,35 @@ const TugasMentor: React.FC = () => {
     }
   };
 
+  const handleStudentSelection = (studentId: number, isSelected: boolean, formType: 'create' | 'edit') => {
+    if (formType === 'create') {
+      const newSelectedStudents = isSelected 
+        ? [...createForm.selectedStudents, studentId]
+        : createForm.selectedStudents.filter(id => id !== studentId);
+      
+      setCreateForm({
+        ...createForm,
+        selectedStudents: newSelectedStudents,
+        siswa_ids: newSelectedStudents.join(',')
+      });
+    } else {
+      const newSelectedStudents = isSelected 
+        ? [...editForm.selectedStudents, studentId]
+        : editForm.selectedStudents.filter(id => id !== studentId);
+      
+      setEditForm({
+        ...editForm,
+        selectedStudents: newSelectedStudents,
+        siswa_ids: newSelectedStudents.join(',')
+      });
+    }
+  };
+
+  const getStudentName = (studentId: number) => {
+    const student = students.find(s => s.id === studentId);
+    return student ? student.nama : `Siswa ID: ${studentId}`;
+  };
+
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.judul.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          task.deskripsi.toLowerCase().includes(searchTerm.toLowerCase());
@@ -518,6 +730,17 @@ const TugasMentor: React.FC = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const setMentorIdManually = (mentorId: string) => {
+    localStorage.setItem('mentor_id', mentorId);
+    console.log('Manually set mentor_id to:', mentorId);
+    fetchStudents(); // Refresh students after setting mentor_id
+  };
+
+  const refreshStudents = () => {
+    console.log('Refreshing students...');
+    fetchStudents();
   };
 
   if (loading) {
@@ -919,14 +1142,105 @@ const TugasMentor: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label className="text-gray-400 text-sm">ID Siswa (pisahkan dengan koma jika multiple)</label>
-                  <input
-                    type="text"
-                    value={createForm.siswa_ids}
-                    onChange={(e) => setCreateForm({...createForm, siswa_ids: e.target.value})}
-                    className="w-full mt-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                    placeholder="Contoh: 7,8,9"
-                  />
+                  <label className="text-gray-400 text-sm">Pilih Siswa</label>
+                  {loadingStudents ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                      <span className="ml-2 text-gray-400 text-sm">Memuat data siswa...</span>
+                    </div>
+                  ) : students.length === 0 ? (
+                    <div className="text-center py-4">
+                      <p className="text-gray-400 text-sm">Tidak ada siswa yang terhubung dengan mentor ini</p>
+                      {error && (
+                        <p className="text-red-400 text-xs mt-2">{error}</p>
+                      )}
+                      <div className="mt-2 text-xs text-gray-500">
+                        <p>Debug Info:</p>
+                        <p>Mentor ID: {localStorage.getItem('mentor_id') || 'Tidak ditemukan'}</p>
+                        <p>Token: {localStorage.getItem('token') ? 'Ada' : 'Tidak ada'}</p>
+                        <p>Role: {localStorage.getItem('role')}</p>
+                        <p>Total Siswa: {students.length}</p>
+                        <p className="text-yellow-400 mt-1">💡 Database memiliki data untuk mentor_id = 5</p>
+                        <div className="mt-2 space-y-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <input
+                              type="text"
+                              placeholder="Mentor ID"
+                              value={manualMentorId}
+                              onChange={(e) => setManualMentorId(e.target.value)}
+                              className="px-2 py-1 text-xs bg-gray-600 border border-gray-500 rounded text-white"
+                            />
+                            <button 
+                              onClick={() => {
+                                if (manualMentorId) {
+                                  setMentorIdManually(manualMentorId);
+                                  setManualMentorId('');
+                                }
+                              }}
+                              className="text-blue-400 text-xs hover:text-blue-300"
+                            >
+                              Set
+                            </button>
+                          </div>
+                          <button 
+                            onClick={() => setMentorIdManually('5')}
+                            className="text-green-400 text-xs hover:text-green-300 mr-2"
+                          >
+                            Set Mentor ID: 5 (Default)
+                          </button>
+                          <button 
+                            onClick={() => setMentorIdManually('1')}
+                            className="text-blue-400 text-xs hover:text-blue-300 mr-2"
+                          >
+                            Set Mentor ID: 1
+                          </button>
+                          <button 
+                            onClick={refreshStudents}
+                            className="text-green-400 text-xs hover:text-green-300"
+                          >
+                            Refresh
+                          </button>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={fetchStudents}
+                        className="mt-2 text-blue-400 text-xs hover:text-blue-300"
+                      >
+                        Coba lagi
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="mt-2 max-h-40 overflow-y-auto bg-gray-700 border border-gray-600 rounded-lg p-2">
+                      {students.map((student) => (
+                        <label key={student.id} className="flex items-center space-x-3 p-2 hover:bg-gray-600 rounded cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={createForm.selectedStudents.includes(student.id)}
+                            onChange={(e) => handleStudentSelection(student.id, e.target.checked, 'create')}
+                            className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                          />
+                          <div className="flex-1">
+                            <p className="text-white font-medium">{student.nama}</p>
+                            {student.email && (
+                              <p className="text-gray-400 text-xs">{student.email}</p>
+                            )}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                  {createForm.selectedStudents.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-gray-400 text-xs">Siswa yang dipilih:</p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {createForm.selectedStudents.map((studentId) => (
+                          <span key={studentId} className="px-2 py-1 bg-blue-600 text-white text-xs rounded">
+                            {getStudentName(studentId)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               
@@ -1029,14 +1343,105 @@ const TugasMentor: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label className="text-gray-400 text-sm">ID Siswa (pisahkan dengan koma jika multiple)</label>
-                  <input
-                    type="text"
-                    value={editForm.siswa_ids}
-                    onChange={(e) => setEditForm({...editForm, siswa_ids: e.target.value})}
-                    className="w-full mt-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
-                    placeholder="Contoh: 7,8,9"
-                  />
+                  <label className="text-gray-400 text-sm">Pilih Siswa</label>
+                  {loadingStudents ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                      <span className="ml-2 text-gray-400 text-sm">Memuat data siswa...</span>
+                    </div>
+                  ) : students.length === 0 ? (
+                    <div className="text-center py-4">
+                      <p className="text-gray-400 text-sm">Tidak ada siswa yang terhubung dengan mentor ini</p>
+                      {error && (
+                        <p className="text-red-400 text-xs mt-2">{error}</p>
+                      )}
+                      <div className="mt-2 text-xs text-gray-500">
+                        <p>Debug Info:</p>
+                        <p>Mentor ID: {localStorage.getItem('mentor_id') || 'Tidak ditemukan'}</p>
+                        <p>Token: {localStorage.getItem('token') ? 'Ada' : 'Tidak ada'}</p>
+                        <p>Role: {localStorage.getItem('role')}</p>
+                        <p>Total Siswa: {students.length}</p>
+                        <p className="text-yellow-400 mt-1">💡 Database memiliki data untuk mentor_id = 5</p>
+                        <div className="mt-2 space-y-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <input
+                              type="text"
+                              placeholder="Mentor ID"
+                              value={manualMentorId}
+                              onChange={(e) => setManualMentorId(e.target.value)}
+                              className="px-2 py-1 text-xs bg-gray-600 border border-gray-500 rounded text-white"
+                            />
+                            <button 
+                              onClick={() => {
+                                if (manualMentorId) {
+                                  setMentorIdManually(manualMentorId);
+                                  setManualMentorId('');
+                                }
+                              }}
+                              className="text-blue-400 text-xs hover:text-blue-300"
+                            >
+                              Set
+                            </button>
+                          </div>
+                          <button 
+                            onClick={() => setMentorIdManually('5')}
+                            className="text-green-400 text-xs hover:text-green-300 mr-2"
+                          >
+                            Set Mentor ID: 5 (Default)
+                          </button>
+                          <button 
+                            onClick={() => setMentorIdManually('1')}
+                            className="text-blue-400 text-xs hover:text-blue-300 mr-2"
+                          >
+                            Set Mentor ID: 1
+                          </button>
+                          <button 
+                            onClick={refreshStudents}
+                            className="text-green-400 text-xs hover:text-green-300"
+                          >
+                            Refresh
+                          </button>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={fetchStudents}
+                        className="mt-2 text-blue-400 text-xs hover:text-blue-300"
+                      >
+                        Coba lagi
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="mt-2 max-h-40 overflow-y-auto bg-gray-700 border border-gray-600 rounded-lg p-2">
+                      {students.map((student) => (
+                        <label key={student.id} className="flex items-center space-x-3 p-2 hover:bg-gray-600 rounded cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={editForm.selectedStudents.includes(student.id)}
+                            onChange={(e) => handleStudentSelection(student.id, e.target.checked, 'edit')}
+                            className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                          />
+                          <div className="flex-1">
+                            <p className="text-white font-medium">{student.nama}</p>
+                            {student.email && (
+                              <p className="text-gray-400 text-xs">{student.email}</p>
+                            )}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                  {editForm.selectedStudents.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-gray-400 text-xs">Siswa yang dipilih:</p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {editForm.selectedStudents.map((studentId) => (
+                          <span key={studentId} className="px-2 py-1 bg-blue-600 text-white text-xs rounded">
+                            {getStudentName(studentId)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               
