@@ -6,15 +6,18 @@ const Header: React.FC = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const [nama, setNama] = useState<string>('User');
+  const [role, setRole] = useState<string>('');
 
   useEffect(() => {
-    const updateNama = () => {
+    const updateUserData = () => {
       const storedNama = localStorage.getItem('nama');
+      const storedRole = localStorage.getItem('role');
       setNama(storedNama || 'User');
+      setRole(storedRole || '');
     };
-    updateNama();
-    window.addEventListener('storage', updateNama);
-    return () => window.removeEventListener('storage', updateNama);
+    updateUserData();
+    window.addEventListener('storage', updateUserData);
+    return () => window.removeEventListener('storage', updateUserData);
   }, []);
 
   // Close dropdown if clicked outside
@@ -58,12 +61,14 @@ const Header: React.FC = () => {
           </svg>
           {open && (
             <div className="absolute right-0 top-full mt-2 w-60 bg-[#232834] rounded shadow-lg z-50 border border-gray-700 py-2 flex flex-col gap-1">
-              <button
-                className="w-full text-left px-6 py-1 text-white hover:bg-gray-700 text-base rounded font-semibold"
-                onClick={() => { setOpen(false); navigate('/ProfileSiswa'); }}
-              >
-                Profile
-              </button>
+              {role === 'siswa' && (
+                <button
+                  className="w-full text-left px-6 py-1 text-white hover:bg-gray-700 text-base rounded font-semibold"
+                  onClick={() => { setOpen(false); navigate('/ProfileSiswa'); }}
+                >
+                  Profile
+                </button>
+              )}
               <button
                 className="w-full text-left px-6 py-1 text-white hover:bg-gray-700 text-base rounded font-semibold"
                 onClick={() => {
