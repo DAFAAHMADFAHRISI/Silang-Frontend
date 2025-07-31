@@ -237,6 +237,9 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  // Get user name from localStorage
+  const userName = localStorage.getItem('nama') || 'Guru';
+
   useEffect(() => {
     // Check if user is logged in
     const token = localStorage.getItem('token');
@@ -516,7 +519,7 @@ const Dashboard: React.FC = () => {
               Dashboard
             </h1>
           </div>
-          <p className="text-gray-400 mt-2 ml-5">Selamat datang, berikut rekap hari ini.</p>
+          <p className="text-gray-400 mt-2 ml-5">Selamat datang, {userName}! Berikut rekap hari ini.</p>
         </div>
         <Divider />
         {/* Statistics Section */}
