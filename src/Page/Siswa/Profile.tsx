@@ -186,17 +186,98 @@ const Profile: React.FC = () => {
     if (webcamRef.current) {
       const imageSrc = webcamRef.current.getScreenshot();
       if (imageSrc) {
-        // Convert base64 to blob
-        fetch(imageSrc)
-          .then(res => res.blob())
-          .then(blob => {
-            const file = new File([blob], 'profile-photo.jpg', { type: 'image/jpeg' });
-            uploadPhoto(file);
+        // Basic validation - check if image is not empty
+        if (imageSrc === 'data:image/jpeg;base64,') {
+          Swal.fire({
+            icon: 'error',
+            title: 'Foto tidak valid!',
+            text: 'Tidak dapat mengambil foto. Pastikan kamera berfungsi dengan baik.',
           });
+          return;
+        }
+
+        // Simple face detection validation
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx?.drawImage(img, 0, 0);
+          
+          const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
+          if (imageData) {
+            const data = imageData.data;
+            let skinPixels = 0;
+            let totalPixels = 0;
+            
+            // Calculate skin tone pixels (simple face detection)
+            for (let i = 0; i < data.length; i += 4) {
+              const r = data[i];
+              const g = data[i + 1];
+              const b = data[i + 2];
+              
+              // Simple skin tone detection
+              const isSkinTone = 
+                r > 95 && g > 40 && b > 20 &&
+                Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
+                Math.abs(r - g) > 15 && r > g && r > b;
+              
+              if (isSkinTone) {
+                skinPixels++;
+              }
+              totalPixels++;
+            }
+            
+            const skinRatio = skinPixels / totalPixels;
+            
+            // Check if there's enough skin tone (indicating a face)
+            if (skinRatio < 0.05) { // Less than 5% skin tone
+              Swal.fire({
+                icon: 'error',
+                title: 'Wajah tidak terdeteksi!',
+                text: 'Tidak dapat mendeteksi wajah dalam foto. Pastikan wajah Anda terlihat jelas.',
+              });
+              return;
+            }
+            
+            // If validation passes, proceed with upload
+            fetch(imageSrc)
+              .then(res => res.blob())
+              .then(blob => {
+                const file = new File([blob], 'profile-photo.jpg', { type: 'image/jpeg' });
+                uploadPhoto(file);
+              })
+              .catch(error => {
+                console.error('Error processing photo:', error);
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Gagal memproses foto!',
+                  text: 'Terjadi kesalahan saat memproses foto. Silakan coba lagi.',
+                });
+              });
+          }
+        };
+        
+        img.onerror = () => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal memproses foto!',
+            text: 'Tidak dapat memproses gambar. Silakan coba lagi.',
+          });
+        };
+        
+        img.src = imageSrc;
         
         // Close modal
         setShowCameraButton(false);
         setCameraLoading(false);
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Tidak dapat mengambil foto!',
+          text: 'Pastikan kamera berfungsi dengan baik.',
+        });
       }
     }
   }, []);
@@ -232,7 +313,19 @@ const Profile: React.FC = () => {
       }
 
       if (!response.ok) {
-        throw new Error(`Error server: ${response.status} ${response.statusText}`);
+        const errorData = await response.json();
+        let errorMessage = errorData.message || 'Gagal mengupdate foto profil.';
+        
+        // Handle specific error cases
+        if (errorData.message && errorData.message.includes('face')) {
+          errorMessage = 'Wajah tidak terdeteksi dalam foto. Pastikan wajah Anda terlihat jelas dan tidak terhalang.';
+        } else if (errorData.message && errorData.message.includes('size')) {
+          errorMessage = 'Ukuran foto terlalu besar. Silakan pilih foto dengan ukuran yang lebih kecil.';
+        } else if (errorData.message && errorData.message.includes('format')) {
+          errorMessage = 'Format foto tidak didukung. Gunakan format JPG atau PNG.';
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -299,72 +392,128 @@ const Profile: React.FC = () => {
       return;
     }
 
-    try {
-      setUploading(true);
-      setCameraError(null);
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setCameraError('File harus berupa gambar.');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setCameraError('Ukuran file terlalu besar. Maksimal 5MB.');
+      return;
+    }
+
+    // Create image element to validate content
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx?.drawImage(img, 0, 0);
       
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        throw new Error('Token tidak ditemukan. Silakan login ulang.');
+      const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
+      if (imageData) {
+        const data = imageData.data;
+        let totalBrightness = 0;
+        let totalPixels = 0;
+        
+        // Calculate average brightness
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          const brightness = (r + g + b) / 3;
+          totalBrightness += brightness;
+          totalPixels++;
+        }
+        
+        const avgBrightness = totalBrightness / totalPixels;
+        
+        // Calculate contrast
+        let contrast = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          const brightness = (r + g + b) / 3;
+          contrast += Math.abs(brightness - avgBrightness);
+        }
+        const avgContrast = contrast / totalPixels;
+        
+        // Face detection using skin tone
+        let skinPixels = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          
+          // Simple skin tone detection
+          const isSkinTone = 
+            r > 95 && g > 40 && b > 20 &&
+            Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
+            Math.abs(r - g) > 15 && r > g && r > b;
+          
+          if (isSkinTone) {
+            skinPixels++;
+          }
+        }
+        
+        const skinRatio = skinPixels / totalPixels;
+        
+        // Validation checks
+        if (avgBrightness < 50) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Foto terlalu gelap!',
+            text: 'Tidak dapat mendeteksi wajah. Pastikan pencahayaan cukup.',
+          });
+          return;
+        }
+        
+        if (avgBrightness > 200) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Foto terlalu terang!',
+            text: 'Foto terlalu terang. Pilih foto dengan pencahayaan yang tepat.',
+          });
+          return;
+        }
+        
+        if (avgContrast < 20) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Tidak dapat mendeteksi wajah!',
+            text: 'Foto terlalu blur atau tidak ada wajah yang terlihat.',
+          });
+          return;
+        }
+        
+        // Check if there's enough skin tone (indicating a face)
+        if (skinRatio < 0.05) { // Less than 5% skin tone
+          Swal.fire({
+            icon: 'error',
+            title: 'Wajah tidak terdeteksi!',
+            text: 'Tidak dapat mendeteksi wajah dalam foto. Pastikan wajah Anda terlihat jelas.',
+          });
+          return;
+        }
+        
+        // If validation passes, proceed with upload
+        uploadPhoto(file);
       }
-
-      const formData = new FormData();
-      formData.append('foto_profile', file);
-
-      const response = await fetch('http://localhost:3000/api/profile/picture/update', {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      if (response.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('nama');
-        localStorage.removeItem('role');
-        localStorage.removeItem('user_id');
-        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
-      }
-
-      if (!response.ok) {
-        throw new Error(`Error server: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('Debug - Profile Picture Update Response:', data);
-      
-      // Update the profile picture data with the new response
-      setProfilePicture({
-        foto_profile: data.foto_profile,
-        foto_profile_url: data.foto_profile_url
-      });
-      
-      // Show success message
-      Swal.fire({
-        icon: 'success',
-        title: 'Foto profil berhasil diperbarui!',
-        showConfirmButton: false,
-        timer: 2000,
-      });
-      
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Gagal memperbarui foto profil.';
-      setCameraError(errorMessage);
-      console.error('Error updating profile picture:', err);
+    };
+    
+    img.onerror = () => {
       Swal.fire({
         icon: 'error',
-        title: 'Gagal memperbarui foto profil!',
-        text: errorMessage,
+        title: 'File tidak valid!',
+        text: 'Tidak dapat memproses gambar. Pilih file gambar yang valid.',
       });
-    } finally {
-      setUploading(false);
-      // Reset the file input
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
+    };
+    
+    img.src = URL.createObjectURL(file);
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -512,10 +661,6 @@ const Profile: React.FC = () => {
                 <p className="text-gray-400 text-sm">
                   {cameraLoading ? 'Memulai kamera...' : 'Posisikan wajah Anda di dalam kotak'}
                 </p>
-                {/* Debug info */}
-                <p className="text-xs text-gray-500 mt-1">
-                  Modal Active - Loading: {cameraLoading.toString()}
-                </p>
               </div>
               
               <div className="relative">
@@ -558,7 +703,7 @@ const Profile: React.FC = () => {
                   onClick={capturePhoto}
                   disabled={cameraLoading}
                   className={`flex-1 px-4 py-2 rounded font-semibold ${
-                    cameraLoading 
+                    cameraLoading
                       ? 'bg-gray-500 cursor-not-allowed' 
                       : 'bg-blue-600 hover:bg-blue-700 text-white'
                   }`}
@@ -567,7 +712,6 @@ const Profile: React.FC = () => {
                 </button>
                 <button
                   onClick={() => {
-                    console.log('Closing camera modal...');
                     setShowCameraButton(false);
                     setCameraLoading(false);
                   }}
