@@ -1,46 +1,41 @@
-# Getting Started with Create React App
+Memulai Proyek dengan Create React App (TypeScript + Tailwind CSS)
+Proyek ini dibuat menggunakan Create React App dengan template TypeScript dan telah dikonfigurasi untuk menggunakan Tailwind CSS.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Skrip yang Tersedia
+Di dalam direktori proyek, Anda dapat menjalankan perintah-perintah berikut:
 
-## Available Scripts
+npm start
+Menjalankan aplikasi dalam mode pengembangan.
+Buka http://localhost:3333 di peramban untuk melihat hasilnya.
 
-In the project directory, you can run:
+Halaman akan dimuat ulang secara otomatis saat Anda melakukan perubahan pada kode.
+Setiap kesalahan linting juga akan muncul di konsol.
 
-### `npm start`
+npm test
+Menjalankan pengujian dalam mode interaktif.
+Lihat dokumentasi menjalankan pengujian untuk informasi lebih lanjut.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+npm run build
+Membangun aplikasi untuk produksi ke dalam folder build.
+React akan dibundel dalam mode produksi dan dioptimalkan untuk performa terbaik.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+File yang dihasilkan telah di-minify, dan nama file mencakup hash unik.
+Aplikasi Anda siap untuk dideploy.
 
-### `npm test`
+Lihat bagian deployment untuk informasi selengkapnya.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+npm run eject
+⚠️ Catatan: Operasi ini bersifat permanen! Setelah dieject, tidak bisa dibatalkan.
 
-### `npm run build`
+Jika Anda ingin memiliki kontrol penuh atas konfigurasi build dan dependensi seperti Webpack, Babel, ESLint, dsb., Anda bisa menjalankan eject.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Setelah itu, seluruh konfigurasi akan disalin ke dalam proyek Anda, dan perintah-perintah akan mengacu pada konfigurasi lokal tersebut.
+Namun, fitur ini tidak wajib digunakan kecuali benar-benar diperlukan.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Pelajari Lebih Lanjut
+Dokumentasi lengkap tentang Create React App
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Panduan belajar React
 
-### `npm run eject`
+Panduan resmi Tailwind CSS
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
