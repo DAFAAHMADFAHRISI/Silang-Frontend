@@ -157,6 +157,9 @@ const AttendanceCard: React.FC<AttendanceCardProps> = ({ name, email, checkIn, l
 )
 
 const Dashboard: React.FC = () => {
+  // Get user name from localStorage
+  const userName = localStorage.getItem('nama') || 'Siswa';
+
   const stats = [
     {
       title: "Hadir Hari Ini",
@@ -223,7 +226,7 @@ const Dashboard: React.FC = () => {
             Dashboard
           </h1>
         </div>
-        <p className="text-gray-400 mt-2 ml-5">Welcome back! Here's what's happening today.</p>
+        <p className="text-gray-400 mt-2 ml-5">Selamat datang, {userName}! Berikut rekap hari ini.</p>
       </div>
 
       <Divider />
