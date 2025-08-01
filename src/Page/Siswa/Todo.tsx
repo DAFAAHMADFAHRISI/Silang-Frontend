@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, TrendingUp, CheckCircle, AlertCircle, Award, Users, Clock, Search, Filter, RefreshCw } from 'lucide-react';
+import { Calendar, TrendingUp, CheckCircle, AlertCircle, Award, Users, Clock, Search, Filter, RefreshCw, X, FileText, Download, Eye } from 'lucide-react';
 
 const Divider = () => <div className="border-t border-gray-700/50 my-6 sm:my-8 w-full" />;
 
@@ -22,9 +22,262 @@ interface Task {
 
 interface TaskCardProps {
   task: Task;
+  onTaskClick: (task: Task) => void;
 }
 
-const TaskCard = ({ task }: TaskCardProps) => {
+interface TaskModalProps {
+  task: Task | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const TaskModal = ({ task, isOpen, onClose }: TaskModalProps) => {
+  const [loading, setLoading] = useState(false);
+  const [detailedTask, setDetailedTask] = useState<Task | null>(null);
+
+  // Fetch detailed task data when modal opens
+  useEffect(() => {
+    if (isOpen && task) {
+      fetchDetailedTask();
+    }
+  }, [isOpen, task]);
+
+  const fetchDetailedTask = async () => {
+    if (!task) return;
+    
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`http://localhost:3000/api/tugas-siswa/${task.id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch task details: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.success && data.data) {
+        setDetailedTask(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching task details:', error);
+      // Fallback to original task data
+      setDetailedTask(task);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'Tidak ada tanggal';
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return 'Format tanggal tidak valid';
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'High': return 'text-red-400 bg-red-500/10 border-red-500/20';
+      case 'Medium': return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
+      case 'Low': return 'text-green-400 bg-green-500/10 border-green-500/20';
+      default: return 'text-gray-400 bg-gray-500/10 border-gray-500/20';
+    }
+  };
+
+  const getStatusConfig = (status: string) => {
+    const configs: Record<string, { bg: string; icon: React.ReactElement; statusText: string; color: string }> = {
+      'In Progress': {
+        bg: 'bg-gradient-to-br from-orange-500 to-red-500',
+        icon: <AlertCircle className="w-5 h-5" />,
+        statusText: 'In Progress',
+        color: 'text-orange-400'
+      },
+      'Sudah Dinilai': {
+        bg: 'bg-gradient-to-br from-blue-500 to-purple-600',
+        icon: <CheckCircle className="w-5 h-5" />,
+        statusText: 'Completed',
+        color: 'text-blue-400'
+      },
+      'Belum Dinilai': {
+        bg: 'bg-gradient-to-br from-yellow-500 to-orange-500',
+        icon: <Clock className="w-5 h-5" />,
+        statusText: 'Submitted',
+        color: 'text-yellow-400'
+      },
+    };
+    return configs[status] || configs['In Progress'];
+  };
+
+  if (!isOpen || !task) return null;
+
+  const currentTask = detailedTask || task;
+  const statusConfig = getStatusConfig(currentTask.status_tugas);
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-gray-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-700">
+        {/* Header */}
+        <div className="sticky top-0 bg-gray-900 rounded-t-2xl p-6 border-b border-gray-700">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className={`${statusConfig.bg} rounded-xl p-3`}>
+                {statusConfig.icon}
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">{currentTask.judul}</h2>
+                <p className="text-gray-400">{statusConfig.statusText}</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-6">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <span className="ml-3 text-gray-400">Loading task details...</span>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Description */}
+              <div className="bg-gray-800/50 rounded-xl p-6">
+                <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
+                  <FileText className="w-5 h-5 mr-2 text-blue-400" />
+                  Description
+                </h3>
+                <p className="text-gray-300 leading-relaxed">{currentTask.deskripsi}</p>
+              </div>
+
+              {/* Key Information Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-gray-800/50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-white mb-4">Task Information</h3>
+                  <div className="space-y-4">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Priority</span>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getPriorityColor(currentTask.priority)}`}>
+                        {currentTask.priority}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Mentor</span>
+                      <span className="text-white font-medium">{currentTask.mentor_nama}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Score</span>
+                      <span className="text-white font-bold">{currentTask.nilai || 0}/100</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gray-800/50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-white mb-4">Timeline</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <span className="text-gray-400 text-sm">Assigned</span>
+                      <p className="text-white">{formatDate(currentTask.waktu_diberikan)}</p>
+                    </div>
+                    <div>
+                      <span className="text-gray-400 text-sm">Deadline</span>
+                      <p className="text-white">{formatDate(currentTask.batas_waktu)}</p>
+                    </div>
+                    {currentTask.tanggal_mengumpulkan && (
+                      <div>
+                        <span className="text-gray-400 text-sm">Submitted</span>
+                        <p className="text-blue-400">{formatDate(currentTask.tanggal_mengumpulkan)}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Files Section */}
+              <div className="bg-gray-800/50 rounded-xl p-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Files</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <FileText className="w-5 h-5 text-blue-400" />
+                      <div>
+                        <p className="text-white font-medium">Task File</p>
+                        <p className="text-gray-400 text-sm">{currentTask.file_tugas}</p>
+                      </div>
+                    </div>
+                    <button className="text-blue-400 hover:text-blue-300">
+                      <Download className="w-5 h-5" />
+                    </button>
+                  </div>
+                  
+                  {currentTask.file_jawaban && (
+                    <div className="flex items-center justify-between p-4 bg-gray-700/50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <FileText className="w-5 h-5 text-green-400" />
+                        <div>
+                          <p className="text-white font-medium">Answer File</p>
+                          <p className="text-gray-400 text-sm">{currentTask.file_jawaban}</p>
+                        </div>
+                      </div>
+                      <button className="text-green-400 hover:text-green-300">
+                        <Download className="w-5 h-5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Notes Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {currentTask.catatan_siswa && (
+                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-blue-400 mb-3 flex items-center">
+                      <Users className="w-5 h-5 mr-2" />
+                      Student Notes
+                    </h3>
+                    <p className="text-blue-300 leading-relaxed">{currentTask.catatan_siswa}</p>
+                  </div>
+                )}
+                
+                {currentTask.catatan_guru && (
+                  <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-green-400 mb-3 flex items-center">
+                      <Award className="w-5 h-5 mr-2" />
+                      Teacher Notes
+                    </h3>
+                    <p className="text-green-300 leading-relaxed">{currentTask.catatan_guru}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TaskCard = ({ task, onTaskClick }: TaskCardProps) => {
   const statusConfig: Record<string, { bg: string; icon: React.ReactElement; statusText: string; color: string }> = {
     'In Progress': {
       bg: 'bg-gradient-to-br from-orange-500 to-red-500',
@@ -108,7 +361,15 @@ const TaskCard = ({ task }: TaskCardProps) => {
       {/* Header with Status Badge */}
       <div className="flex items-start justify-between mb-6">
         <div className="flex-1 min-w-0">
-          <h3 className="text-lg sm:text-xl font-bold text-white mb-2 leading-tight">{task.judul}</h3>
+          <button 
+            onClick={() => onTaskClick(task)}
+            className="text-left w-full group"
+          >
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-2 leading-tight group-hover:text-blue-400 transition-colors cursor-pointer flex items-center">
+              {task.judul}
+              <Eye className="w-4 h-4 ml-2 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </h3>
+          </button>
           <p className="text-sm sm:text-base text-gray-300 leading-relaxed">{task.deskripsi}</p>
         </div>
         <div className={`${config.bg} rounded-xl p-3 ml-4 flex-shrink-0 flex items-center space-x-2 shadow-lg`}>
@@ -206,6 +467,8 @@ const Todo: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch tasks from API
   const fetchTasks = async () => {
@@ -263,6 +526,16 @@ const Todo: React.FC = () => {
     
     return matchesSearch && matchesStatus;
   });
+
+  const handleTaskClick = (task: Task) => {
+    setSelectedTask(task);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedTask(null);
+  };
 
   if (loading) {
     return (
@@ -351,7 +624,7 @@ const Todo: React.FC = () => {
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
         {filteredTasks.length > 0 ? (
           filteredTasks.map((task) => (
-            <TaskCard key={task.id} task={task} />
+            <TaskCard key={task.id} task={task} onTaskClick={handleTaskClick} />
           ))
         ) : (
           <div className="col-span-1 xl:col-span-2 bg-gray-800/50 backdrop-blur-sm rounded-2xl p-12 text-center border border-gray-700/50">
@@ -368,6 +641,13 @@ const Todo: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Task Detail Modal */}
+      <TaskModal 
+        task={selectedTask}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 };
