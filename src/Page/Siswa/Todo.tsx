@@ -253,7 +253,7 @@ const TaskModal = ({ task, isOpen, onClose, onOpenSubmitModal }: TaskModalProps)
                 <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-6">
                   <h3 className="text-lg font-semibold text-blue-400 mb-4 flex items-center">
                     <Send className="w-5 h-5 mr-2" />
-                    Submit Your Answer
+                    {currentTask.tanggal_mengumpulkan ? 'Update Your Answer' : 'Submit Your Answer'}
                   </h3>
                   
                   {/* Deadline Status */}
@@ -296,8 +296,8 @@ const TaskModal = ({ task, isOpen, onClose, onOpenSubmitModal }: TaskModalProps)
                       const isLate = now > deadline;
                       
                       return isLate 
-                        ? 'Upload your answer file and submit this task. Note: This submission will be marked as late.'
-                        : 'Upload your answer file and submit this task for review.';
+                        ? 'Upload your answer file and submit this task for the first time. Note: This submission will be marked as late.'
+                        : 'Upload your answer file and submit this task for the first time for review.';
                     })()}
                   </p>
                   
@@ -309,7 +309,32 @@ const TaskModal = ({ task, isOpen, onClose, onOpenSubmitModal }: TaskModalProps)
                     className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-200 font-medium"
                   >
                     <Upload className="w-4 h-4" />
-                    <span>Submit Answer</span>
+                    <span>{currentTask.tanggal_mengumpulkan ? 'Update Answer' : 'Submit Answer'}</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Update Task Section - Show for tasks that have been submitted but not graded */}
+              {currentTask.tanggal_mengumpulkan && currentTask.status_tugas !== 'Sudah Dinilai' && (
+                <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-yellow-400 mb-4 flex items-center">
+                    <RefreshCw className="w-5 h-5 mr-2" />
+                    Update Your Answer
+                  </h3>
+                  
+                  <p className="text-yellow-300 mb-4">
+                    This task has been submitted but not yet graded. You can update your answer file and notes if needed.
+                  </p>
+                  
+                  <button
+                    onClick={() => {
+                      onClose();
+                      onOpenSubmitModal(currentTask);
+                    }}
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-200 font-medium"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    <span>Update Answer</span>
                   </button>
                 </div>
               )}
@@ -412,7 +437,7 @@ const SubmitTaskModal = ({ isOpen, onClose, onSubmitSuccess, selectedTask }: {
       formData.append('catatan_siswa', catatanSiswa);
 
       const response = await fetch(`http://localhost:3000/api/tugas-siswa/${task.id}/submit`, {
-        method: 'POST',
+        method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -432,10 +457,10 @@ const SubmitTaskModal = ({ isOpen, onClose, onSubmitSuccess, selectedTask }: {
           setCatatanSiswa('');
         }, 2000);
       } else {
-        setError(data.message || 'Failed to submit task');
+        setError(data.message || `Failed to ${task?.tanggal_mengumpulkan ? 'update' : 'submit'} task`);
       }
     } catch (error) {
-      console.error('Error submitting task:', error);
+      console.error(`Error ${task?.tanggal_mengumpulkan ? 'updating' : 'submitting'} task:`, error);
       setError('Network error. Please try again.');
     } finally {
       setLoading(false);
@@ -467,10 +492,10 @@ const SubmitTaskModal = ({ isOpen, onClose, onSubmitSuccess, selectedTask }: {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-white">
-                  {task ? `Submit: ${task.judul}` : 'Submit Task'}
+                  {task ? `${task.tanggal_mengumpulkan ? 'Update' : 'Submit'} Task: ${task.judul}` : 'Submit Task'}
                 </h2>
                 <p className="text-gray-400">
-                  {task ? 'Upload your answer and submit task' : 'Select a task to submit'}
+                  {task ? `${task.tanggal_mengumpulkan ? 'Update your answer and modify task' : 'Upload your answer and submit task'}` : 'Select a task to submit'}
                 </p>
               </div>
             </div>
@@ -489,8 +514,15 @@ const SubmitTaskModal = ({ isOpen, onClose, onSubmitSuccess, selectedTask }: {
           {success ? (
             <div className="text-center py-12">
               <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-white mb-2">Task Submitted Successfully!</h3>
-              <p className="text-gray-400">Your task has been submitted and is being reviewed.</p>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                {task?.tanggal_mengumpulkan ? 'Task Updated Successfully!' : 'Task Submitted Successfully!'}
+              </h3>
+              <p className="text-gray-400">
+                {task?.tanggal_mengumpulkan 
+                  ? 'Your task has been updated and is being reviewed.' 
+                  : 'Your task has been submitted and is being reviewed.'
+                }
+              </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -499,7 +531,7 @@ const SubmitTaskModal = ({ isOpen, onClose, onSubmitSuccess, selectedTask }: {
                 <div className="bg-gray-800/50 rounded-xl p-6">
                   <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                     <FileText className="w-5 h-5 mr-2 text-blue-400" />
-                    Selected Task
+                    {task?.tanggal_mengumpulkan ? 'Selected Task to Update' : 'Selected Task to Submit'}
                   </h3>
                   <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                     <div className="flex items-center justify-between">
@@ -565,7 +597,7 @@ const SubmitTaskModal = ({ isOpen, onClose, onSubmitSuccess, selectedTask }: {
                 <textarea
                   value={catatanSiswa}
                   onChange={(e) => setCatatanSiswa(e.target.value)}
-                  placeholder="Add any notes or comments about your submission..."
+                  placeholder={`Add any notes or comments about your ${task?.tanggal_mengumpulkan ? 'update' : 'submission'}...`}
                   className="w-full bg-gray-700/50 text-white px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-600 text-base resize-none"
                   rows={4}
                 />
@@ -599,12 +631,12 @@ const SubmitTaskModal = ({ isOpen, onClose, onSubmitSuccess, selectedTask }: {
                   {loading ? (
                     <>
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>Submitting...</span>
+                      <span>{task?.tanggal_mengumpulkan ? 'Updating...' : 'Submitting...'}</span>
                     </>
                   ) : (
                     <>
                       <Send className="w-4 h-4" />
-                      <span>Submit Task</span>
+                      <span>{task?.tanggal_mengumpulkan ? 'Update Task' : 'Submit Task'}</span>
                     </>
                   )}
                 </button>
