@@ -68,20 +68,20 @@ const Divider: React.FC = () => <div className="border-t border-gray-700/50 my-8
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, trend }) => (
   <div
-    className={`${color} rounded-xl p-6 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl`}
+    className={`${color} rounded-xl p-4 sm:p-6 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl`}
   >
-    <div className="flex items-center justify-between mb-4">
-      <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">{icon}</div>
+    <div className="flex items-center justify-between mb-3 sm:mb-4">
+      <div className="p-2 sm:p-3 bg-white/20 rounded-lg backdrop-blur-sm">{icon}</div>
       {trend && (
-        <div className="flex items-center text-sm font-medium">
-          <TrendingUp className="w-4 h-4 mr-1" />
+        <div className="flex items-center text-xs sm:text-sm font-medium">
+          <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
           {trend}
         </div>
       )}
     </div>
     <div className="space-y-1">
-      <p className="text-white/80 text-sm font-medium">{title}</p>
-      <p className="text-3xl font-bold text-white">{value}</p>
+      <p className="text-white/80 text-xs sm:text-sm font-medium">{title}</p>
+      <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">{value}</p>
     </div>
   </div>
 )
@@ -90,100 +90,88 @@ const TaskCard: React.FC<TaskCardProps> = ({ title, dueDate, status, score, comp
   const statusConfig = {
     pending: {
       bg: "bg-gradient-to-br from-orange-500 to-red-500",
-      icon: <AlertCircle className="w-5 h-5" />,
+      icon: <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5" />,
       statusText: "Pending",
     },
     completed: {
       bg: "bg-gradient-to-br from-blue-500 to-purple-600",
-      icon: <CheckCircle className="w-5 h-5" />,
+      icon: <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />,
       statusText: "Completed",
     },
-  }
+  };
 
-  const config = statusConfig[status]
+  const config = statusConfig[status];
 
   return (
-    <div
-      className={`${config.bg} rounded-xl p-6 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300`}
-    >
-      <div className="flex items-start justify-between mb-4">
-        <h3 className="font-bold text-lg leading-tight pr-4">{title}</h3>
-        <div className="flex items-center space-x-1 bg-white/20 px-3 py-1 rounded-full text-sm font-medium">
+    <div className="bg-gray-800/50 rounded-xl p-4 sm:p-6 backdrop-blur-sm border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300">
+      <div className="flex items-start justify-between mb-3 sm:mb-4">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm sm:text-base font-semibold text-white mb-1 truncate">{title}</h3>
+          <p className="text-xs sm:text-sm text-gray-400 mb-2">{notes}</p>
+        </div>
+        <div className={`${config.bg} rounded-lg p-2 sm:p-3 ml-3 flex-shrink-0`}>
           {config.icon}
-          <span className="ml-1">{config.statusText}</span>
         </div>
       </div>
-
-      <div className="space-y-3">
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div className="flex items-center space-x-2">
-            <Calendar className="w-4 h-4" />
-            <span>Due: {dueDate}</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Award className="w-4 h-4" />
-            <span>Score: {score}</span>
-          </div>
+      
+      <div className="space-y-2 sm:space-y-3">
+        <div className="flex items-center justify-between text-xs sm:text-sm">
+          <span className="text-gray-400">Deadline:</span>
+          <span className={`font-medium ${dueDate.includes('Terlambat') ? 'text-red-400' : 'text-green-400'}`}>
+            {dueDate}
+          </span>
         </div>
-
-        {completedTime && (
-          <div className="flex items-center space-x-2 text-sm">
-            <CheckCircle className="w-4 h-4" />
-            <span>Completed: {completedTime}</span>
+        
+        {status === "completed" && completedTime && (
+          <div className="flex items-center justify-between text-xs sm:text-sm">
+            <span className="text-gray-400">Completed:</span>
+            <span className="text-blue-400 font-medium">{completedTime}</span>
           </div>
         )}
-
-        <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-          <p className="text-sm leading-relaxed">{notes}</p>
+        
+        <div className="flex items-center justify-between text-xs sm:text-sm">
+          <span className="text-gray-400">Score:</span>
+          <span className="font-bold text-white">{score}/100</span>
+        </div>
+        
+        <div className="flex items-center justify-between text-xs sm:text-sm">
+          <span className="text-gray-400">Status:</span>
+          <span className={`font-medium ${status === "completed" ? "text-green-400" : "text-orange-400"}`}>
+            {config.statusText}
+          </span>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 const AttendanceCard: React.FC<AttendanceCardProps> = ({ name, email, checkIn, lateTime, checkOut }) => (
-  <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 border border-gray-700/50">
-    <div className="flex items-start space-x-4">
-      <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
-        <span className="text-2xl font-bold text-white">
-          {name
-            .split(" ")
-            .map((n) => n[0])
-            .join("")
-            .slice(0, 2)}
-        </span>
+  <div className="bg-gray-800/50 rounded-xl p-4 sm:p-6 backdrop-blur-sm border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 mb-4 sm:mb-6">
+    <div className="flex items-center justify-between mb-3 sm:mb-4">
+      <div className="flex items-center space-x-3 sm:space-x-4">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+          <span className="text-white font-bold text-sm sm:text-base">{name.charAt(0).toUpperCase()}</span>
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="text-sm sm:text-base font-semibold text-white truncate">{name}</h3>
+          {email && <p className="text-xs sm:text-sm text-gray-400 truncate">{email}</p>}
+        </div>
       </div>
-
-      <div className="flex-1 space-y-3">
-        <div>
-          <h3 className="font-bold text-xl text-white mb-1">{name}</h3>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-3">
-            <div className="flex items-center space-x-2 mb-1">
-              <UserCheck className="w-4 h-4 text-green-400" />
-              <span className="text-xs font-medium text-green-400">CHECK-IN</span>
-            </div>
-            <p className="text-sm font-bold text-white">{checkIn}</p>
-          </div>
-
-          <div className="bg-red-500/20 border border-red-500/30 rounded-lg p-3">
-            <div className="flex items-center space-x-2 mb-1">
-              <Clock className="w-4 h-4 text-red-400" />
-              <span className="text-xs font-medium text-red-400">LATE TIME</span>
-            </div>
-            <p className="text-sm font-bold text-red-400">{lateTime}</p>
-          </div>
-
-          <div className="bg-gray-500/20 border border-gray-500/30 rounded-lg p-3">
-            <div className="flex items-center space-x-2 mb-1">
-              <AlertCircle className="w-4 h-4 text-gray-400" />
-              <span className="text-xs font-medium text-gray-400">CHECK-OUT</span>
-            </div>
-            <p className="text-sm font-bold text-white">{checkOut}</p>
-          </div>
-        </div>
+      <div className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-medium ${
+        lateTime.includes('Telat') ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
+      }`}>
+        {lateTime}
+      </div>
+    </div>
+    
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
+      <div className="flex items-center justify-between">
+        <span className="text-gray-400">Check In:</span>
+        <span className="font-medium text-white">{checkIn}</span>
+      </div>
+      <div className="flex items-center justify-between">
+        <span className="text-gray-400">Check Out:</span>
+        <span className="font-medium text-white">{checkOut}</span>
       </div>
     </div>
   </div>
@@ -468,27 +456,27 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
+    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6">
       {/* Header */}
-      <div className="mb-6 mt-0">
-        <div className="flex items-center space-x-3">
-          <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+      <div className="mb-4 sm:mb-6 mt-0">
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="w-1 sm:w-2 h-6 sm:h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
             Dashboard
           </h1>
         </div>
-        <p className="text-gray-400 mt-2 ml-5">Selamat datang, {userName}! Berikut rekap hari ini.</p>
+        <p className="text-gray-400 mt-2 ml-3 sm:ml-5 text-sm sm:text-base">Selamat datang, {userName}! Berikut rekap hari ini.</p>
       </div>
 
       <Divider />
 
       {/* Statistics Section */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-6 flex items-center space-x-2">
-          <TrendingUp className="w-6 h-6 text-blue-400" />
+      <div className="mb-6 sm:mb-8">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center space-x-2">
+          <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
           <span>Statistik</span>
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
           {statsCards.map((stat, index) => (
             <StatCard key={index} {...stat} />
           ))}
@@ -498,9 +486,9 @@ const Dashboard: React.FC = () => {
       <Divider />
 
       {/* Today's Attendance Section */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-6 flex items-center space-x-2">
-          <UserCheck className="w-6 h-6 text-green-400" />
+      <div className="mb-6 sm:mb-8">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center space-x-2">
+          <UserCheck className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" />
           <span>Absensi Hari Ini</span>
         </h2>
         <div className="max-w-2xl">
@@ -516,9 +504,9 @@ const Dashboard: React.FC = () => {
               />
             ))
           ) : (
-            <div className="bg-gray-800/50 rounded-xl p-6 text-center">
-              <UserCheck className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-400">Belum ada data absensi hari ini</p>
+            <div className="bg-gray-800/50 rounded-xl p-4 sm:p-6 text-center">
+              <UserCheck className="w-8 h-8 sm:w-12 sm:h-12 text-gray-500 mx-auto mb-3 sm:mb-4" />
+              <p className="text-gray-400 text-sm sm:text-base">Belum ada data absensi hari ini</p>
             </div>
           )}
         </div>
@@ -527,20 +515,20 @@ const Dashboard: React.FC = () => {
       <Divider />
 
       {/* Today's Tasks Section */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-6 flex items-center space-x-2">
-          <Calendar className="w-6 h-6 text-purple-400" />
+      <div className="mb-6 sm:mb-8">
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center space-x-2">
+          <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
           <span>Tugas Hari Ini</span>
         </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {transformedTasks.length > 0 ? (
             transformedTasks.map((task, index) => (
               <TaskCard key={index} {...task} />
             ))
           ) : (
-            <div className="col-span-2 bg-gray-800/50 rounded-xl p-6 text-center">
-              <Calendar className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-400">Tidak ada tugas untuk hari ini</p>
+            <div className="col-span-1 lg:col-span-2 bg-gray-800/50 rounded-xl p-4 sm:p-6 text-center">
+              <Calendar className="w-8 h-8 sm:w-12 sm:h-12 text-gray-500 mx-auto mb-3 sm:mb-4" />
+              <p className="text-gray-400 text-sm sm:text-base">Tidak ada tugas untuk hari ini</p>
             </div>
           )}
         </div>

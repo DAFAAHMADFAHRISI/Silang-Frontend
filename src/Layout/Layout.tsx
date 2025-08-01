@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import { Link, useLocation } from 'react-router-dom';
@@ -9,6 +9,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   // Ambil role dari localStorage
   const role = localStorage.getItem('role');
 
@@ -51,10 +52,32 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <div className="h-screen flex flex-col bg-gray-900 overflow-hidden">
-      <Header />
+      <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
       <div className="flex flex-1 overflow-hidden">
+        {/* Mobile overlay */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+        
         {/* Sidebar */}
-        <aside className="w-64 bg-gray-900 border-r border-gray-800 flex flex-col py-6 px-2 overflow-y-auto">
+        <aside className={`
+          fixed lg:static inset-y-0 left-0 z-50 w-64 bg-gray-900 border-r border-gray-800 flex flex-col py-6 px-2 overflow-y-auto
+          transform transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}>
+          {/* Close button for mobile */}
+          <div className="flex justify-end lg:hidden mb-4">
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="text-gray-400 hover:text-white p-2"
+            >
+              <i className="fa fa-times text-xl"></i>
+            </button>
+          </div>
+          
           <nav className="flex flex-col space-y-2">
             {menuItems.length === 0 ? (
               <div className="text-gray-500 text-center">No menu available</div>
@@ -63,17 +86,23 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`flex items-center px-4 py-2 rounded font-semibold ${location.pathname === item.to ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`flex items-center px-4 py-3 rounded-lg font-semibold transition-colors duration-200 ${
+                    location.pathname === item.to 
+                      ? 'bg-gray-800 text-white' 
+                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  }`}
                 >
-                  <span className="mr-3"><i className={item.icon} /></span>
-                  {item.label}
+                  <span className="mr-3 text-lg"><i className={item.icon} /></span>
+                  <span className="text-sm lg:text-base">{item.label}</span>
                 </Link>
               ))
             )}
           </nav>
         </aside>
+        
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
           {children}
         </main>
       </div>

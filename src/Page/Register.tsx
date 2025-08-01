@@ -77,18 +77,18 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900">
-      <div className="bg-[#232834] rounded-xl shadow-lg w-full max-w-md p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 p-4">
+      <div className="bg-[#232834] rounded-xl shadow-lg w-full max-w-sm sm:max-w-md lg:max-w-lg xl:max-w-xl p-4 sm:p-6 lg:p-8">
         {/* Tabs */}
-        <div className="flex mb-8 border-b border-gray-700">
+        <div className="flex mb-6 lg:mb-8 border-b border-gray-700">
           <button
-            className={`flex-1 text-lg pb-2 font-medium transition-colors duration-200 ${activeTab === 'login' ? 'text-gray-300' : 'text-gray-400'} focus:outline-none`}
+            className={`flex-1 text-base lg:text-lg pb-2 font-medium transition-colors duration-200 ${activeTab === 'login' ? 'text-gray-300' : 'text-gray-400'} focus:outline-none`}
             onClick={() => navigate('/login')}
           >
             Login
           </button>
           <button
-            className={`flex-1 text-lg pb-2 font-medium border-b-2 transition-colors duration-200 ${activeTab === 'register' ? 'text-blue-400 border-blue-400' : 'text-gray-400 border-transparent'} focus:outline-none`}
+            className={`flex-1 text-base lg:text-lg pb-2 font-medium border-b-2 transition-colors duration-200 ${activeTab === 'register' ? 'text-blue-400 border-blue-400' : 'text-gray-400 border-transparent'} focus:outline-none`}
             onClick={() => setActiveTab('register')}
           >
             Register
@@ -96,22 +96,22 @@ const Register: React.FC = () => {
         </div>
         {/* Register Form */}
         {activeTab === 'register' && (
-          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+          <form className="flex flex-col gap-3 lg:gap-4" onSubmit={handleSubmit}>
             <input
               type="text"
               name="nama"
-              placeholder="Nama"
+              placeholder="Full Name"
               value={form.nama}
               onChange={handleChange}
-              className="bg-transparent border border-gray-700 rounded-md px-4 py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400"
+              className="bg-transparent border border-gray-700 rounded-md px-3 py-2 lg:px-4 lg:py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400 text-sm lg:text-base"
             />
             <input
               type="email"
               name="email"
-              placeholder="Email"
+              placeholder="Email Address"
               value={form.email}
               onChange={handleChange}
-              className="bg-transparent border border-gray-700 rounded-md px-4 py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400"
+              className="bg-transparent border border-gray-700 rounded-md px-3 py-2 lg:px-4 lg:py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400 text-sm lg:text-base"
             />
             <input
               type="password"
@@ -119,69 +119,55 @@ const Register: React.FC = () => {
               placeholder="Password"
               value={form.password}
               onChange={handleChange}
-              className="bg-transparent border border-gray-700 rounded-md px-4 py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400"
+              className="bg-transparent border border-gray-700 rounded-md px-3 py-2 lg:px-4 lg:py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400 text-sm lg:text-base"
+            />
+            <input
+              type="password"
+              name="confirmPassword"
+              placeholder="Confirm Password"
+              value={form.confirmPassword}
+              onChange={handleChange}
+              className="bg-transparent border border-gray-700 rounded-md px-3 py-2 lg:px-4 lg:py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400 text-sm lg:text-base"
             />
             <input
               type="tel"
               name="no_hp"
-              placeholder="No HP"
+              placeholder="Phone Number"
               value={form.no_hp}
               onChange={handleChange}
-              className="bg-transparent border border-gray-700 rounded-md px-4 py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400"
+              className="bg-transparent border border-gray-700 rounded-md px-3 py-2 lg:px-4 lg:py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400 text-sm lg:text-base"
             />
-            <div className="flex gap-4 items-center">
-              <label className="text-gray-200">Kelamin:</label>
-              <label className="text-gray-200">
-                <input
-                  type="radio"
-                  name="kelamin"
-                  value="1"
-                  checked={form.kelamin === '1'}
-                  onChange={handleChange}
-                /> Laki-laki
-              </label>
-              <label className="text-gray-200">
-                <input
-                  type="radio"
-                  name="kelamin"
-                  value="2"
-                  checked={form.kelamin === '2'}
-                  onChange={handleChange}
-                /> Perempuan
-              </label>
-            </div>
+            <select
+              name="kelamin"
+              value={form.kelamin}
+              onChange={handleChange}
+              className="bg-transparent border border-gray-700 rounded-md px-3 py-2 lg:px-4 lg:py-3 text-gray-200 focus:outline-none focus:border-blue-400 text-sm lg:text-base"
+            >
+              <option value="1">Male</option>
+              <option value="2">Female</option>
+            </select>
             <select
               name="asal_institusi_id"
               value={form.asal_institusi_id}
               onChange={handleChange}
-              className="bg-transparent border border-gray-700 rounded-md px-4 py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400"
+              className="bg-transparent border border-gray-700 rounded-md px-3 py-2 lg:px-4 lg:py-3 text-gray-200 focus:outline-none focus:border-blue-400 text-sm lg:text-base"
             >
-              <option value="">Pilih Institusi</option>
-              <option value="1">SMK Negeri 1 Sumenep</option>
-              <option value="2">SMK Negeri 2 Pamekasan</option>
+              {institutions.map((institution) => (
+                <option key={institution.value} value={institution.value} disabled={institution.disabled}>
+                  {institution.label}
+                </option>
+              ))}
             </select>
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Konfirmasi Password"
-              value={form.confirmPassword}
-              onChange={handleChange}
-              className="bg-transparent border border-gray-700 rounded-md px-4 py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400"
-            />
-            {error && <div className="text-red-400 text-sm">{error}</div>}
-            {success && <div className="text-green-400 text-sm">{success}</div>}
+            {error && <div className="text-red-400 text-xs lg:text-sm">{error}</div>}
+            {success && <div className="text-green-400 text-xs lg:text-sm">{success}</div>}
             <button
               type="submit"
-              className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-md transition-colors duration-200"
+              className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 lg:py-3 rounded-md transition-colors duration-200 text-sm lg:text-base"
               disabled={loading}
             >
               {loading ? 'Registering...' : 'Register'}
             </button>
           </form>
-        )}
-        {/* Login Form Placeholder */}
-        {activeTab === 'login' && (
-          <div className="text-gray-400 text-center py-8">Login form goes here.</div>
         )}
       </div>
     </div>
