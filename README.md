@@ -1,46 +1,162 @@
-# Getting Started with Create React App
+# SILANG - Sistem Informasi Layanan Magang
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Aplikasi web untuk mengelola sistem magang dengan fitur responsive design yang optimal untuk semua ukuran layar.
 
-## Available Scripts
+## 🚀 Fitur Responsive Design
 
-In the project directory, you can run:
+### Breakpoints yang Didukung
+- **Mobile**: < 640px (sm)
+- **Tablet**: 640px - 1024px (sm, md, lg)
+- **Desktop**: > 1024px (lg, xl, 2xl)
 
-### `npm start`
+### Komponen Responsive
+1. **Layout & Navigation**
+   - Sidebar yang bisa di-toggle di mobile
+   - Header dengan hamburger menu untuk mobile
+   - Menu yang menyesuaikan ukuran layar
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+2. **Halaman Login & Register**
+   - Form yang responsive dengan padding yang menyesuaikan
+   - Input fields dengan ukuran yang optimal untuk touch
+   - Button yang mudah diakses di mobile
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+3. **Dashboard**
+   - Grid layout yang menyesuaikan jumlah kolom
+   - Card components dengan padding yang responsive
+   - Statistik yang mudah dibaca di semua ukuran
 
-### `npm test`
+4. **Tabel & Data**
+   - Tabel dengan horizontal scroll di mobile
+   - Pagination yang responsive
+   - Search dan filter yang mudah digunakan
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+5. **Komponen UI**
+   - Text size yang menyesuaikan ukuran layar
+   - Icon yang proporsional
+   - Spacing yang konsisten
 
-### `npm run build`
+## 🛠️ Teknologi
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- **React 18** dengan TypeScript
+- **Tailwind CSS** untuk styling
+- **React Router** untuk navigation
+- **Lucide React** untuk icons
+- **Headless UI** untuk komponen interaktif
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 📱 Responsive Features
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Mobile-First Approach
+- Semua komponen dirancang dengan mobile-first approach
+- Touch-friendly interface
+- Optimal performance di perangkat mobile
 
-### `npm run eject`
+### Adaptive Layout
+- Sidebar yang bisa disembunyikan di mobile
+- Grid yang menyesuaikan jumlah kolom
+- Text yang readable di semua ukuran
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+### Performance
+- Lazy loading untuk komponen besar
+- Optimized images dan assets
+- Smooth transitions dan animations
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## 🎨 Design System
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### Colors
+- Primary: Blue gradient (#3B82F6 to #8B5CF6)
+- Background: Dark gray (#111827)
+- Text: White dan gray variants
+- Accent: Green, Red, Yellow untuk status
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+### Typography
+- Mobile: 12px - 16px
+- Tablet: 14px - 18px  
+- Desktop: 16px - 24px
 
-## Learn More
+### Spacing
+- Mobile: 4px - 16px
+- Tablet: 8px - 24px
+- Desktop: 12px - 32px
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 🚀 Cara Menjalankan
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm start
+
+# Build for production
+npm run build
+```
+
+## 📋 Struktur Responsive
+
+```
+src/
+├── Layout/
+│   ├── Layout.tsx      # Responsive layout dengan sidebar
+│   ├── Header.tsx      # Header dengan mobile menu
+│   └── Footer.tsx      # Footer responsive
+├── Page/
+│   ├── Login.tsx       # Form responsive
+│   ├── Register.tsx    # Form responsive
+│   └── Siswa/
+│       ├── Dashboard.tsx   # Grid responsive
+│       ├── Todo.tsx        # Card responsive
+│       ├── Attendance.tsx  # Table responsive
+│       └── Report.tsx      # Card responsive
+└── index.css          # Global responsive styles
+```
+
+## 🔧 Customization
+
+### Menambah Breakpoint Baru
+```javascript
+// tailwind.config.js
+screens: {
+  'xs': '475px',
+  'sm': '640px',
+  'md': '768px',
+  'lg': '1024px',
+  'xl': '1280px',
+  '2xl': '1536px',
+}
+```
+
+### Responsive Classes
+```jsx
+// Mobile first approach
+className="text-sm sm:text-base lg:text-lg"
+className="p-4 sm:p-6 lg:p-8"
+className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+```
+
+## 📱 Testing Responsive
+
+1. **Browser DevTools**
+   - Gunakan device toolbar
+   - Test di berbagai ukuran layar
+
+2. **Real Devices**
+   - Test di smartphone
+   - Test di tablet
+   - Test di desktop
+
+3. **Performance**
+   - Lighthouse audit
+   - Core Web Vitals
+   - Mobile performance
+
+## 🎯 Best Practices
+
+1. **Mobile-First**: Mulai dari mobile, lalu scale up
+2. **Touch-Friendly**: Minimal 44px untuk touch targets
+3. **Readable Text**: Minimal 12px untuk mobile
+4. **Fast Loading**: Optimize images dan assets
+5. **Accessible**: Support screen readers dan keyboard navigation
+
+## 📄 License
+
+MIT License - lihat file LICENSE untuk detail.
