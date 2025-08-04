@@ -128,8 +128,8 @@ const Attendance: React.FC = () => {
       return { action: 'weekend', message: 'Hari libur - tidak ada absensi' };
     }
 
-    // Check if it's check-in time (6:00-12:00)
-    if (hour >= 6 && hour < 12) {
+    // Check if it's check-in time (6:00-14:00)
+    if (hour >= 6 && hour < 14) {
       return { action: 'checkin', message: 'Check In' };
     }
     
@@ -284,6 +284,22 @@ const Attendance: React.FC = () => {
           errorMessage = 'Tidak dalam jam absensi. Silakan cek jadwal absensi.';
         }
         
+        // Redirect to main page if face verification fails
+        if (errorData.message && (errorData.message.includes('Face verification failed') || errorData.message.includes('Wajah tidak sesuai'))) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Verifikasi Wajah Gagal!',
+            text: 'Wajah tidak sesuai dengan foto profil. Silakan coba lagi.',
+            showConfirmButton: false,
+            timer: 3000,
+          });
+          
+          setTimeout(() => {
+            window.location.href = '/AttendanceSiswa';
+          }, 3000);
+          return;
+        }
+        
         throw new Error(errorMessage);
       }
 
@@ -305,6 +321,11 @@ const Attendance: React.FC = () => {
         // Clear success message after 5 seconds
         setTimeout(() => setSuccess(null), 5000);
         
+        // Redirect to AttendanceSiswa page after successful attendance
+        setTimeout(() => {
+          window.location.href = '/AttendanceSiswa';
+        }, 3000);
+        
         // Refresh attendance data
         await fetchAttendance();
       } else {
@@ -315,6 +336,22 @@ const Attendance: React.FC = () => {
       const errorMessage = err instanceof Error ? err.message : 'Gagal melakukan absensi.';
       setError(errorMessage);
       console.error('Error during check-in/out:', err);
+      
+      // Redirect to main page if face verification fails
+      if (errorMessage.includes('Face verification failed') || errorMessage.includes('Wajah tidak sesuai')) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Verifikasi Wajah Gagal!',
+          text: 'Wajah tidak sesuai dengan foto profil. Silakan coba lagi.',
+          showConfirmButton: false,
+          timer: 3000,
+        });
+        
+        setTimeout(() => {
+          window.location.href = '/AttendanceSiswa';
+        }, 3000);
+        return;
+      }
       
       // Show error notification
       Swal.fire({
@@ -636,6 +673,12 @@ const Attendance: React.FC = () => {
   }
 
   if (error) {
+    // Redirect to main page if face verification fails
+    if (error.includes('Face verification failed') || error.includes('Wajah tidak sesuai')) {
+      window.location.href = '/AttendanceSiswa';
+      return null;
+    }
+    
     return (
       <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -741,7 +784,7 @@ const Attendance: React.FC = () => {
               }`} />
               <div className="text-center">
                 <div className="font-semibold text-lg">Check In</div>
-                <div className="text-sm opacity-75">06:00 - 12:00</div>
+                <div className="text-sm opacity-75">06:00 - 14:00</div>
               </div>
             </button>
 
@@ -769,7 +812,7 @@ const Attendance: React.FC = () => {
           {getCurrentAction().action === 'closed' && (
             <div className="bg-yellow-600 text-white px-4 py-3 rounded-lg text-center">
               <p className="font-semibold">Tidak dalam jam kerja</p>
-              <p className="text-sm opacity-90">Check In: 06:00-12:00 | Check Out: 15:00-20:00</p>
+              <p className="text-sm opacity-90">Check In: 06:00-14:00 | Check Out: 15:00-20:00</p>
             </div>
           )}
         </div>
