@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { UserCheck, Clock, Calendar, TrendingUp, AlertCircle, CheckCircle, Award, Users, Mail } from 'lucide-react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { UserCheck, Clock, Calendar, TrendingUp, AlertCircle, CheckCircle, Award, Users, Mail, Camera, LogIn, LogOut } from 'lucide-react';
+import Webcam from 'react-webcam';
 
 const Divider = () => <div className="border-t border-gray-700/50 my-6 sm:my-8 w-full" />;
 
@@ -16,6 +17,12 @@ interface AttendanceRow {
   status_kehadiran: string;
 }
 
+interface CheckInOutData {
+  checkin_time?: string;
+  status?: string;
+  face_image?: string;
+}
+
 const Attendance: React.FC = () => {
   const [attendanceData, setAttendanceData] = useState<AttendanceRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,6 +30,16 @@ const Attendance: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  
+  // Camera states
+  const [showCamera, setShowCamera] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [checkInOutData, setCheckInOutData] = useState<CheckInOutData | null>(null);
+  const [actionType, setActionType] = useState<'checkin' | 'checkout' | null>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const webcamRef = useRef<Webcam>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchAttendance = async () => {
     setLoading(true);
@@ -71,6 +88,173 @@ const Attendance: React.FC = () => {
     }
   };
 
+  // Get current time and day info
+  const getCurrentTimeInfo = () => {
+    const now = new Date();
+    const day = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+    
+    const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const currentDayName = dayNames[day];
+    
+    return {
+      day,
+      dayName: currentDayName,
+      hour,
+      minute,
+      isWeekend: day === 0 || day === 6,
+      timeString: now.toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      }),
+      dateString: now.toLocaleDateString('id-ID', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    };
+  };
+
+  // Determine current action based on time and day
+  const getCurrentAction = () => {
+    const { day, hour, minute, isWeekend } = getCurrentTimeInfo();
+    
+    if (isWeekend) {
+      return { action: 'weekend', message: 'Hari libur - tidak ada absensi' };
+    }
+
+    // Check if it's check-in time (6:00-12:00)
+    if (hour >= 6 && hour < 12) {
+      return { action: 'checkin', message: 'Check In' };
+    }
+    
+    // Check if it's check-out time (15:00-20:00)
+    if (hour >= 15 && hour < 20) {
+      return { action: 'checkout', message: 'Check Out' };
+    }
+    
+    // Outside working hours
+    return { action: 'closed', message: 'Jam kerja telah selesai' };
+  };
+
+  // Capture photo using react-webcam
+  const capturePhoto = useCallback(() => {
+    if (webcamRef.current) {
+      const imageSrc = webcamRef.current.getScreenshot();
+      if (imageSrc) {
+        // Convert base64 to blob
+        fetch(imageSrc)
+          .then(res => res.blob())
+          .then(blob => {
+            handleCheckInOutWithPhoto(blob);
+          })
+          .catch(error => {
+            console.error('Error processing photo:', error);
+            setError('Gagal memproses foto. Silakan coba lagi.');
+          });
+      } else {
+        setError('Tidak dapat mengambil foto. Pastikan kamera berfungsi dengan baik.');
+      }
+    }
+  }, []);
+
+  // Handle check-in/check-out with photo
+  const handleCheckInOutWithPhoto = async (photoBlob: Blob) => {
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Token tidak ditemukan. Silakan login ulang.');
+      }
+
+      const formData = new FormData();
+      formData.append('face_image', photoBlob, 'face_image.jpg');
+
+      const response = await fetch('http://localhost:3000/api/checkin', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('nama');
+        localStorage.removeItem('role');
+        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
+      }
+
+      if (!response.ok) {
+        throw new Error(`Error server: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setSuccess(result.message);
+        setCheckInOutData(result.data);
+        
+        // Clear success message after 5 seconds
+        setTimeout(() => setSuccess(null), 5000);
+        
+        // Refresh attendance data
+        await fetchAttendance();
+      } else {
+        throw new Error(result.message || 'Gagal melakukan absensi');
+      }
+      
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Gagal melakukan absensi.';
+      setError(errorMessage);
+      console.error('Error during check-in/out:', err);
+    } finally {
+      setIsLoading(false);
+      setActionType(null);
+      setShowCamera(false);
+    }
+  };
+
+  // Handle check-in/check-out button click
+  const handleCheckInOut = async (type: 'checkin' | 'checkout') => {
+    setActionType(type);
+    setCameraError(null);
+    setShowCamera(true);
+    // Remove cameraLoading delay - let it start immediately
+  };
+
+  // Handle file upload
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setCameraError('Tidak ada file yang dipilih.');
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setCameraError('File harus berupa gambar.');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setCameraError('Ukuran file terlalu besar. Maksimal 5MB.');
+      return;
+    }
+
+    // Process the file
+    handleCheckInOutWithPhoto(file);
+  };
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchAttendance();
@@ -94,6 +278,13 @@ const Attendance: React.FC = () => {
 
   useEffect(() => {
     fetchAttendance();
+  }, []);
+
+  // Cleanup camera on unmount
+  useEffect(() => {
+    return () => {
+      // No explicit cleanup needed here as react-webcam handles its own cleanup
+    };
   }, []);
 
   const formatDate = (dateString: string) => {
@@ -204,6 +395,9 @@ const Attendance: React.FC = () => {
     }
   };
 
+  const { dayName, timeString, dateString } = getCurrentTimeInfo();
+  const { action, message } = getCurrentAction();
+
   if (loading) {
     return (
       <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6">
@@ -256,6 +450,204 @@ const Attendance: React.FC = () => {
       </div>
       
       <Divider />
+      
+      {/* Success/Error Messages */}
+      {success && (
+        <div className="mb-6 bg-green-600 text-white px-4 py-3 rounded-lg flex items-center justify-between">
+          <div className="flex items-center">
+            <CheckCircle className="w-5 h-5 mr-2" />
+            <span>{success}</span>
+          </div>
+          <button onClick={() => setSuccess(null)} className="text-white hover:text-gray-200">
+            ✕
+          </button>
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-6 bg-red-600 text-white px-4 py-3 rounded-lg flex items-center justify-between">
+          <div className="flex items-center">
+            <AlertCircle className="w-5 h-5 mr-2" />
+            <span>{error}</span>
+          </div>
+          <button onClick={() => setError(null)} className="text-white hover:text-gray-200">
+            ✕
+          </button>
+        </div>
+      )}
+
+      {cameraError && (
+        <div className="mb-6 bg-red-600 text-white px-4 py-3 rounded-lg flex items-center justify-between">
+          <div className="flex items-center">
+            <Camera className="w-5 h-5 mr-2" />
+            <span>{cameraError}</span>
+          </div>
+          <button onClick={() => setCameraError(null)} className="text-white hover:text-gray-200">
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* Check In/Out Buttons */}
+      {getCurrentAction().action !== 'weekend' && getCurrentAction().action !== 'closed' && (
+        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-semibold text-white">Absensi dengan Kamera</h3>
+            <div className="p-2 rounded-full bg-blue-600">
+              <Camera className="w-5 h-5 text-white" />
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {/* Check In Button */}
+            <button
+              onClick={() => handleCheckInOut('checkin')}
+              disabled={isLoading || getCurrentAction().action !== 'checkin'}
+              className={`p-6 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center space-y-3 ${
+                isLoading || getCurrentAction().action !== 'checkin'
+                  ? 'border-gray-600 bg-gray-700 text-gray-400 cursor-not-allowed'
+                  : 'border-green-500 bg-green-600 hover:bg-green-700 text-white shadow-lg'
+              }`}
+            >
+              <LogIn className={`w-8 h-8 ${
+                getCurrentAction().action === 'checkin' ? 'text-white' : 'text-gray-500'
+              }`} />
+              <div className="text-center">
+                <div className="font-semibold text-lg">Check In</div>
+                <div className="text-sm opacity-75">06:00 - 12:00</div>
+              </div>
+            </button>
+
+            {/* Check Out Button */}
+            <button
+              onClick={() => handleCheckInOut('checkout')}
+              disabled={isLoading || getCurrentAction().action !== 'checkout'}
+              className={`p-6 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center space-y-3 ${
+                isLoading || getCurrentAction().action !== 'checkout'
+                  ? 'border-gray-600 bg-gray-700 text-gray-400 cursor-not-allowed'
+                  : 'border-blue-500 bg-blue-600 hover:bg-blue-700 text-white shadow-lg'
+              }`}
+            >
+              <LogOut className={`w-8 h-8 ${
+                getCurrentAction().action === 'checkout' ? 'text-white' : 'text-gray-500'
+              }`} />
+              <div className="text-center">
+                <div className="font-semibold text-lg">Check Out</div>
+                <div className="text-sm opacity-75">15:00 - 20:00</div>
+              </div>
+            </button>
+          </div>
+
+          {/* Status Message */}
+          {getCurrentAction().action === 'closed' && (
+            <div className="bg-yellow-600 text-white px-4 py-3 rounded-lg text-center">
+              <p className="font-semibold">Tidak dalam jam kerja</p>
+              <p className="text-sm opacity-90">Check In: 06:00-12:00 | Check Out: 15:00-20:00</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Camera Modal */}
+      {showCamera && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">
+                {actionType === 'checkin' ? 'Check In' : 'Check Out'} dengan Kamera
+              </h3>
+              <button
+                onClick={() => {
+                  setShowCamera(false);
+                  setActionType(null);
+                }}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="relative">
+              <Webcam
+                ref={webcamRef}
+                audio={false}
+                width={640}
+                height={480}
+                screenshotFormat="image/jpeg"
+                videoConstraints={{
+                  width: 640,
+                  height: 480,
+                  facingMode: "user"
+                }}
+                style={{ transform: 'scaleX(-1)' }}
+                onUserMediaError={(error) => {
+                  console.error('Webcam error:', error);
+                  setCameraError('Tidak dapat mengakses kamera. Silakan gunakan "Pilih File" sebagai alternatif.');
+                }}
+                onUserMedia={() => {
+                  console.log('Camera stream obtained successfully');
+                }}
+              />
+            </div>
+            
+            <div className="mt-4 text-center">
+              <p className="text-gray-300 text-sm mb-4">
+                Posisikan wajah Anda di dalam frame dan klik "Ambil Foto"
+              </p>
+              {isLoading && (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>Memproses...</span>
+                </div>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <button
+                onClick={capturePhoto}
+                disabled={isLoading}
+                className={`px-4 py-2 rounded font-semibold ${
+                  isLoading
+                    ? 'bg-gray-500 cursor-not-allowed' 
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
+              >
+                📸 Ambil Foto
+              </button>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+                className={`px-4 py-2 rounded font-semibold ${
+                  isLoading
+                    ? 'bg-gray-500 cursor-not-allowed' 
+                    : 'bg-green-600 hover:bg-green-700 text-white'
+                }`}
+              >
+                📁 Pilih File
+              </button>
+              <button
+                onClick={() => {
+                  setShowCamera(false);
+                  setActionType(null);
+                }}
+                className="col-span-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded font-semibold"
+              >
+                ❌ Batal
+              </button>
+            </div>
+            
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+          </div>
+        </div>
+      )}
       
       {/* Statistics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -323,18 +715,23 @@ const Attendance: React.FC = () => {
             <option value="late">Terlambat</option>
           </select>
           <button 
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 text-white px-3 py-2 sm:px-4 sm:py-2 rounded flex items-center text-xs sm:text-sm"
+            onClick={() => handleCheckInOut('checkin')}
+            disabled={isLoading || getCurrentAction().action !== 'checkin'}
+            className={`px-3 py-2 sm:px-4 sm:py-2 rounded flex items-center text-xs sm:text-sm transition-colors ${
+              isLoading || getCurrentAction().action !== 'checkin'
+                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                : 'bg-green-600 hover:bg-green-700 text-white'
+            }`}
           >
-            {refreshing ? (
+            {isLoading && actionType === 'checkin' ? (
               <>
                 <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
                 Loading...
               </>
             ) : (
               <>
-                <span className="mr-1">⟳</span> Refresh
+                <LogIn className="w-3 h-3 mr-1" />
+                Check In
               </>
             )}
           </button>
