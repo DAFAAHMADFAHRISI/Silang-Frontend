@@ -523,12 +523,8 @@ const TugasMentor: React.FC = () => {
         formData.append('file_tugas', createForm.file_tugas);
       }
       
-      // Add selected students
-      if (createForm.selectedStudents.length > 0) {
-        createForm.selectedStudents.forEach((studentId, index) => {
-          formData.append(`siswa_ids[${index}]`, studentId.toString());
-        });
-      }
+      // Kirim array id siswa sebagai penerima_tugas
+      formData.append('penerima_tugas', JSON.stringify(createForm.selectedStudents));
       
       const response = await fetch('http://localhost:3000/api/tugas-mentor/create', {
         method: 'POST',
@@ -614,15 +610,11 @@ const TugasMentor: React.FC = () => {
         formData.append('file_tugas', editForm.file_tugas);
       }
       
-      // Add selected students
-      if (editForm.selectedStudents.length > 0) {
-        editForm.selectedStudents.forEach((studentId, index) => {
-          formData.append(`siswa_ids[${index}]`, studentId.toString());
-        });
-      }
+      // Kirim array id siswa sebagai penerima_tugas
+      formData.append('penerima_tugas', JSON.stringify(editForm.selectedStudents));
       
       const response = await fetch(`http://localhost:3000/api/tugas-mentor/update/${selectedTask.id}`, {
-        method: 'POST',
+        method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
         },
