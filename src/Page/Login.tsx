@@ -111,22 +111,6 @@ const Login: React.FC = () => {
             >
               {loading ? 'Logging in...' : 'Login'}
             </button>
-            {/* Jarak separator diperkecil maksimal */}
-            <div className="flex items-center my-0">
-              <div className="flex-grow h-px bg-gray-700" />
-              <span className="mx-2 text-gray-400 text-xs lg:text-sm">or</span>
-              <div className="flex-grow h-px bg-gray-700" />
-            </div>
-            <button
-              type="button"
-              className="flex items-center justify-center gap-2 bg-white text-gray-800 font-medium py-2 lg:py-3 rounded-md border border-gray-300 hover:bg-gray-100 transition-colors duration-200 mt-0 text-sm lg:text-base"
-            >
-              {/* Ikon Google hanya warna merah dan proporsional */}
-              <svg className="w-4 h-4 lg:w-5 lg:h-5" viewBox="0 0 24 24" fill="none">
-                <path d="M21.805 10.023h-9.765v3.954h5.617c-.242 1.242-1.484 3.648-5.617 3.648-3.375 0-6.125-2.789-6.125-6.25s2.75-6.25 6.125-6.25c1.922 0 3.211.82 3.953 1.523l2.703-2.633C17.07 2.82 15.07 2 12.805 2 7.477 2 3.305 6.477 3.305 12s4.172 10 9.5 10c5.484 0 9.117-3.852 9.117-9.297 0-.625-.07-1.102-.117-1.68z" fill="#EA4335"/>
-              </svg>
-              <span className="font-medium">Sign in with Google</span>
-            </button>
           </form>
         )}
         {/* Register Form Placeholder */}

@@ -1,16 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Listbox } from '@headlessui/react';
 
-const institutions = [
-  { value: '', label: 'Select Institution', disabled: true },
-  { value: 'instansi1', label: 'Instansi 1' },
-  { value: 'instansi2', label: 'Instansi 2' },
-];
+interface Institution {
+  id: number;
+  nama_institusi: string;
+  alamat: string;
+}
 
 const Register: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('register');
   const navigate = useNavigate();
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [loadingInstitutions, setLoadingInstitutions] = useState(true);
   const [form, setForm] = useState({
     nama: '',
     email: '',
@@ -23,6 +25,27 @@ const Register: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Fetch institutions from API
+  useEffect(() => {
+    const fetchInstitutions = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/institusi');
+        if (response.ok) {
+          const data = await response.json();
+          setInstitutions(data);
+        } else {
+          console.error('Failed to fetch institutions');
+        }
+      } catch (error) {
+        console.error('Error fetching institutions:', error);
+      } finally {
+        setLoadingInstitutions(false);
+      }
+    };
+
+    fetchInstitutions();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -143,18 +166,26 @@ const Register: React.FC = () => {
               onChange={handleChange}
               className="bg-transparent border border-gray-700 rounded-md px-3 py-2 lg:px-4 lg:py-3 text-gray-200 focus:outline-none focus:border-blue-400 text-sm lg:text-base"
             >
-              <option value="1">Male</option>
-              <option value="2">Female</option>
+              <option value="1" className="bg-gray-800 text-gray-200">Male</option>
+              <option value="2" className="bg-gray-800 text-gray-200">Female</option>
             </select>
             <select
               name="asal_institusi_id"
               value={form.asal_institusi_id}
               onChange={handleChange}
               className="bg-transparent border border-gray-700 rounded-md px-3 py-2 lg:px-4 lg:py-3 text-gray-200 focus:outline-none focus:border-blue-400 text-sm lg:text-base"
+              disabled={loadingInstitutions}
             >
+              <option value="" className="bg-gray-700 text-gray-400">
+                {loadingInstitutions ? 'Loading institutions...' : 'Select Institution'}
+              </option>
               {institutions.map((institution) => (
-                <option key={institution.value} value={institution.value} disabled={institution.disabled}>
-                  {institution.label}
+                <option 
+                  key={institution.id} 
+                  value={institution.id.toString()} 
+                  className="bg-gray-800 text-gray-200"
+                >
+                  {institution.nama_institusi}
                 </option>
               ))}
             </select>
