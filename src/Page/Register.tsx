@@ -30,7 +30,7 @@ const Register: React.FC = () => {
   useEffect(() => {
     const fetchInstitutions = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/institusi');
+        const response = await fetch('http://localhost:3000/API/public/institusi');
         if (response.ok) {
           const data = await response.json();
           setInstitutions(data);
@@ -57,11 +57,19 @@ const Register: React.FC = () => {
     setError(null);
     setSuccess(null);
 
+    // Client-side password confirmation validation
+    if (form.password !== form.confirmPassword) {
+      setError('Password and Confirm Password do not match.');
+      setLoading(false);
+      return;
+    }
+
     // Map frontend form fields to API fields
     const payload = new URLSearchParams();
     payload.append('nama', form.nama);
     payload.append('email', form.email);
     payload.append('password', form.password);
+    payload.append('confirmPassword', form.confirmPassword);
     payload.append('no_hp', form.no_hp);
     payload.append('kelamin', form.kelamin);
     payload.append('asal_institusi_id', form.asal_institusi_id);
