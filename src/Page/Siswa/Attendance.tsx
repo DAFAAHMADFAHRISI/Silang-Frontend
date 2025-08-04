@@ -88,6 +88,10 @@ const Attendance: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
+  const getRowNumber = (index: number) => {
+    return index + 1;
+  };
+
   useEffect(() => {
     fetchAttendance();
   }, []);
@@ -341,9 +345,10 @@ const Attendance: React.FC = () => {
       
       {/* Attendance Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-xs sm:text-sm min-w-[800px]">
+        <table className="w-full text-xs sm:text-sm min-w-[900px]">
           <thead>
             <tr className="border-b border-gray-700">
+              <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">No.</th>
               <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Nama Siswa</th>
               <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Tanggal</th>
               <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Check In</th>
@@ -356,7 +361,7 @@ const Attendance: React.FC = () => {
           <tbody>
             {filteredAttendance.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-12">
+                <td colSpan={8} className="text-center py-12">
                   <div className="text-center">
                     <UserCheck className="w-16 h-16 text-gray-500 mx-auto mb-4" />
                     {attendanceData.length === 0 ? (
@@ -374,10 +379,11 @@ const Attendance: React.FC = () => {
                 </td>
               </tr>
             ) : (
-              filteredAttendance.map((row) => {
+              filteredAttendance.map((row, index) => {
                 const lateStatus = getLateStatus(row.status_kehadiran);
                 return (
                   <tr key={row.id} className="border-b border-gray-800 hover:bg-gray-800/50">
+                    <td className="py-3 px-2 sm:px-4 text-gray-400 text-center font-medium">{getRowNumber(index)}</td>
                     <td className="py-3 px-2 sm:px-4 text-white font-medium">{row.nama_siswa}</td>
                     <td className="py-3 px-2 sm:px-4 text-gray-300">{formatDate(row.tanggal_absen)}</td>
                     <td className="py-3 px-2 sm:px-4 text-green-400 font-medium">{formatTime(row.waktu_checkin)}</td>
@@ -408,6 +414,9 @@ const Attendance: React.FC = () => {
           <select className="bg-gray-800 text-white px-2 py-1 rounded border border-gray-700 text-xs sm:text-sm">
             <option>{filteredAttendance.length}</option>
           </select>
+          <span className="text-gray-400 text-xs sm:text-sm">
+            ({attendanceData.length} total)
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <button className="bg-gray-800 text-gray-400 px-2 py-1 sm:px-3 sm:py-2 rounded text-xs sm:text-sm" disabled>{'<<'}</button>
