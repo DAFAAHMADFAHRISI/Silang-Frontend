@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { UserCheck, Clock, Calendar, TrendingUp, AlertCircle, CheckCircle, Award, Users, Mail, Camera, LogIn, LogOut } from 'lucide-react';
 import Webcam from 'react-webcam';
+import Swal from 'sweetalert2';
 
 const Divider = () => <div className="border-t border-gray-700/50 my-6 sm:my-8 w-full" />;
 
@@ -146,18 +147,93 @@ const Attendance: React.FC = () => {
     if (webcamRef.current) {
       const imageSrc = webcamRef.current.getScreenshot();
       if (imageSrc) {
-        // Convert base64 to blob
-        fetch(imageSrc)
-          .then(res => res.blob())
-          .then(blob => {
-            handleCheckInOutWithPhoto(blob);
-          })
-          .catch(error => {
-            console.error('Error processing photo:', error);
-            setError('Gagal memproses foto. Silakan coba lagi.');
+        // Basic validation - check if image is not empty
+        if (imageSrc === 'data:image/jpeg;base64,') {
+          Swal.fire({
+            icon: 'error',
+            title: 'Foto tidak valid!',
+            text: 'Tidak dapat mengambil foto. Pastikan kamera berfungsi dengan baik.',
           });
+          return;
+        }
+
+        // Simple face detection validation
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx?.drawImage(img, 0, 0);
+          
+          const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
+          if (imageData) {
+            const data = imageData.data;
+            let skinPixels = 0;
+            let totalPixels = 0;
+            
+            // Calculate skin tone pixels (simple face detection)
+            for (let i = 0; i < data.length; i += 4) {
+              const r = data[i];
+              const g = data[i + 1];
+              const b = data[i + 2];
+              
+              // Simple skin tone detection
+              const isSkinTone = 
+                r > 95 && g > 40 && b > 20 &&
+                Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
+                Math.abs(r - g) > 15 && r > g && r > b;
+              
+              if (isSkinTone) {
+                skinPixels++;
+              }
+              totalPixels++;
+            }
+            
+            const skinRatio = skinPixels / totalPixels;
+            
+            // Check if there's enough skin tone (indicating a face)
+            if (skinRatio < 0.05) { // Less than 5% skin tone
+              Swal.fire({
+                icon: 'error',
+                title: 'Wajah tidak terdeteksi!',
+                text: 'Tidak dapat mendeteksi wajah dalam foto. Pastikan wajah Anda terlihat jelas.',
+              });
+              return;
+            }
+            
+            // If validation passes, proceed with upload
+            fetch(imageSrc)
+              .then(res => res.blob())
+              .then(blob => {
+                handleCheckInOutWithPhoto(blob);
+              })
+              .catch(error => {
+                console.error('Error processing photo:', error);
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Gagal memproses foto!',
+                  text: 'Terjadi kesalahan saat memproses foto. Silakan coba lagi.',
+                });
+              });
+          }
+        };
+        
+        img.onerror = () => {
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal memproses foto!',
+            text: 'Tidak dapat memproses gambar. Silakan coba lagi.',
+          });
+        };
+        
+        img.src = imageSrc;
       } else {
-        setError('Tidak dapat mengambil foto. Pastikan kamera berfungsi dengan baik.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Tidak dapat mengambil foto!',
+          text: 'Pastikan kamera berfungsi dengan baik.',
+        });
       }
     }
   }, []);
@@ -194,12 +270,35 @@ const Attendance: React.FC = () => {
       }
 
       if (!response.ok) {
-        throw new Error(`Error server: ${response.status}`);
+        const errorData = await response.json();
+        let errorMessage = errorData.message || 'Gagal melakukan absensi.';
+        
+        // Handle specific error cases
+        if (errorData.message && errorData.message.includes('face')) {
+          errorMessage = 'Wajah tidak terdeteksi dalam foto. Pastikan wajah Anda terlihat jelas dan tidak terhalang.';
+        } else if (errorData.message && errorData.message.includes('size')) {
+          errorMessage = 'Ukuran foto terlalu besar. Silakan pilih foto dengan ukuran yang lebih kecil.';
+        } else if (errorData.message && errorData.message.includes('format')) {
+          errorMessage = 'Format foto tidak didukung. Gunakan format JPG atau PNG.';
+        } else if (errorData.message && errorData.message.includes('time')) {
+          errorMessage = 'Tidak dalam jam absensi. Silakan cek jadwal absensi.';
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
       
       if (result.success) {
+        // Show success message
+        Swal.fire({
+          icon: 'success',
+          title: 'Absensi berhasil!',
+          text: result.message,
+          showConfirmButton: false,
+          timer: 3000,
+        });
+        
         setSuccess(result.message);
         setCheckInOutData(result.data);
         
@@ -216,6 +315,13 @@ const Attendance: React.FC = () => {
       const errorMessage = err instanceof Error ? err.message : 'Gagal melakukan absensi.';
       setError(errorMessage);
       console.error('Error during check-in/out:', err);
+      
+      // Show error notification
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal melakukan absensi!',
+        text: errorMessage,
+      });
     } finally {
       setIsLoading(false);
       setActionType(null);
@@ -235,24 +341,144 @@ const Attendance: React.FC = () => {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) {
-      setCameraError('Tidak ada file yang dipilih.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Tidak ada file yang dipilih!',
+        text: 'Silakan pilih file gambar terlebih dahulu.',
+      });
       return;
     }
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      setCameraError('File harus berupa gambar.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Format file tidak didukung!',
+        text: 'File harus berupa gambar (JPG, PNG, GIF).',
+      });
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setCameraError('Ukuran file terlalu besar. Maksimal 5MB.');
+      Swal.fire({
+        icon: 'error',
+        title: 'Ukuran file terlalu besar!',
+        text: 'Ukuran file maksimal 5MB. Silakan pilih file yang lebih kecil.',
+      });
       return;
     }
 
-    // Process the file
-    handleCheckInOutWithPhoto(file);
+    // Create image element to validate content
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx?.drawImage(img, 0, 0);
+      
+      const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
+      if (imageData) {
+        const data = imageData.data;
+        let totalBrightness = 0;
+        let totalPixels = 0;
+        
+        // Calculate average brightness
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          const brightness = (r + g + b) / 3;
+          totalBrightness += brightness;
+          totalPixels++;
+        }
+        
+        const avgBrightness = totalBrightness / totalPixels;
+        
+        // Calculate contrast
+        let contrast = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          const brightness = (r + g + b) / 3;
+          contrast += Math.abs(brightness - avgBrightness);
+        }
+        const avgContrast = contrast / totalPixels;
+        
+        // Face detection using skin tone
+        let skinPixels = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          
+          // Simple skin tone detection
+          const isSkinTone = 
+            r > 95 && g > 40 && b > 20 &&
+            Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
+            Math.abs(r - g) > 15 && r > g && r > b;
+          
+          if (isSkinTone) {
+            skinPixels++;
+          }
+        }
+        
+        const skinRatio = skinPixels / totalPixels;
+        
+        // Validation checks
+        if (avgBrightness < 50) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Foto terlalu gelap!',
+            text: 'Tidak dapat mendeteksi wajah. Pastikan pencahayaan cukup.',
+          });
+          return;
+        }
+        
+        if (avgBrightness > 200) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Foto terlalu terang!',
+            text: 'Foto terlalu terang. Pilih foto dengan pencahayaan yang tepat.',
+          });
+          return;
+        }
+        
+        if (avgContrast < 20) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Tidak dapat mendeteksi wajah!',
+            text: 'Foto terlalu blur atau tidak ada wajah yang terlihat.',
+          });
+          return;
+        }
+        
+        // Check if there's enough skin tone (indicating a face)
+        if (skinRatio < 0.05) { // Less than 5% skin tone
+          Swal.fire({
+            icon: 'error',
+            title: 'Wajah tidak terdeteksi!',
+            text: 'Tidak dapat mendeteksi wajah dalam foto. Pastikan wajah Anda terlihat jelas.',
+          });
+          return;
+        }
+        
+        // If validation passes, proceed with upload
+        handleCheckInOutWithPhoto(file);
+      }
+    };
+    
+    img.onerror = () => {
+      Swal.fire({
+        icon: 'error',
+        title: 'File tidak valid!',
+        text: 'Tidak dapat memproses gambar. Pilih file gambar yang valid.',
+      });
+    };
+    
+    img.src = URL.createObjectURL(file);
   };
 
   const handleRefresh = async () => {
@@ -584,6 +810,11 @@ const Attendance: React.FC = () => {
                 onUserMediaError={(error) => {
                   console.error('Webcam error:', error);
                   setCameraError('Tidak dapat mengakses kamera. Silakan gunakan "Pilih File" sebagai alternatif.');
+                  Swal.fire({
+                    icon: 'warning',
+                    title: 'Kamera tidak dapat diakses!',
+                    text: 'Silakan gunakan tombol "Pilih File" untuk upload foto dari galeri.',
+                  });
                 }}
                 onUserMedia={() => {
                   console.log('Camera stream obtained successfully');
