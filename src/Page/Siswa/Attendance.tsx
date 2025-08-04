@@ -24,6 +24,12 @@ interface CheckInOutData {
   face_image?: string;
 }
 
+interface LocationData {
+  latitude: number;
+  longitude: number;
+  accuracy?: number;
+}
+
 const Attendance: React.FC = () => {
   const [attendanceData, setAttendanceData] = useState<AttendanceRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,8 +45,55 @@ const Attendance: React.FC = () => {
   const [checkInOutData, setCheckInOutData] = useState<CheckInOutData | null>(null);
   const [actionType, setActionType] = useState<'checkin' | 'checkout' | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [locationData, setLocationData] = useState<LocationData | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const webcamRef = useRef<Webcam>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Get current GPS location
+  const getCurrentLocation = (): Promise<LocationData> => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation tidak didukung oleh browser ini.'));
+        return;
+      }
+
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 10000, // 10 seconds
+        maximumAge: 60000 // 1 minute
+      };
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const locationData: LocationData = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            accuracy: position.coords.accuracy
+          };
+          resolve(locationData);
+        },
+        (error) => {
+          let errorMessage = 'Gagal mendapatkan lokasi.';
+          switch (error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = 'Izin lokasi ditolak. Silakan izinkan akses lokasi di browser Anda.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = 'Informasi lokasi tidak tersedia.';
+              break;
+            case error.TIMEOUT:
+              errorMessage = 'Waktu habis untuk mendapatkan lokasi.';
+              break;
+            default:
+              errorMessage = 'Terjadi kesalahan saat mendapatkan lokasi.';
+              break;
+          }
+          reject(new Error(errorMessage));
+        },
+        options
+      );
+    });
+  };
 
   const fetchAttendance = async () => {
     setLoading(true);
@@ -243,8 +296,30 @@ const Attendance: React.FC = () => {
     setIsLoading(true);
     setError(null);
     setSuccess(null);
+    setLocationError(null);
 
     try {
+      // Get current GPS location first
+      let currentLocation: LocationData | null = null;
+      try {
+        currentLocation = await getCurrentLocation();
+        setLocationData(currentLocation);
+        console.log('GPS Location captured:', currentLocation);
+      } catch (locationErr) {
+        const locationErrorMessage = locationErr instanceof Error ? locationErr.message : 'Gagal mendapatkan lokasi.';
+        setLocationError(locationErrorMessage);
+        console.warn('Location error:', locationErr);
+        
+        // Show warning but continue with attendance
+        Swal.fire({
+          icon: 'warning',
+          title: 'Lokasi tidak tersedia',
+          text: 'Absensi akan dilanjutkan tanpa data lokasi.',
+          showConfirmButton: false,
+          timer: 2000,
+        });
+      }
+
       const token = localStorage.getItem('token');
       
       if (!token) {
@@ -253,6 +328,15 @@ const Attendance: React.FC = () => {
 
       const formData = new FormData();
       formData.append('face_image', photoBlob, 'face_image.jpg');
+      
+      // Add location data if available
+      if (currentLocation) {
+        formData.append('latitude', currentLocation.latitude.toString());
+        formData.append('longitude', currentLocation.longitude.toString());
+        if (currentLocation.accuracy) {
+          formData.append('accuracy', currentLocation.accuracy.toString());
+        }
+      }
 
       const response = await fetch('http://localhost:3000/api/checkin', {
         method: 'POST',
@@ -290,6 +374,38 @@ const Attendance: React.FC = () => {
             icon: 'error',
             title: 'Verifikasi Wajah Gagal!',
             text: 'Wajah tidak sesuai dengan foto profil. Silakan coba lagi.',
+            showConfirmButton: false,
+            timer: 3000,
+          });
+          
+          setTimeout(() => {
+            window.location.href = '/AttendanceSiswa';
+          }, 3000);
+          return;
+        }
+        
+        // Redirect to main page if distance error occurs
+        if (errorData.message && (errorData.message.includes('luar area absensi') || errorData.message.includes('jarak maksimal'))) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Jarak Terlalu Jauh!',
+            text: 'Anda berada di luar area absensi. Silakan datang ke lokasi sekolah.',
+            showConfirmButton: false,
+            timer: 3000,
+          });
+          
+          setTimeout(() => {
+            window.location.href = '/AttendanceSiswa';
+          }, 3000);
+          return;
+        }
+        
+        // Redirect to main page if already checked in today
+        if (errorData.message && errorData.message.includes('sudah melakukan check-in hari ini')) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Sudah Check In!',
+            text: 'Anda sudah melakukan check-in hari ini.',
             showConfirmButton: false,
             timer: 3000,
           });
@@ -353,6 +469,38 @@ const Attendance: React.FC = () => {
         return;
       }
       
+      // Redirect to main page if distance error occurs
+      if (errorMessage.includes('luar area absensi') || errorMessage.includes('jarak maksimal')) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Jarak Terlalu Jauh!',
+          text: 'Anda berada di luar area absensi. Silakan datang ke lokasi sekolah.',
+          showConfirmButton: false,
+          timer: 3000,
+        });
+        
+        setTimeout(() => {
+          window.location.href = '/AttendanceSiswa';
+        }, 3000);
+        return;
+      }
+      
+      // Redirect to main page if already checked in today
+      if (errorMessage.includes('sudah melakukan check-in hari ini')) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Sudah Check In!',
+          text: 'Anda sudah melakukan check-in hari ini.',
+          showConfirmButton: false,
+          timer: 3000,
+        });
+        
+        setTimeout(() => {
+          window.location.href = '/AttendanceSiswa';
+        }, 3000);
+        return;
+      }
+      
       // Show error notification
       Swal.fire({
         icon: 'error',
@@ -370,152 +518,19 @@ const Attendance: React.FC = () => {
   const handleCheckInOut = async (type: 'checkin' | 'checkout') => {
     setActionType(type);
     setCameraError(null);
+    setLocationError(null);
+    setLocationData(null);
     setShowCamera(true);
-    // Remove cameraLoading delay - let it start immediately
-  };
-
-  // Handle file upload
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Tidak ada file yang dipilih!',
-        text: 'Silakan pilih file gambar terlebih dahulu.',
-      });
-      return;
-    }
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Format file tidak didukung!',
-        text: 'File harus berupa gambar (JPG, PNG, GIF).',
-      });
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Ukuran file terlalu besar!',
-        text: 'Ukuran file maksimal 5MB. Silakan pilih file yang lebih kecil.',
-      });
-      return;
-    }
-
-    // Create image element to validate content
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx?.drawImage(img, 0, 0);
-      
-      const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
-      if (imageData) {
-        const data = imageData.data;
-        let totalBrightness = 0;
-        let totalPixels = 0;
-        
-        // Calculate average brightness
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          const brightness = (r + g + b) / 3;
-          totalBrightness += brightness;
-          totalPixels++;
-        }
-        
-        const avgBrightness = totalBrightness / totalPixels;
-        
-        // Calculate contrast
-        let contrast = 0;
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          const brightness = (r + g + b) / 3;
-          contrast += Math.abs(brightness - avgBrightness);
-        }
-        const avgContrast = contrast / totalPixels;
-        
-        // Face detection using skin tone
-        let skinPixels = 0;
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          
-          // Simple skin tone detection
-          const isSkinTone = 
-            r > 95 && g > 40 && b > 20 &&
-            Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
-            Math.abs(r - g) > 15 && r > g && r > b;
-          
-          if (isSkinTone) {
-            skinPixels++;
-          }
-        }
-        
-        const skinRatio = skinPixels / totalPixels;
-        
-        // Validation checks
-        if (avgBrightness < 50) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Foto terlalu gelap!',
-            text: 'Tidak dapat mendeteksi wajah. Pastikan pencahayaan cukup.',
-          });
-          return;
-        }
-        
-        if (avgBrightness > 200) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Foto terlalu terang!',
-            text: 'Foto terlalu terang. Pilih foto dengan pencahayaan yang tepat.',
-          });
-          return;
-        }
-        
-        if (avgContrast < 20) {
-          Swal.fire({
-            icon: 'error',
-            title: 'Tidak dapat mendeteksi wajah!',
-            text: 'Foto terlalu blur atau tidak ada wajah yang terlihat.',
-          });
-          return;
-        }
-        
-        // Check if there's enough skin tone (indicating a face)
-        if (skinRatio < 0.05) { // Less than 5% skin tone
-          Swal.fire({
-            icon: 'error',
-            title: 'Wajah tidak terdeteksi!',
-            text: 'Tidak dapat mendeteksi wajah dalam foto. Pastikan wajah Anda terlihat jelas.',
-          });
-          return;
-        }
-        
-        // If validation passes, proceed with upload
-        handleCheckInOutWithPhoto(file);
-      }
-    };
     
-    img.onerror = () => {
-      Swal.fire({
-        icon: 'error',
-        title: 'File tidak valid!',
-        text: 'Tidak dapat memproses gambar. Pilih file gambar yang valid.',
-      });
-    };
-    
-    img.src = URL.createObjectURL(file);
+    // Request location permission when camera opens
+    try {
+      const location = await getCurrentLocation();
+      setLocationData(location);
+      console.log('Location captured on modal open:', location);
+    } catch (locationErr) {
+      console.warn('Location not available on modal open:', locationErr);
+      // Don't show error here, will be handled during attendance
+    }
   };
 
   const handleRefresh = async () => {
@@ -599,6 +614,22 @@ const Attendance: React.FC = () => {
     const status = statusKehadiran.toLowerCase();
     
     if (status.includes('terlambat')) {
+      // Extract minutes from status like "Terlambat 388 menit"
+      const minutesMatch = status.match(/(\d+)\s*menit/);
+      if (minutesMatch) {
+        const totalMinutes = parseInt(minutesMatch[1]);
+        if (totalMinutes >= 60) {
+          const hours = Math.floor(totalMinutes / 60);
+          const remainingMinutes = totalMinutes % 60;
+          let formattedStatus = `Telat ${hours} jam`;
+          if (remainingMinutes > 0) {
+            formattedStatus += ` ${remainingMinutes} menit`;
+          }
+          return { text: formattedStatus, class: 'text-red-400' };
+        } else {
+          return { text: `Telat ${totalMinutes} menit`, class: 'text-red-400' };
+        }
+      }
       return { text: statusKehadiran, class: 'text-red-400' };
     } else if (status.includes('on time') || status.includes('tepat waktu') || status.includes('hadir')) {
       return { text: 'Tepat Waktu', class: 'text-green-400' };
@@ -875,9 +906,19 @@ const Attendance: React.FC = () => {
                   <span>Memproses...</span>
                 </div>
               )}
+              {locationData && (
+                <div className="bg-green-600 text-white px-3 py-2 rounded text-xs mb-2">
+                  📍 Lokasi GPS: {locationData.latitude.toFixed(6)}, {locationData.longitude.toFixed(6)}
+                </div>
+              )}
+              {locationError && (
+                <div className="bg-yellow-600 text-white px-3 py-2 rounded text-xs mb-2">
+                  ⚠️ {locationError}
+                </div>
+              )}
             </div>
             
-            <div className="grid grid-cols-2 gap-3 mt-4">
+            <div className="grid grid-cols-1 gap-3 mt-4">
               <button
                 onClick={capturePhoto}
                 disabled={isLoading}
@@ -890,35 +931,16 @@ const Attendance: React.FC = () => {
                 📸 Ambil Foto
               </button>
               <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isLoading}
-                className={`px-4 py-2 rounded font-semibold ${
-                  isLoading
-                    ? 'bg-gray-500 cursor-not-allowed' 
-                    : 'bg-green-600 hover:bg-green-700 text-white'
-                }`}
-              >
-                📁 Pilih File
-              </button>
-              <button
                 onClick={() => {
                   setShowCamera(false);
                   setActionType(null);
                 }}
-                className="col-span-2 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded font-semibold"
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded font-semibold"
               >
                 ❌ Batal
               </button>
             </div>
             
-            {/* Hidden file input */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-            />
           </div>
         </div>
       )}
@@ -1023,9 +1045,9 @@ const Attendance: React.FC = () => {
               <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Nama Siswa</th>
               <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Tanggal</th>
               <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Check In</th>
+              <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Lokasi In</th>
               <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Status</th>
               <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Check Out</th>
-              <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Lokasi In</th>
               <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Lokasi Out</th>
             </tr>
           </thead>
@@ -1058,13 +1080,13 @@ const Attendance: React.FC = () => {
                     <td className="py-3 px-2 sm:px-4 text-white font-medium">{row.nama_siswa}</td>
                     <td className="py-3 px-2 sm:px-4 text-gray-300">{formatDate(row.tanggal_absen)}</td>
                     <td className="py-3 px-2 sm:px-4 text-green-400 font-medium">{formatTime(row.waktu_checkin)}</td>
+                    <td className="py-3 px-2 sm:px-4 text-gray-400 text-xs">
+                      {renderLocationCell(row.checkin_location, 'checkin')}
+                    </td>
                     <td className={`py-3 px-2 sm:px-4 font-medium ${lateStatus.class}`}>
                       {lateStatus.text}
                     </td>
                     <td className="py-3 px-2 sm:px-4 text-blue-400 font-medium">{formatTime(row.waktu_checkout)}</td>
-                    <td className="py-3 px-2 sm:px-4 text-gray-400 text-xs">
-                      {renderLocationCell(row.checkin_location, 'checkin')}
-                    </td>
                     <td className="py-3 px-2 sm:px-4 text-gray-400 text-xs">
                       {renderLocationCell(row.checkout_location, 'checkout')}
                     </td>
