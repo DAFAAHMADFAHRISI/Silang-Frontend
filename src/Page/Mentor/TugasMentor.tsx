@@ -30,12 +30,20 @@ interface Submission {
   siswa_nama: string;
 }
 
+interface Student {
+  id: number;
+  nama: string;
+  email: string;
+  nama_institusi: string;
+}
+
 interface CreateTaskForm {
   judul: string;
   deskripsi: string;
   priority: string;
   file_tugas: File | null;
   batas_waktu: string;
+  selectedStudents: number[];
 }
 
 const PriorityBadge = ({ priority }: { priority: string }) => {
@@ -159,12 +167,14 @@ const TugasMentor: React.FC = () => {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
+  const [students, setStudents] = useState<Student[]>([]);
   const [createForm, setCreateForm] = useState<CreateTaskForm>({
     judul: '',
     deskripsi: '',
     priority: '3',
     file_tugas: null,
     batas_waktu: '',
+    selectedStudents: [],
   });
   const [editForm, setEditForm] = useState<CreateTaskForm>({
     judul: '',
@@ -172,6 +182,7 @@ const TugasMentor: React.FC = () => {
     priority: '3',
     file_tugas: null,
     batas_waktu: '',
+    selectedStudents: [],
   });
   const navigate = useNavigate();
 
@@ -228,6 +239,7 @@ const TugasMentor: React.FC = () => {
     }
 
     fetchTasks();
+    fetchStudents();
   }, []);
 
   const fetchTaskDetail = async (taskId: number) => {
@@ -314,6 +326,52 @@ const TugasMentor: React.FC = () => {
     }
   };
 
+  const fetchStudents = async () => {
+    try {
+      setLoading(true); // Use setLoading for students as well
+      setError(null);
+      
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Token tidak ditemukan. Silakan login ulang.');
+      }
+      
+             const response = await fetch('http://localhost:3000/api/siswa-mentor', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('nama');
+        localStorage.removeItem('role');
+        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
+      }
+      
+      if (!response.ok) {
+        throw new Error(`Error server: ${response.status}`);
+      }
+      
+      const data: Student[] = await response.json();
+      console.log('Debug - Students API Response:', data);
+      
+      setStudents(data);
+      
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Gagal memuat data siswa.';
+      setError(errorMessage);
+      console.error('Error fetching students:', err);
+    } finally {
+      setLoading(false); // Reset loading state
+    }
+  };
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
   const handleViewTask = async (task: Tugas) => {
     setSelectedTask(task);
     setShowModal(true);
@@ -324,14 +382,56 @@ const TugasMentor: React.FC = () => {
     await fetchSubmissions(task.id);
   };
 
-  const handleEditTask = (task: Tugas) => {
+  const fetchTaskStudents = async (taskId: number) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Token tidak ditemukan. Silakan login ulang.');
+      }
+      
+      const response = await fetch(`http://localhost:3000/api/tugas-mentor/${taskId}/students`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('nama');
+        localStorage.removeItem('role');
+        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
+      }
+      
+      if (!response.ok) {
+        throw new Error(`Error server: ${response.status}`);
+      }
+      
+      const data: Student[] = await response.json();
+      console.log('Debug - Task Students API Response:', data);
+      
+      return data;
+      
+    } catch (err) {
+      console.error('Error fetching task students:', err);
+      return [];
+    }
+  };
+
+  const handleEditTask = async (task: Tugas) => {
     setSelectedTask(task);
+    
+    // Fetch assigned students for this task
+    const assignedStudents = await fetchTaskStudents(task.id);
+    const assignedStudentIds = assignedStudents.map(student => student.id);
+    
     setEditForm({
       judul: task.judul,
       deskripsi: task.deskripsi,
       priority: task.priority,
       file_tugas: null,
       batas_waktu: task.batas_waktu.split('T')[0] + 'T' + task.batas_waktu.split('T')[1].substring(0, 5),
+      selectedStudents: assignedStudentIds,
     });
     setShowEditModal(true);
   };
@@ -382,6 +482,27 @@ const TugasMentor: React.FC = () => {
   };
 
   const handleCreateTask = async () => {
+    // Validation
+    if (!createForm.judul.trim()) {
+      setError('Judul tugas harus diisi.');
+      return;
+    }
+    
+    if (!createForm.deskripsi.trim()) {
+      setError('Deskripsi tugas harus diisi.');
+      return;
+    }
+    
+    if (!createForm.batas_waktu) {
+      setError('Batas waktu harus diisi.');
+      return;
+    }
+    
+    if (createForm.selectedStudents.length === 0) {
+      setError('Pilih minimal satu siswa untuk ditugaskan.');
+      return;
+    }
+    
     try {
       setLoadingAction(true);
       setError(null);
@@ -400,6 +521,13 @@ const TugasMentor: React.FC = () => {
       
       if (createForm.file_tugas) {
         formData.append('file_tugas', createForm.file_tugas);
+      }
+      
+      // Add selected students
+      if (createForm.selectedStudents.length > 0) {
+        createForm.selectedStudents.forEach((studentId, index) => {
+          formData.append(`siswa_ids[${index}]`, studentId.toString());
+        });
       }
       
       const response = await fetch('http://localhost:3000/api/tugas-mentor/create', {
@@ -429,6 +557,7 @@ const TugasMentor: React.FC = () => {
         priority: '3',
         file_tugas: null,
         batas_waktu: '',
+        selectedStudents: [],
       });
       await fetchTasks(); // Refresh the list
       
@@ -443,6 +572,27 @@ const TugasMentor: React.FC = () => {
 
   const handleUpdateTask = async () => {
     if (!selectedTask) return;
+
+    // Validation
+    if (!editForm.judul.trim()) {
+      setError('Judul tugas harus diisi.');
+      return;
+    }
+    
+    if (!editForm.deskripsi.trim()) {
+      setError('Deskripsi tugas harus diisi.');
+      return;
+    }
+    
+    if (!editForm.batas_waktu) {
+      setError('Batas waktu harus diisi.');
+      return;
+    }
+    
+    if (editForm.selectedStudents.length === 0) {
+      setError('Pilih minimal satu siswa untuk ditugaskan.');
+      return;
+    }
 
     try {
       setLoadingAction(true);
@@ -462,6 +612,13 @@ const TugasMentor: React.FC = () => {
       
       if (editForm.file_tugas) {
         formData.append('file_tugas', editForm.file_tugas);
+      }
+      
+      // Add selected students
+      if (editForm.selectedStudents.length > 0) {
+        editForm.selectedStudents.forEach((studentId, index) => {
+          formData.append(`siswa_ids[${index}]`, studentId.toString());
+        });
       }
       
       const response = await fetch(`http://localhost:3000/api/tugas-mentor/update/${selectedTask.id}`, {
@@ -497,7 +654,8 @@ const TugasMentor: React.FC = () => {
   };
 
   const getStudentName = (studentId: number) => {
-    return `Siswa ID: ${studentId}`;
+    const student = students.find(s => s.id === studentId);
+    return student ? student.nama : `Siswa ID: ${studentId}`;
   };
 
   const filteredTasks = tasks.filter(task => {
@@ -759,6 +917,73 @@ const TugasMentor: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Assigned Students Section */}
+                  <div className="bg-gray-700 rounded-lg p-6">
+                    <h4 className="text-lg font-semibold text-white mb-4 flex items-center">
+                      <Users className="w-5 h-5 mr-2 text-blue-400" />
+                      Siswa yang Ditugaskan
+                    </h4>
+                    
+                    {loadingDetail ? (
+                      <div className="flex items-center justify-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                        <span className="ml-3 text-gray-400">Memuat data siswa...</span>
+                      </div>
+                    ) : selectedTaskDetail ? (
+                      <div className="space-y-3">
+                        {(() => {
+                          const assignedStudents = students.filter(student => 
+                            selectedTaskDetail.total_submissions > 0 || 
+                            submissions.some(sub => sub.siswa_id === student.id)
+                          );
+                          
+                          if (assignedStudents.length === 0) {
+                            return (
+                              <div className="text-center py-4">
+                                <Users className="w-8 h-8 text-gray-500 mx-auto mb-2" />
+                                <p className="text-gray-400">Belum ada siswa yang ditugaskan</p>
+                              </div>
+                            );
+                          }
+                          
+                          return assignedStudents.map((student) => (
+                            <div key={student.id} className="flex items-center justify-between bg-gray-600 rounded-lg p-3">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                  <span className="text-white font-semibold text-sm">
+                                    {student.nama.charAt(0)}
+                                  </span>
+                                </div>
+                                <div>
+                                  <p className="text-white font-semibold">{student.nama}</p>
+                                  <p className="text-gray-400 text-xs">{student.email}</p>
+                                  <p className="text-gray-400 text-xs">{student.nama_institusi}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                {submissions.some(sub => sub.siswa_id === student.id) ? (
+                                  <div className="flex items-center text-green-400">
+                                    <CheckCircle className="w-4 h-4 mr-1" />
+                                    <span className="text-xs">Submitted</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center text-yellow-400">
+                                    <Clock className="w-4 h-4 mr-1" />
+                                    <span className="text-xs">Pending</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-red-400">Gagal memuat data siswa</p>
+                      </div>
+                    )}
+                  </div>
+
                   {/* Submissions Section */}
                   <div className="bg-gray-700 rounded-lg p-6">
                     <h4 className="text-lg font-semibold text-white mb-4 flex items-center">
@@ -917,9 +1142,70 @@ const TugasMentor: React.FC = () => {
                 
                 <div>
                   <label className="text-gray-400 text-sm">Pilih Siswa</label>
-                  <div className="mt-2 p-4 bg-gray-700 border border-gray-600 rounded-lg">
-                    <p className="text-gray-400 text-sm">Fitur pemilihan siswa sedang dalam pengembangan.</p>
+                  <div className="mt-2 max-h-48 overflow-y-auto bg-gray-700 border border-gray-600 rounded-lg p-3">
+                    {students.length === 0 ? (
+                      <p className="text-gray-400 text-sm">Tidak ada siswa tersedia.</p>
+                    ) : (
+                      <>
+                        <div className="flex space-x-2 mb-3">
+                          <button
+                            type="button"
+                            onClick={() => setCreateForm({
+                              ...createForm,
+                              selectedStudents: students.map(s => s.id)
+                            })}
+                            className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded"
+                          >
+                            Pilih Semua
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCreateForm({
+                              ...createForm,
+                              selectedStudents: []
+                            })}
+                            className="text-xs bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded"
+                          >
+                            Hapus Semua
+                          </button>
+                        </div>
+                        <div className="space-y-2">
+                          {students.map((student) => (
+                          <label key={student.id} className="flex items-center space-x-3 cursor-pointer hover:bg-gray-600 p-2 rounded">
+                            <input
+                              type="checkbox"
+                              checked={createForm.selectedStudents.includes(student.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setCreateForm({
+                                    ...createForm,
+                                    selectedStudents: [...createForm.selectedStudents, student.id]
+                                  });
+                                } else {
+                                  setCreateForm({
+                                    ...createForm,
+                                    selectedStudents: createForm.selectedStudents.filter(id => id !== student.id)
+                                  });
+                                }
+                              }}
+                              className="w-4 h-4 text-blue-600 bg-gray-600 border-gray-500 rounded focus:ring-blue-500 focus:ring-2"
+                            />
+                            <div className="flex-1">
+                              <p className="text-white text-sm font-medium">{student.nama}</p>
+                              <p className="text-gray-400 text-xs">{student.email}</p>
+                              <p className="text-gray-400 text-xs">{student.nama_institusi}</p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                      </>
+                    )}
                   </div>
+                  {createForm.selectedStudents.length > 0 && (
+                    <p className="text-green-400 text-xs mt-2">
+                      {createForm.selectedStudents.length} siswa dipilih
+                    </p>
+                  )}
                 </div>
               </div>
               
@@ -1023,9 +1309,70 @@ const TugasMentor: React.FC = () => {
                 
                 <div>
                   <label className="text-gray-400 text-sm">Pilih Siswa</label>
-                  <div className="mt-2 p-4 bg-gray-700 border border-gray-600 rounded-lg">
-                    <p className="text-gray-400 text-sm">Fitur pemilihan siswa sedang dalam pengembangan.</p>
+                  <div className="mt-2 max-h-48 overflow-y-auto bg-gray-700 border border-gray-600 rounded-lg p-3">
+                    {students.length === 0 ? (
+                      <p className="text-gray-400 text-sm">Tidak ada siswa tersedia.</p>
+                    ) : (
+                      <>
+                        <div className="flex space-x-2 mb-3">
+                          <button
+                            type="button"
+                            onClick={() => setEditForm({
+                              ...editForm,
+                              selectedStudents: students.map(s => s.id)
+                            })}
+                            className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded"
+                          >
+                            Pilih Semua
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditForm({
+                              ...editForm,
+                              selectedStudents: []
+                            })}
+                            className="text-xs bg-gray-600 hover:bg-gray-700 text-white px-2 py-1 rounded"
+                          >
+                            Hapus Semua
+                          </button>
+                        </div>
+                        <div className="space-y-2">
+                          {students.map((student) => (
+                          <label key={student.id} className="flex items-center space-x-3 cursor-pointer hover:bg-gray-600 p-2 rounded">
+                            <input
+                              type="checkbox"
+                              checked={editForm.selectedStudents.includes(student.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setEditForm({
+                                    ...editForm,
+                                    selectedStudents: [...editForm.selectedStudents, student.id]
+                                  });
+                                } else {
+                                  setEditForm({
+                                    ...editForm,
+                                    selectedStudents: editForm.selectedStudents.filter(id => id !== student.id)
+                                  });
+                                }
+                              }}
+                              className="w-4 h-4 text-blue-600 bg-gray-600 border-gray-500 rounded focus:ring-blue-500 focus:ring-2"
+                            />
+                            <div className="flex-1">
+                              <p className="text-white text-sm font-medium">{student.nama}</p>
+                              <p className="text-gray-400 text-xs">{student.email}</p>
+                              <p className="text-gray-400 text-xs">{student.nama_institusi}</p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                      </>
+                    )}
                   </div>
+                  {editForm.selectedStudents.length > 0 && (
+                    <p className="text-green-400 text-xs mt-2">
+                      {editForm.selectedStudents.length} siswa dipilih
+                    </p>
+                  )}
                 </div>
               </div>
               
