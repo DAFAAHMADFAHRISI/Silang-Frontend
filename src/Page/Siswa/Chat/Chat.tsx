@@ -472,24 +472,28 @@ const Chat: React.FC = () => {
     }
   };
 
-  // Create new chat room
+  // Create new chat room (open immediately and fetch messages)
   const createChatRoom = async (userId: number, userName: string) => {
     try {
-      console.log('Creating chat room with user:', userId, userName);
-      
-      const response = await fetch(`${API_BASE_URL}/chat/create-room`, {
+      console.log('Creating or opening chat room with user:', userId, userName);
+      // Check if chat room already exists
+      const existingRoom = chatRooms.find(room => room.other_user_id === userId);
+      if (existingRoom) {
+        // Do not allow creating or opening if already exists
+        return;
+      }
+      // If not, create new room using correct API and payload
+      const formData = new URLSearchParams();
+      formData.append('user2_id', userId.toString());
+      const response = await fetch(`${API_BASE_URL}/chat/rooms`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: JSON.stringify({
-          other_user_id: userId,
-        }),
+        body: formData.toString(),
       });
-
       console.log('Create room response status:', response.status);
-
       if (!response.ok) {
         if (response.status === 401) {
           setError('Sesi Anda telah berakhir. Silakan login kembali.');
@@ -497,20 +501,28 @@ const Chat: React.FC = () => {
         }
         throw new Error(`Gagal membuat chat room: ${response.status} ${response.statusText}`);
       }
-
-      const result: ApiResponse<ChatRoom> = await response.json();
+      const result = await response.json();
       console.log('Create room response:', result);
-      
-      if (result.success) {
-        // Add new room to the list
-        setChatRooms(prev => [result.data, ...prev]);
-        // Select the new room
-        setSelectedRoom(result.data);
-        // Clear search
+      if (result.success && result.data && result.data.room && result.data.other_user) {
+        // Build new room object for chatRooms
+        const newRoom = {
+          room_id: result.data.room.id,
+          room_created_at: result.data.room.created_at,
+          other_user_id: result.data.other_user.other_user_id,
+          other_user_name: result.data.other_user.other_user_name,
+          other_user_role: result.data.other_user.other_user_role,
+          unread_count: 0,
+          last_message: '',
+          last_message_time: '',
+        };
+        setChatRooms(prev => [newRoom, ...prev]);
+        setSelectedRoom(newRoom);
+        setShowNewChatModal(false);
         setSearchUsersQuery('');
         setSearchResults([]);
-        setShowSearchResults(false);
-        console.log('Chat room created successfully');
+        // Fetch messages for the new room immediately
+        fetchMessages(newRoom.room_id);
+        console.log('Chat room created and opened successfully');
       } else {
         console.error('API Error:', result.message);
         setError('Gagal membuat chat room. Silakan coba lagi.');
@@ -655,11 +667,11 @@ const Chat: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden flex-row-reverse">
         {/* Contacts Sidebar */}
         <div className={`
           ${showContacts ? 'block' : 'hidden'} lg:block
-          w-full lg:w-80 bg-gray-800 border-r border-gray-700 flex flex-col
+          w-full lg:w-80 bg-gray-800 border-l border-gray-700 flex flex-col
         `}>
           <div className="p-4 border-b border-gray-700">
             <div className="relative">
@@ -783,7 +795,8 @@ const Chat: React.FC = () => {
                   messages.map((message, index) => {
                     const showDate = index === 0 || 
                       formatDate(message.created_at) !== formatDate(messages[index - 1].created_at);
-                    
+                    // WhatsApp-style: pesan saya di kanan, pesan lawan di kiri
+                    const isCurrentUser = message.sender_id === currentUserId;
                     return (
                       <div key={message.id}>
                         {showDate && (
@@ -793,21 +806,19 @@ const Chat: React.FC = () => {
                             </span>
                           </div>
                         )}
-                        <div className={`flex ${isMessageFromCurrentUser(message) ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
                           <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                            isMessageFromCurrentUser(message)
+                            isCurrentUser
                               ? 'bg-blue-600 text-white'
                               : 'bg-gray-700 text-white'
                           }`}>
-                            {!isMessageFromCurrentUser(message) && (
-                              <p className="text-xs text-gray-300 mb-1 font-medium">{message.sender_name}</p>
-                            )}
+                            {/* Nama pengirim dihapus agar seperti WhatsApp */}
                             <p className="text-sm">{message.message}</p>
                             <div className={`flex items-center justify-end mt-1 space-x-1 ${
-                              isMessageFromCurrentUser(message) ? 'text-blue-200' : 'text-gray-400'
+                              isCurrentUser ? 'text-blue-200' : 'text-gray-400'
                             }`}>
                               <span className="text-xs">{formatTime(message.created_at)}</span>
-                              {isMessageFromCurrentUser(message) && (
+                              {isCurrentUser && (
                                 <span className="text-xs">
                                   {message.is_read === 1 ? '✓✓' : '✓'}
                                 </span>
@@ -938,34 +949,45 @@ const Chat: React.FC = () => {
                   )
                 ) : (
                   // Show all available users
-                  availableUsers.length > 0 ? (
-                    <div className="space-y-2">
-                      {availableUsers.map((user) => (
-                        <div
-                          key={user.id}
-                          onClick={() => {
-                            createChatRoom(user.id, user.name);
-                            setShowNewChatModal(false);
-                          }}
-                          className="flex items-center p-3 hover:bg-gray-700 rounded-lg cursor-pointer transition-colors"
-                        >
-                          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-3">
-                            <span className="text-white font-medium">
-                              {user.name.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="text-white font-medium">{user.name}</h4>
-                            <p className="text-gray-400 text-sm">{getRoleLabel(user.role)}</p>
-                          </div>
+                  (() => {
+                    const usersToShow = availableUsers.filter((user: any) => !chatRooms.some(room => room.other_user_id === user.id));
+                    if (usersToShow.length > 0) {
+                      return (
+                        <div className="space-y-2">
+                          {usersToShow.map((user: any) => (
+                            <div
+                              key={user.id}
+                              onClick={() => {
+                                createChatRoom(user.id, user.nama);
+                                setShowNewChatModal(false);
+                              }}
+                              className="flex items-center p-3 hover:bg-gray-700 rounded-lg cursor-pointer transition-colors"
+                            >
+                              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                                <span className="text-white font-medium">
+                                  {typeof user.nama === 'string' && user.nama.length > 0
+                                    ? user.nama.charAt(0).toUpperCase()
+                                    : '?'}
+                                </span>
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="text-white font-medium">
+                                  {user.nama || 'Tanpa Nama'}
+                                </h4>
+                                <p className="text-gray-400 text-sm">{getRoleLabel(user.role)}</p>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-400">
-                      <p>Tidak ada user tersedia untuk chat baru</p>
-                    </div>
-                  )
+                      );
+                    } else {
+                      return (
+                        <div className="text-center py-8 text-gray-400">
+                          <p>Tidak ada user tersedia untuk chat baru</p>
+                        </div>
+                      );
+                    }
+                  })()
                 )}
               </div>
             </div>
