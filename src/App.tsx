@@ -22,7 +22,7 @@ import DataGuruSiswa from './Page/SuperAdmin/Data Guru - Siswa';
 import DataRekap from './Page/SuperAdmin/Data Rekap';
 import DataTugasGuru from './Page/Guru/Tugas/Data Tugas';
 import DataAbsensiGuru from './Page/Guru/Absensi/Data Absensi';
-import DataRekapGuru from './Page/Guru/Data Rekap';
+import DataRekapGuru from './Page/Guru/Rekap/Data Rekap';
 import TugasMentor from './Page/Mentor/TugasMentor';
 import DataAbsensiMentor from './Page/Mentor/Data Absensi';
 import DataRekapMentor from './Page/Mentor/Data Rekap';
