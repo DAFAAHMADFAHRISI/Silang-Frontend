@@ -51,7 +51,7 @@ const Login: React.FC = () => {
         } else if (data.role === 'admin' || data.role === 'superadmin') {
           navigate('/DashboardSuperAdmin');
         } else if (data.role === 'mentor') {
-          navigate('/DashboardMentor');
+          navigate('/mentor/dashboard');
         } else if (data.role === 'guru') {
           navigate('/guru/dashboard');
         } else {

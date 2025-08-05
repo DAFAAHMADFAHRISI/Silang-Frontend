@@ -23,7 +23,9 @@ import DataRekap from './Page/SuperAdmin/Data Rekap';
 import DataTugasGuru from './Page/Guru/Tugas/Data Tugas';
 import DataAbsensiGuru from './Page/Guru/Absensi/Data Absensi';
 import DataRekapGuru from './Page/Guru/Rekap/Data Rekap';
-import TugasMentor from './Page/Mentor/TugasMentor';
+import TugasMentor from './Page/Mentor/Tugas/TugasMentor';
+import TambahTugas from './Page/Mentor/Tugas/Tambah/Tambah';
+import EditTugas from './Page/Mentor/Tugas/Edit/Edit';
 import DataAbsensiMentor from './Page/Mentor/Data Absensi';
 import DataRekapMentor from './Page/Mentor/Data Rekap';
 import DetailTugas from './Page/Guru/Tugas/Detail/Detail';
@@ -46,7 +48,14 @@ function App() {
         <Route path='/ReportSiswa' element={<Layout><Report /></Layout>} />
         <Route path='/ProfileSiswa' element={<Layout><Profile /></Layout>} />
         <Route path='/DashboardSuperAdmin' element={<DashboardSuperAdmin />} />
-        <Route path='/DashboardMentor' element={<DashboardMentor />} />
+        
+        {/* Mentor Routes with /mentor prefix */}
+        <Route path='/mentor/dashboard' element={<DashboardMentor />} />
+        <Route path='/mentor/tugas' element={<TugasMentor />} />
+        <Route path='/mentor/tugas/tambah' element={<TambahTugas />} />
+        <Route path='/mentor/tugas/edit/:id' element={<EditTugas />} />
+        <Route path='/mentor/absensi' element={<DataAbsensiMentor />} />
+        <Route path='/mentor/rekap' element={<DataRekapMentor />} />
         
         {/* Guru Routes with /guru prefix */}
         <Route path='/guru/dashboard' element={<DashboardGuru />} />
@@ -67,7 +76,6 @@ function App() {
         <Route path='/DataMentorSiswa' element={<DataMentorSiswa />} />
         <Route path='/DataGuruSiswa' element={<DataGuruSiswa />} />
         <Route path='/DataRekap' element={<DataRekap />} />
-        <Route path='/TugasMentor' element={<TugasMentor />} />
         <Route path='/DataAbsensiMentor' element={<DataAbsensiMentor />} />
         <Route path='/DataRekapMentor' element={<DataRekapMentor />} />
       </Routes>
