@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../../../Layout/Layout';
 import { useNavigate } from 'react-router-dom';
 import { FileText, Clock, CheckCircle, AlertCircle, Eye, Search } from 'lucide-react';
-import Detail from './Detail/Detail';
 
 interface TaskSubmission {
   siswa_id: number;
@@ -36,8 +35,6 @@ const DataTugas: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -107,8 +104,7 @@ const DataTugas: React.FC = () => {
   );
 
   const handleViewDetail = (task: Task) => {
-    setSelectedTask(task);
-    setShowDetailModal(true);
+    navigate(`/guru/tugas/detail/${task.id}`);
   };
 
   const getStatusColor = (status: string) => {
@@ -243,13 +239,6 @@ const DataTugas: React.FC = () => {
             <p className="text-gray-500 text-sm mt-2">Coba ubah pencarian atau tambah tugas baru</p>
           </div>
         )}
-
-        {/* Detail Component */}
-        <Detail 
-          selectedTask={selectedTask}
-          showDetailModal={showDetailModal}
-          setShowDetailModal={setShowDetailModal}
-        />
       </div>
     </Layout>
   );

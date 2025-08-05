@@ -53,7 +53,7 @@ const Login: React.FC = () => {
         } else if (data.role === 'mentor') {
           navigate('/DashboardMentor');
         } else if (data.role === 'guru') {
-          navigate('/DashboardGuru');
+          navigate('/guru/dashboard');
         } else {
           navigate('/');
         }

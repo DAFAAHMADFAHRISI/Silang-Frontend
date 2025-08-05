@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../../../Layout/Layout';
 import { useNavigate } from 'react-router-dom';
 import { BarChart3, PieChart, TrendingUp, Users, Calendar, Search, Eye, FileText, Clock, Building } from 'lucide-react';
-import Detail from './Detail/Detail';
 
 // Define interfaces based on the actual API response structure from the image
 interface RekapData {
@@ -20,8 +19,6 @@ const DataRekap: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRekap, setSelectedRekap] = useState<RekapData | null>(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -82,8 +79,7 @@ const DataRekap: React.FC = () => {
   };
 
   const handleViewDetail = (rekap: RekapData) => {
-    setSelectedRekap(rekap);
-    setShowDetailModal(true);
+    navigate(`/guru/rekap/detail/${rekap.siswa_id}`);
   };
 
   const getStatusColor = (rataNilai: number) => {
@@ -307,13 +303,6 @@ const DataRekap: React.FC = () => {
             ))
           )}
         </div>
-
-        {/* Detail Component */}
-        <Detail 
-          selectedRekap={selectedRekap}
-          showDetailModal={showDetailModal}
-          setShowDetailModal={setShowDetailModal}
-        />
       </div>
     </Layout>
   );

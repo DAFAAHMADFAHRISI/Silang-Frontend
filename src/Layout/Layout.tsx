@@ -43,10 +43,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     ];
   } else if (role === 'guru') {
     menuItems = [
-      { to: '/DashboardGuru', icon: 'fa fa-tachometer-alt', label: 'Dashboard' },
-      { to: '/DataTugasGuru', icon: 'fa fa-clipboard-list', label: 'Data Tugas' },
-      { to: '/DataAbsensiGuru', icon: 'fa fa-user-check', label: 'Data Absensi' },
-      { to: '/DataRekapGuru', icon: 'fa fa-chart-bar', label: 'Data Rekap' },
+      { to: '/guru/dashboard', icon: 'fa fa-tachometer-alt', label: 'Dashboard' },
+      { to: '/guru/tugas', icon: 'fa fa-clipboard-list', label: 'Data Tugas' },
+      { to: '/guru/absensi', icon: 'fa fa-user-check', label: 'Data Absensi' },
+      { to: '/guru/rekap', icon: 'fa fa-chart-bar', label: 'Data Rekap' },
     ];
   }
 
