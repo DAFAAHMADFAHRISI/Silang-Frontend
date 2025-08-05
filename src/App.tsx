@@ -6,6 +6,7 @@ import Login from './Page/Login';
 import DashboardSiswa from './Page/Siswa/Dashboard';
 import Todo from './Page/Siswa/Todo';
 import Attendance from './Page/Siswa/Attendance';
+import Chat from './Page/Siswa/Chat/Chat';
 import Report from './Page/Siswa/Report';
 import Layout from './Layout/Layout';
 import Profile from './Page/Siswa/Profile';
@@ -45,6 +46,7 @@ function App() {
         <Route path='/DashboardSiswa' element={<Layout><DashboardSiswa /></Layout>} />
         <Route path='/TodoSiswa' element={<Layout><Todo /></Layout>} />
         <Route path='/AttendanceSiswa' element={<Layout><Attendance /></Layout>} />
+        <Route path='/ChatSiswa' element={<Layout><Chat /></Layout>} />
         <Route path='/ReportSiswa' element={<Layout><Report /></Layout>} />
         <Route path='/ProfileSiswa' element={<Layout><Profile /></Layout>} />
         <Route path='/DashboardSuperAdmin' element={<DashboardSuperAdmin />} />

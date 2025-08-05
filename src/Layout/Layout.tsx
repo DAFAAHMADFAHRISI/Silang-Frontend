@@ -32,6 +32,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       { to: '/DashboardSiswa', icon: 'fa fa-tachometer-alt', label: 'Dashboard' },
       { to: '/TodoSiswa', icon: 'fa fa-tasks', label: 'To Do' },
       { to: '/AttendanceSiswa', icon: 'fa fa-calendar-check', label: 'Attendance' },
+      { to: '/ChatSiswa', icon: 'fa fa-comments', label: 'Chat' },
       { to: '/ReportSiswa', icon: 'fa fa-file-alt', label: 'Report' },
     ];
   } else if (role === 'mentor') {
