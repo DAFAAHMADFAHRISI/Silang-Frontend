@@ -36,10 +36,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     ];
   } else if (role === 'mentor') {
     menuItems = [
-      { to: '/DashboardMentor', icon: 'fa fa-tachometer-alt', label: 'Dashboard' },
-      { to: '/TugasMentor', icon: 'fa fa-clipboard-list', label: 'Data Tugas' },
-      { to: '/DataAbsensiMentor', icon: 'fa fa-user-check', label: 'Data Absensi' },
-      { to: '/DataRekapMentor', icon: 'fa fa-chart-bar', label: 'Data Rekap' },
+      { to: '/mentor/dashboard', icon: 'fa fa-tachometer-alt', label: 'Dashboard' },
+      { to: '/mentor/tugas', icon: 'fa fa-clipboard-list', label: 'Data Tugas' },
+      { to: '/mentor/absensi', icon: 'fa fa-user-check', label: 'Data Absensi' },
+      { to: '/mentor/rekap', icon: 'fa fa-chart-bar', label: 'Data Rekap' },
     ];
   } else if (role === 'guru') {
     menuItems = [
