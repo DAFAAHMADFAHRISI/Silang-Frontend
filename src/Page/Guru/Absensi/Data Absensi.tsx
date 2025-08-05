@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../../../Layout/Layout';
 import { useNavigate } from 'react-router-dom';
 import { User, Clock, MapPin, Image, Calendar, Search, Eye } from 'lucide-react';
-import Detail from './Detail/Detail';
 
 // Define interfaces based on the API response structure from the image
 interface AbsensiEntry {
@@ -30,9 +29,6 @@ const DataAbsensi: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedAbsensi, setSelectedAbsensi] = useState<AbsensiEntry | null>(null);
-  const [selectedSiswa, setSelectedSiswa] = useState<SiswaAbsensi | null>(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -105,9 +101,7 @@ const DataAbsensi: React.FC = () => {
   };
 
   const handleViewDetail = (siswa: SiswaAbsensi, absensi: AbsensiEntry) => {
-    setSelectedSiswa(siswa);
-    setSelectedAbsensi(absensi);
-    setShowDetailModal(true);
+    navigate(`/guru/absensi/detail/${absensi.id}`);
   };
 
   const formatDate = (dateString: string) => {
@@ -307,14 +301,6 @@ const DataAbsensi: React.FC = () => {
             ))
           )}
         </div>
-
-        {/* Detail Component */}
-        <Detail 
-          selectedAbsensi={selectedAbsensi}
-          selectedSiswa={selectedSiswa}
-          showDetailModal={showDetailModal}
-          setShowDetailModal={setShowDetailModal}
-        />
       </div>
     </Layout>
   );

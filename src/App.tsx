@@ -26,6 +26,9 @@ import DataRekapGuru from './Page/Guru/Rekap/Data Rekap';
 import TugasMentor from './Page/Mentor/TugasMentor';
 import DataAbsensiMentor from './Page/Mentor/Data Absensi';
 import DataRekapMentor from './Page/Mentor/Data Rekap';
+import DetailTugas from './Page/Guru/Tugas/Detail/Detail';
+import DetailAbsensi from './Page/Guru/Absensi/Detail/Detail';
+import DetailRekap from './Page/Guru/Rekap/Detail/Detail';
 
 
 import './App.css';
@@ -44,10 +47,18 @@ function App() {
         <Route path='/ProfileSiswa' element={<Layout><Profile /></Layout>} />
         <Route path='/DashboardSuperAdmin' element={<DashboardSuperAdmin />} />
         <Route path='/DashboardMentor' element={<DashboardMentor />} />
-        <Route path='/DashboardGuru' element={<DashboardGuru />} />
-        <Route path='/DataTugasGuru' element={<DataTugasGuru />} />
-        <Route path='/DataAbsensiGuru' element={<DataAbsensiGuru />} />
-        <Route path='/DataRekapGuru' element={<DataRekapGuru />} />
+        
+        {/* Guru Routes with /guru prefix */}
+        <Route path='/guru/dashboard' element={<DashboardGuru />} />
+        <Route path='/guru/tugas' element={<DataTugasGuru />} />
+        <Route path='/guru/absensi' element={<DataAbsensiGuru />} />
+        <Route path='/guru/rekap' element={<DataRekapGuru />} />
+        
+        {/* Guru Detail Routes */}
+        <Route path='/guru/tugas/detail/:id' element={<DetailTugas />} />
+        <Route path='/guru/absensi/detail/:id' element={<DetailAbsensi />} />
+        <Route path='/guru/rekap/detail/:id' element={<DetailRekap />} />
+        
         <Route path='/UserManagement' element={<UserManagement />} />
         <Route path='/Institusi' element={<Institusi />} />
         <Route path='/DataTugas' element={<DataTugas />} />
