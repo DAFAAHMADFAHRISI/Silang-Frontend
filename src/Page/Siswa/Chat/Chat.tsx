@@ -89,14 +89,27 @@ const Chat: React.FC = () => {
   // Get current user ID from localStorage or token
   useEffect(() => {
     const userId = localStorage.getItem('user_id');
+    const userName = localStorage.getItem('nama');
+    const userData = localStorage.getItem('user_data');
+    
+    console.log('🔑 Current user data from localStorage:', {
+      userId: userId,
+      userName: userName,
+      userData: userData ? JSON.parse(userData) : null
+    });
+    
     if (userId) {
-      setCurrentUserId(parseInt(userId));
+      const parsedUserId = parseInt(userId);
+      setCurrentUserId(parsedUserId);
+      console.log('✅ Set currentUserId to:', parsedUserId, 'for user:', userName);
     } else {
+      console.warn('❌ No user_id found in localStorage');
       // If user_id is not in localStorage, try to get it from the first message
       // This is a fallback mechanism
       if (messages.length > 0) {
         // Assume the first message sender is the current user if no user_id is stored
         setCurrentUserId(messages[0].sender_id);
+        console.log('🔄 Fallback: Set currentUserId to first message sender:', messages[0].sender_id);
       }
     }
   }, [messages]);
@@ -122,10 +135,15 @@ const Chat: React.FC = () => {
 
   // Helper function to check if message is from current user
   const isMessageFromCurrentUser = (message: Message) => {
+    // Jika currentUserId tersedia, bandingkan dengan sender_id
     if (currentUserId) {
-      return message.sender_id === currentUserId;
+      const isFromCurrentUser = message.sender_id === currentUserId;
+      console.log(`🔍 Message ${message.id}: sender_id=${message.sender_id}, currentUserId=${currentUserId}, isFromCurrentUser=${isFromCurrentUser}`);
+      return isFromCurrentUser;
     }
-    // Fallback: if no currentUserId, assume messages with sender_id 1 are from current user
+    
+    // Fallback: jika tidak ada currentUserId, gunakan logika default
+    console.warn('⚠️ No currentUserId available, using fallback logic');
     return message.sender_id === 1;
   };
 
@@ -261,7 +279,20 @@ const Chat: React.FC = () => {
       
       if (result.success) {
         setMessages(result.data.messages);
-        console.log('Messages loaded:', result.data.messages.length);
+        console.log('📨 Messages loaded:', result.data.messages.length);
+        console.log('📋 All messages details:', result.data.messages.map(msg => ({
+          id: msg.id,
+          sender_id: msg.sender_id,
+          sender_name: msg.sender_name,
+          message: msg.message,
+          created_at: msg.created_at
+        })));
+        
+        // Debug: Log current user info
+        console.log('👤 Current user info:', {
+          currentUserId: currentUserId,
+          userName: localStorage.getItem('nama')
+        });
         
         // Mark messages as read when room is opened
         markMessagesAsRead(roomId);
@@ -361,6 +392,11 @@ const Chat: React.FC = () => {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Debug currentUserId changes
+  useEffect(() => {
+    console.log('currentUserId changed to:', currentUserId);
+  }, [currentUserId]);
 
   useEffect(() => {
     if (selectedRoom) {
@@ -664,6 +700,33 @@ const Chat: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
           </button>
+          <button 
+            onClick={() => {
+              console.log('🔍 Debug Info:', {
+                currentUserId: currentUserId,
+                localStorage: {
+                  user_id: localStorage.getItem('user_id'),
+                  nama: localStorage.getItem('nama'),
+                  user_data: localStorage.getItem('user_data')
+                },
+                selectedRoom: selectedRoom,
+                messagesCount: messages.length,
+                messages: messages.map(msg => ({
+                  id: msg.id,
+                  sender_id: msg.sender_id,
+                  sender_name: msg.sender_name,
+                  message: msg.message,
+                  isFromCurrentUser: msg.sender_id === currentUserId
+                }))
+              });
+            }}
+            className="text-gray-400 hover:text-white p-2"
+            title="Debug Info"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -795,8 +858,22 @@ const Chat: React.FC = () => {
                   messages.map((message, index) => {
                     const showDate = index === 0 || 
                       formatDate(message.created_at) !== formatDate(messages[index - 1].created_at);
+                    
                     // WhatsApp-style: pesan saya di kanan, pesan lawan di kiri
-                    const isCurrentUser = message.sender_id === currentUserId;
+                    const isCurrentUser = isMessageFromCurrentUser(message);
+                    
+                    // Debug info untuk setiap pesan
+                    const debugInfo = {
+                      messageId: message.id,
+                      senderId: message.sender_id,
+                      senderName: message.sender_name,
+                      currentUserId: currentUserId,
+                      isCurrentUser: isCurrentUser,
+                      position: isCurrentUser ? 'RIGHT (PESAN SAYA)' : 'LEFT (PESAN ORANG LAIN)',
+                      message: message.message
+                    };
+                    console.log(`🎨 Rendering message:`, debugInfo);
+                    
                     return (
                       <div key={message.id}>
                         {showDate && (
