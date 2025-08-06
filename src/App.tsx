@@ -33,6 +33,7 @@ import DetailTugas from './Page/Guru/Tugas/Detail/Detail';
 import DetailAbsensi from './Page/Guru/Absensi/Detail/Detail';
 import DetailRekap from './Page/Guru/Rekap/Detail/Detail';
 import ChatMentor from './Page/Mentor/Chat/Chat';
+import ChatGuru from './Page/Guru/Chat/Chat';
 
 import './App.css';
 
@@ -65,6 +66,7 @@ function App() {
         <Route path='/guru/tugas' element={<Layout><DataTugasGuru /></Layout>} />
         <Route path='/guru/absensi' element={<Layout><DataAbsensiGuru /></Layout>} />
         <Route path='/guru/rekap' element={<Layout><DataRekapGuru /></Layout>} />
+        <Route path='/guru/chat' element={<Layout><ChatGuru /></Layout>} />
         
         {/* Guru Detail Routes */}
         <Route path='/guru/tugas/detail/:id' element={<Layout><DetailTugas /></Layout>} />
