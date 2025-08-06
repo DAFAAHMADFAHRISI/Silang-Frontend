@@ -34,13 +34,19 @@ const Login: React.FC = () => {
         body: payload.toString(),
       });
       const data = await res.json();
+      console.log('Login response:', data);
       if (res.ok && data.token) {
         localStorage.setItem('token', data.token);
         if (data.nama) localStorage.setItem('nama', data.nama);
         if (data.role) localStorage.setItem('role', data.role);
-        if (data.id) localStorage.setItem('user_id', data.id.toString());
+        // Backend mengirim 'id', bukan 'user_id'
+        if (data.id) {
+          localStorage.setItem('user_id', data.id.toString());
+          console.log('Stored user_id:', data.id.toString());
+        }
         if (data.mentor_id) localStorage.setItem('mentor_id', data.mentor_id.toString());
-        if (data.user_id) localStorage.setItem('user_id', data.user_id.toString());
+        // Hapus baris ini karena backend tidak mengirim user_id
+        // if (data.user_id) localStorage.setItem('user_id', data.user_id.toString());
         
         // Store complete user data for debugging
         localStorage.setItem('user_data', JSON.stringify(data));
