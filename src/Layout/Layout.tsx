@@ -38,6 +38,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   } else if (role === 'mentor') {
     menuItems = [
       { to: '/mentor/dashboard', icon: 'fa fa-tachometer-alt', label: 'Dashboard' },
+      { to: '/mentor/chat', icon: 'fa fa-comments', label: 'Chat' },
       { to: '/mentor/tugas', icon: 'fa fa-clipboard-list', label: 'Data Tugas' },
       { to: '/mentor/absensi', icon: 'fa fa-user-check', label: 'Data Absensi' },
       { to: '/mentor/rekap', icon: 'fa fa-chart-bar', label: 'Data Rekap' },

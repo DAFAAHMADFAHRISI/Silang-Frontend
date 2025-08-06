@@ -32,7 +32,7 @@ import DataRekapMentor from './Page/Mentor/Data Rekap';
 import DetailTugas from './Page/Guru/Tugas/Detail/Detail';
 import DetailAbsensi from './Page/Guru/Absensi/Detail/Detail';
 import DetailRekap from './Page/Guru/Rekap/Detail/Detail';
-
+import ChatMentor from './Page/Mentor/Chat/Chat';
 
 import './App.css';
 
@@ -49,37 +49,38 @@ function App() {
         <Route path='/ChatSiswa' element={<Layout><Chat /></Layout>} />
         <Route path='/ReportSiswa' element={<Layout><Report /></Layout>} />
         <Route path='/ProfileSiswa' element={<Layout><Profile /></Layout>} />
-        <Route path='/DashboardSuperAdmin' element={<DashboardSuperAdmin />} />
+        <Route path='/DashboardSuperAdmin' element={<Layout><DashboardSuperAdmin /></Layout>} />
         
         {/* Mentor Routes with /mentor prefix */}
-        <Route path='/mentor/dashboard' element={<DashboardMentor />} />
-        <Route path='/mentor/tugas' element={<TugasMentor />} />
-        <Route path='/mentor/tugas/tambah' element={<TambahTugas />} />
-        <Route path='/mentor/tugas/edit/:id' element={<EditTugas />} />
-        <Route path='/mentor/absensi' element={<DataAbsensiMentor />} />
-        <Route path='/mentor/rekap' element={<DataRekapMentor />} />
-        
+        <Route path='/mentor/dashboard' element={<Layout><DashboardMentor /></Layout>} />
+        <Route path='/mentor/tugas' element={<Layout><TugasMentor /></Layout>} />
+        <Route path='/mentor/tugas/tambah' element={<Layout><TambahTugas /></Layout>} />
+        <Route path='/mentor/tugas/edit/:id' element={<Layout><EditTugas /></Layout>} />
+        <Route path='/mentor/absensi' element={<Layout><DataAbsensiMentor /></Layout>} />
+        <Route path='/mentor/rekap' element={<Layout><DataRekapMentor /></Layout>} />
+        <Route path='/mentor/chat' element={<Layout><ChatMentor /></Layout>} />
+
         {/* Guru Routes with /guru prefix */}
-        <Route path='/guru/dashboard' element={<DashboardGuru />} />
-        <Route path='/guru/tugas' element={<DataTugasGuru />} />
-        <Route path='/guru/absensi' element={<DataAbsensiGuru />} />
-        <Route path='/guru/rekap' element={<DataRekapGuru />} />
+        <Route path='/guru/dashboard' element={<Layout><DashboardGuru /></Layout>} />
+        <Route path='/guru/tugas' element={<Layout><DataTugasGuru /></Layout>} />
+        <Route path='/guru/absensi' element={<Layout><DataAbsensiGuru /></Layout>} />
+        <Route path='/guru/rekap' element={<Layout><DataRekapGuru /></Layout>} />
         
         {/* Guru Detail Routes */}
-        <Route path='/guru/tugas/detail/:id' element={<DetailTugas />} />
-        <Route path='/guru/absensi/detail/:id' element={<DetailAbsensi />} />
-        <Route path='/guru/rekap/detail/:id' element={<DetailRekap />} />
+        <Route path='/guru/tugas/detail/:id' element={<Layout><DetailTugas /></Layout>} />
+        <Route path='/guru/absensi/detail/:id' element={<Layout><DetailAbsensi /></Layout>} />
+        <Route path='/guru/rekap/detail/:id' element={<Layout><DetailRekap /></Layout>} />
         
-        <Route path='/UserManagement' element={<UserManagement />} />
-        <Route path='/Institusi' element={<Institusi />} />
-        <Route path='/DataTugas' element={<DataTugas />} />
-        <Route path='/DataJadwal' element={<DataJadwal />} />
-        <Route path='/DataAbsensi' element={<DataAbsensi />} />
-        <Route path='/DataMentorSiswa' element={<DataMentorSiswa />} />
-        <Route path='/DataGuruSiswa' element={<DataGuruSiswa />} />
-        <Route path='/DataRekap' element={<DataRekap />} />
-        <Route path='/DataAbsensiMentor' element={<DataAbsensiMentor />} />
-        <Route path='/DataRekapMentor' element={<DataRekapMentor />} />
+        <Route path='/UserManagement' element={<Layout><UserManagement /></Layout>} />
+        <Route path='/Institusi' element={<Layout><Institusi /></Layout>} />
+        <Route path='/DataTugas' element={<Layout><DataTugas /></Layout>} />
+        <Route path='/DataJadwal' element={<Layout><DataJadwal /></Layout>} />
+        <Route path='/DataAbsensi' element={<Layout><DataAbsensi /></Layout>} />
+        <Route path='/DataMentorSiswa' element={<Layout><DataMentorSiswa /></Layout>} />
+        <Route path='/DataGuruSiswa' element={<Layout><DataGuruSiswa /></Layout>} />
+        <Route path='/DataRekap' element={<Layout><DataRekap /></Layout>} />
+        <Route path='/DataAbsensiMentor' element={<Layout><DataAbsensiMentor /></Layout>} />
+        <Route path='/DataRekapMentor' element={<Layout><DataRekapMentor /></Layout>} />
       </Routes>
     </Router>
   );
