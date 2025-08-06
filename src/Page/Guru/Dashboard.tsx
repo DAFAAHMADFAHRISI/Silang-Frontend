@@ -466,135 +466,129 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <Layout>
-        <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-gray-400">Memuat data dashboard...</p>
-            </div>
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-400">Memuat data dashboard...</p>
           </div>
         </div>
-      </Layout>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Layout>
-        <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <p className="text-red-400 mb-4">{error}</p>
-              <div className="flex gap-4 justify-center">
-                <button 
-                  onClick={fetchDashboardData} 
-                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors"
-                >
-                  Coba Lagi
-                </button>
-                <button 
-                  onClick={handleLogout} 
-                  className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors"
-                >
-                  Logout
-                </button>
-              </div>
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <p className="text-red-400 mb-4">{error}</p>
+            <div className="flex gap-4 justify-center">
+              <button 
+                onClick={fetchDashboardData} 
+                className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors"
+              >
+                Coba Lagi
+              </button>
+              <button 
+                onClick={handleLogout} 
+                className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>
-      </Layout>
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
-        {/* Header */}
-        <div className="mb-6 mt-0">
-          <div className="flex items-center space-x-3">
-            <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              Dashboard
-            </h1>
-          </div>
-          <p className="text-gray-400 mt-2 ml-5">Selamat datang, {userName}! Berikut rekap hari ini.</p>
+    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
+      {/* Header */}
+      <div className="mb-6 mt-0">
+        <div className="flex items-center space-x-3">
+          <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+            Dashboard
+          </h1>
         </div>
-        <Divider />
-        {/* Statistics Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-6 flex items-center space-x-2">
-            <TrendingUp className="w-6 h-6 text-blue-400" />
-            <span>Statistik</span>
+        <p className="text-gray-400 mt-2 ml-5">Selamat datang, {userName}! Berikut rekap hari ini.</p>
+      </div>
+      <Divider />
+      {/* Statistics Section */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold mb-6 flex items-center space-x-2">
+          <TrendingUp className="w-6 h-6 text-blue-400" />
+          <span>Statistik</span>
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          {stats.map((stat, index) => (
+            <StatCard key={index} {...stat} />
+          ))}
+        </div>
+      </div>
+      <Divider />
+      {/* Today's Tasks Section */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold flex items-center space-x-2">
+            <Calendar className="w-6 h-6 text-purple-400" />
+            <span>Tugas Hari Ini</span>
+            <span className="text-sm text-gray-400">({tasks.length} tugas)</span>
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            {stats.map((stat, index) => (
-              <StatCard key={index} {...stat} />
+          <button 
+            onClick={fetchTodayTasks}
+            disabled={tasksLoading}
+            className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+          >
+            <div className={`w-4 h-4 ${tasksLoading ? 'animate-spin' : ''}`}>
+              {tasksLoading ? '⟳' : '↻'}
+            </div>
+            <span>Refresh</span>
+          </button>
+        </div>
+        {tasksLoading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+            <p className="text-gray-400">Memuat tugas hari ini...</p>
+          </div>
+        ) : tasksError ? (
+          <div className="text-center py-12">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <p className="text-red-400 mb-4">{tasksError}</p>
+            <div className="flex gap-4 justify-center">
+              <button 
+                onClick={fetchTodayTasks} 
+                className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors"
+              >
+                Coba Lagi
+              </button>
+              <button 
+                onClick={handleLogout} 
+                className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors"
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        ) : tasks.length === 0 ? (
+          <div className="text-center py-12">
+            <FileText className="w-16 h-16 text-gray-500 mx-auto mb-4" />
+            <p className="text-gray-400 text-lg">Tidak ada tugas untuk hari ini</p>
+            <p className="text-gray-500 text-sm mt-2">Semua tugas telah selesai atau belum ada tugas yang dijadwalkan</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {tasks.map((task) => (
+              <TaskCard key={task.id} task={task} />
             ))}
           </div>
-        </div>
-        <Divider />
-        {/* Today's Tasks Section */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold flex items-center space-x-2">
-              <Calendar className="w-6 h-6 text-purple-400" />
-              <span>Tugas Hari Ini</span>
-              <span className="text-sm text-gray-400">({tasks.length} tugas)</span>
-            </h2>
-            <button 
-              onClick={fetchTodayTasks}
-              disabled={tasksLoading}
-              className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-600 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-            >
-              <div className={`w-4 h-4 ${tasksLoading ? 'animate-spin' : ''}`}>
-                {tasksLoading ? '⟳' : '↻'}
-              </div>
-              <span>Refresh</span>
-            </button>
-          </div>
-          {tasksLoading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-              <p className="text-gray-400">Memuat tugas hari ini...</p>
-            </div>
-          ) : tasksError ? (
-            <div className="text-center py-12">
-              <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <p className="text-red-400 mb-4">{tasksError}</p>
-              <div className="flex gap-4 justify-center">
-                <button 
-                  onClick={fetchTodayTasks} 
-                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors"
-                >
-                  Coba Lagi
-                </button>
-                <button 
-                  onClick={handleLogout} 
-                  className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors"
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
-          ) : tasks.length === 0 ? (
-            <div className="text-center py-12">
-              <FileText className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg">Tidak ada tugas untuk hari ini</p>
-              <p className="text-gray-500 text-sm mt-2">Semua tugas telah selesai atau belum ada tugas yang dijadwalkan</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {tasks.map((task) => (
-                <TaskCard key={task.id} task={task} />
-              ))}
-            </div>
-          )}
-        </div>
-        <Divider />
+        )}
       </div>
-    </Layout>
+      <Divider />
+    </div>
   );
 };
 
