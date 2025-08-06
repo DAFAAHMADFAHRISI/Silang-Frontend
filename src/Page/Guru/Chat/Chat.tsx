@@ -129,13 +129,40 @@ const Chat: React.FC = () => {
     return message.sender_id === 1;
   };
 
+  // Scroll to bottom function for new messages
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Polling for new messages only (not full refresh)
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (!selectedRoom) return;
+    const interval = setInterval(async () => {
+      try {
+        // Only fetch new messages without affecting scroll position
+        const response = await fetch(`${API_BASE_URL}/chat/rooms/${selectedRoom.room_id}/messages`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const result: ApiResponse<MessagesResponse> = await response.json();
+          if (result.success && result.data.messages.length > messages.length) {
+            // Only update if there are new messages
+            setMessages(result.data.messages);
+            // Auto scroll to bottom for new incoming messages
+            scrollToBottom();
+          }
+        }
+      } catch (error) {
+        console.error('Error polling messages:', error);
+      }
+    }, 5000); // Poll every 5 seconds
+    return () => clearInterval(interval);
+  }, [selectedRoom, messages.length]);
 
   // Fetch chat rooms
   const fetchChatRooms = async () => {
@@ -311,10 +338,12 @@ const Chat: React.FC = () => {
       console.log('Send message response:', result);
       
       if (result.success) {
-        // Add new message to the list
+        // Add new message to the list immediately
         setMessages(prev => [...prev, result.data]);
-        // Refresh chat rooms to update last message
+        // Only refresh chat rooms to update last message, no need to refresh messages again
         fetchChatRooms();
+        // Scroll to bottom after sending message
+        setTimeout(() => scrollToBottom(), 100);
         console.log('Message sent successfully');
         
         // Show success feedback (optional - you can remove this if not needed)
@@ -588,14 +617,14 @@ const Chat: React.FC = () => {
     }
   };
 
-  // Polling for new messages in the selected chat room
-  useEffect(() => {
-    if (!selectedRoom) return;
-    const interval = setInterval(() => {
-      fetchMessages(selectedRoom.room_id);
-    }, 3000); // Poll every 3 seconds
-    return () => clearInterval(interval);
-  }, [selectedRoom]);
+  // Remove polling for new messages - this causes unwanted scroll behavior
+  // useEffect(() => {
+  //   if (!selectedRoom) return;
+  //   const interval = setInterval(() => {
+  //     fetchMessages(selectedRoom.room_id);
+  //   }, 3000); // Poll every 3 seconds
+  //   return () => clearInterval(interval);
+  // }, [selectedRoom]);
 
   // Handle new chat button click
   const handleNewChatClick = () => {
