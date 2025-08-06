@@ -191,8 +191,7 @@ const Dashboard: React.FC = () => {
   const stats = calculateStats();
 
   return (
-    <Layout>
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
+    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
         {/* Header */}
         <div className="mb-6 mt-0">
           <div className="flex items-center justify-between">
@@ -226,7 +225,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
   );
 };
 
