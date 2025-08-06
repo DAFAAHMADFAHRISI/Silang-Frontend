@@ -4,42 +4,29 @@ Frontend untuk SILANG (Sistem Informasi Laporan Magang), aplikasi berbasis web u
 🔗 GitHub Repo: https://github.com/DAFAAHMADFAHRISI/Silang-Frontend
 
 ✨ Fitur Antarmuka
-Login & Role-based Dashboard
 
-Login untuk Superadmin, Mentor, Guru, dan Siswa
+1. Login & Role-based Dashboard
+        Login untuk Superadmin, Mentor, Guru, dan Siswa
+        Navigasi dan fitur berdasarkan role pengguna
 
-Navigasi dan fitur berdasarkan role pengguna
+2. Dashboard & Notifikasi
+        Ringkasan informasi harian
+        Notifikasi tugas & absensi
 
-Dashboard & Notifikasi
+3. Absensi Magang
+        Check-in / Check-out dengan tampilan lokasi dan foto
+        Histori absensi
 
-Ringkasan informasi harian
+4. Tugas & Penilaian
+        Tampilan daftar tugas untuk siswa
+        Fitur unggah file tugas
+        Penilaian dan komentar dari mentor/guru
 
-Notifikasi tugas & absensi
+5. Manajemen Relasi
+        Daftar siswa per mentor/guru
+        Akses profil & laporan tiap siswa
 
-Absensi Magang
-
-Check-in / Check-out dengan tampilan lokasi dan foto
-
-Histori absensi
-
-Tugas & Penilaian
-
-Tampilan daftar tugas untuk siswa
-
-Fitur unggah file tugas
-
-Penilaian dan komentar dari mentor/guru
-
-Manajemen Relasi
-
-Daftar siswa per mentor/guru
-
-Akses profil & laporan tiap siswa
-
-🗨️ Chatbox Antar Pengguna
-
-Fitur komunikasi antar pengguna selain Superadmin
-
-Mendukung realtime atau semi-realtime (polling/socket)
-
-Riwayat chat per pengguna (mentor ↔ siswa, guru ↔ siswa, mentor ↔ guru)
+6. 🗨️ Chatbox Antar Pengguna
+        Fitur komunikasi antar pengguna selain Superadmin
+        Mendukung realtime atau semi-realtime (polling/socket)
+        Riwayat chat per pengguna (mentor ↔ siswa, guru ↔ siswa, mentor ↔ guru)
