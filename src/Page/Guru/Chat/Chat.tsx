@@ -159,8 +159,7 @@ const Chat: React.FC = () => {
           if (result.success && result.data.messages.length > messages.length) {
             // Only update if there are new messages
             setMessages(result.data.messages);
-            // Auto scroll to bottom for new incoming messages
-            scrollToBottom();
+            // Remove auto scroll - let user control scroll position
           }
         }
       } catch (error) {
@@ -205,10 +204,7 @@ const Chat: React.FC = () => {
         if (result.data.length > 0 && !selectedRoom) {
           console.log('Auto-selecting first room:', result.data[0]);
           setSelectedRoom(result.data[0]);
-          // Scroll to bottom after auto-selecting first room
-          setTimeout(() => {
-            scrollToBottom();
-          }, 500);
+          // Remove auto scroll - let user control scroll position
         }
       } else {
         setError(result.message || 'Terjadi kesalahan saat mengambil data');
@@ -303,7 +299,7 @@ const Chat: React.FC = () => {
         // Mark messages as read when room is opened
         markMessagesAsRead(roomId);
         
-        // Scroll to bottom after messages are loaded
+        // Auto scroll to bottom when messages are loaded for existing chat
         setTimeout(() => {
           scrollToBottom();
         }, 100);
@@ -357,8 +353,7 @@ const Chat: React.FC = () => {
         setMessages(prev => [...prev, result.data]);
         // Only refresh chat rooms to update last message, no need to refresh messages again
         fetchChatRooms();
-        // Scroll to bottom after sending message
-        setTimeout(() => scrollToBottom(), 100);
+        // Remove auto scroll - let user control scroll position
         console.log('Message sent successfully');
         
         // Show success feedback (optional - you can remove this if not needed)
@@ -412,25 +407,6 @@ const Chat: React.FC = () => {
       fetchMessages(selectedRoom.room_id);
     }
   }, [selectedRoom]);
-
-  // Scroll to bottom when messages are loaded or changed
-  useEffect(() => {
-    if (messages.length > 0 && !loadingMessages) {
-      // Use setTimeout to ensure DOM is updated before scrolling
-      setTimeout(() => {
-        scrollToBottom();
-      }, 100);
-    }
-  }, [messages, loadingMessages]);
-
-  // Scroll to bottom when loading messages finishes
-  useEffect(() => {
-    if (!loadingMessages && messages.length > 0) {
-      setTimeout(() => {
-        scrollToBottom();
-      }, 150);
-    }
-  }, [loadingMessages, messages.length]);
 
   const handleSendMessage = async () => {
     if (newMessage.trim() && selectedRoom) {
@@ -585,10 +561,7 @@ const Chat: React.FC = () => {
         setSearchResults([]);
         // Fetch messages for the new room immediately
         fetchMessages(newRoom.room_id);
-        // Scroll to bottom after creating new chat room
-        setTimeout(() => {
-          scrollToBottom();
-        }, 300);
+        // Remove auto scroll - let user control scroll position
         console.log('Chat room created and opened successfully');
       } else {
         console.error('API Error:', result.message);
@@ -811,7 +784,7 @@ const Chat: React.FC = () => {
                     console.log('Room clicked:', room);
                     setSelectedRoom(room);
                     setShowContacts(false);
-                    // Scroll to bottom after a short delay to ensure messages are loaded
+                    // Auto scroll to bottom when opening existing chat room
                     setTimeout(() => {
                       scrollToBottom();
                     }, 200);
@@ -884,7 +857,7 @@ const Chat: React.FC = () => {
                               : 'bg-gray-700 text-white'
                           }`}>
                             {/* Nama pengirim dihapus agar seperti WhatsApp */}
-                            <p className="text-sm">{message.message}</p>
+                            <p className="text-sm break-words whitespace-pre-wrap">{message.message}</p>
                             <div className={`flex items-center justify-end mt-1 space-x-1 ${
                               isCurrentUser ? 'text-blue-200' : 'text-gray-400'
                             }`}>
