@@ -363,23 +363,14 @@ const Profile: React.FC = () => {
     // Clear any previous camera errors
     setCameraError(null);
     console.log('Profile picture clicked - starting camera process...');
-    
-    // Check if we're on a mobile device
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    
-    if (!isMobile) {
-      setCameraError('Kamera hanya tersedia di perangkat mobile. Silakan gunakan galeri untuk memilih foto.');
-      return;
-    }
-    
-    // Check if we're on HTTPS (required for camera access)
+    // HAPUS pengecekan isMobile
+    // HAPUS pesan error 'Kamera hanya tersedia di perangkat mobile...'
+    // Tetap lakukan pengecekan HTTPS jika diperlukan
     if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
       setCameraError('Akses kamera memerlukan HTTPS. Silakan gunakan galeri untuk memilih foto.');
       return;
     }
-    
     console.log('Device and HTTPS checks passed, showing modal...');
-    
     // Show modal immediately
     setShowCameraButton(true);
     setCameraLoading(true);
@@ -724,7 +715,7 @@ const Profile: React.FC = () => {
           </div>
         )}
         
-        <div className="relative group cursor-pointer" onClick={handleProfilePictureClick}>
+        <div className="relative group">
           <img
             src={getProfilePictureUrl()}
             alt="Profile"
@@ -736,9 +727,12 @@ const Profile: React.FC = () => {
             </div>
           )}
           <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-full transition-all duration-300 flex items-center justify-center">
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white text-sm font-semibold">
-              {uploading ? 'Mengupload...' : 'Klik untuk update foto'}
-            </div>
+            {/* Hapus teks 'Klik untuk update foto' */}
+            {uploading && (
+              <div className="text-white text-sm font-semibold">
+                Mengupload...
+              </div>
+            )}
           </div>
         </div>
         
@@ -762,17 +756,7 @@ const Profile: React.FC = () => {
               <div className="text-red-400">⚠️</div>
               <div className="text-red-200 text-sm">{cameraError}</div>
             </div>
-            <div className="mt-2 text-xs text-red-300">
-              <p>Tips untuk Chrome Mobile:</p>
-              <ul className="list-disc list-inside mt-1 space-y-1">
-                <li>Pastikan Chrome mengizinkan akses kamera di Settings</li>
-                <li>Coba buka chrome://settings/content/camera</li>
-                <li>Pastikan website ini diizinkan mengakses kamera</li>
-                <li>Jika masih gagal, pilih "Galeri" dari dialog yang muncul</li>
-                <li>Coba refresh halaman dan klik lagi</li>
-                <li>Atau gunakan browser lain seperti Safari/Firefox</li>
-              </ul>
-            </div>
+            {/* HAPUS tips Chrome Mobile */}
           </div>
         )}
         
