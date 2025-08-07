@@ -131,7 +131,13 @@ const Chat: React.FC = () => {
 
   // Scroll to bottom function for new messages
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'end',
+        inline: 'nearest'
+      });
+    }
   };
 
   // Polling for new messages only (not full refresh)
@@ -199,6 +205,10 @@ const Chat: React.FC = () => {
         if (result.data.length > 0 && !selectedRoom) {
           console.log('Auto-selecting first room:', result.data[0]);
           setSelectedRoom(result.data[0]);
+          // Scroll to bottom after auto-selecting first room
+          setTimeout(() => {
+            scrollToBottom();
+          }, 500);
         }
       } else {
         setError(result.message || 'Terjadi kesalahan saat mengambil data');
@@ -292,6 +302,11 @@ const Chat: React.FC = () => {
         
         // Mark messages as read when room is opened
         markMessagesAsRead(roomId);
+        
+        // Scroll to bottom after messages are loaded
+        setTimeout(() => {
+          scrollToBottom();
+        }, 100);
       } else {
         console.error('API Error:', result.message);
         setMessages([]);
@@ -397,6 +412,25 @@ const Chat: React.FC = () => {
       fetchMessages(selectedRoom.room_id);
     }
   }, [selectedRoom]);
+
+  // Scroll to bottom when messages are loaded or changed
+  useEffect(() => {
+    if (messages.length > 0 && !loadingMessages) {
+      // Use setTimeout to ensure DOM is updated before scrolling
+      setTimeout(() => {
+        scrollToBottom();
+      }, 100);
+    }
+  }, [messages, loadingMessages]);
+
+  // Scroll to bottom when loading messages finishes
+  useEffect(() => {
+    if (!loadingMessages && messages.length > 0) {
+      setTimeout(() => {
+        scrollToBottom();
+      }, 150);
+    }
+  }, [loadingMessages, messages.length]);
 
   const handleSendMessage = async () => {
     if (newMessage.trim() && selectedRoom) {
@@ -551,6 +585,10 @@ const Chat: React.FC = () => {
         setSearchResults([]);
         // Fetch messages for the new room immediately
         fetchMessages(newRoom.room_id);
+        // Scroll to bottom after creating new chat room
+        setTimeout(() => {
+          scrollToBottom();
+        }, 300);
         console.log('Chat room created and opened successfully');
       } else {
         console.error('API Error:', result.message);
@@ -773,6 +811,10 @@ const Chat: React.FC = () => {
                     console.log('Room clicked:', room);
                     setSelectedRoom(room);
                     setShowContacts(false);
+                    // Scroll to bottom after a short delay to ensure messages are loaded
+                    setTimeout(() => {
+                      scrollToBottom();
+                    }, 200);
                   }}
                   className={`flex items-center p-4 hover:bg-gray-700 cursor-pointer transition-colors ${
                     selectedRoom?.room_id === room.room_id ? 'bg-gray-700' : ''
