@@ -309,15 +309,18 @@ const Attendance: React.FC = () => {
         const locationErrorMessage = locationErr instanceof Error ? locationErr.message : 'Gagal mendapatkan lokasi.';
         setLocationError(locationErrorMessage);
         console.warn('Location error:', locationErr);
-        
-        // Show warning but continue with attendance
-        Swal.fire({
-          icon: 'warning',
+
+        // Show error and STOP attendance process
+        await Swal.fire({
+          icon: 'error',
           title: 'Lokasi tidak tersedia',
-          text: 'Absensi akan dilanjutkan tanpa data lokasi.',
-          showConfirmButton: false,
-          timer: 2000,
+          text: 'Gagal mendapatkan lokasi. Proses absensi dibatalkan.',
+          showConfirmButton: true,
         });
+        setIsLoading(false);
+        setActionType(null);
+        setShowCamera(false);
+        return;
       }
 
       const token = localStorage.getItem('token');
