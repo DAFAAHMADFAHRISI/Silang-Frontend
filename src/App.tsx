@@ -13,7 +13,9 @@ import Profile from './Page/Siswa/Profile';
 import DashboardSuperAdmin from './Page/SuperAdmin/Dashboard';
 import DashboardMentor from './Page/Mentor/Dashboard';
 import DashboardGuru from './Page/Guru/Dashboard';
-import UserManagement from './Page/SuperAdmin/User Management';
+import UserManagement from './Page/SuperAdmin/User Management/User Management';
+import TambahUser from './Page/SuperAdmin/User Management/Tambah/Tambah';
+import EditUser from './Page/SuperAdmin/User Management/Edit/Edit';
 import Institusi from './Page/SuperAdmin/Institusi/Institusi';
 import TambahInstitusi from './Page/SuperAdmin/Institusi/Tambah/Tambah';
 import EditInstitusi from './Page/SuperAdmin/Institusi/Edit/Edit';
@@ -76,6 +78,8 @@ function App() {
         <Route path='/guru/rekap/detail/:id' element={<Layout><DetailRekap /></Layout>} />
         
         <Route path='/UserManagement' element={<Layout><UserManagement /></Layout>} />
+        <Route path='/UserManagement/tambah' element={<Layout><TambahUser /></Layout>} />
+        <Route path='/UserManagement/edit/:id' element={<Layout><EditUser /></Layout>} />
         <Route path='/Institusi' element={<Layout><Institusi /></Layout>} />
         <Route path='/Institusi/tambah' element={<Layout><TambahInstitusi /></Layout>} />
         <Route path='/Institusi/edit/:id' element={<Layout><EditInstitusi /></Layout>} />
