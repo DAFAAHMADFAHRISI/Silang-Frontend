@@ -20,7 +20,9 @@ import Institusi from './Page/SuperAdmin/Institusi/Institusi';
 import TambahInstitusi from './Page/SuperAdmin/Institusi/Tambah/Tambah';
 import EditInstitusi from './Page/SuperAdmin/Institusi/Edit/Edit';
 import DataTugas from './Page/SuperAdmin/Tugas/Data Tugas';
-import DataJadwal from './Page/SuperAdmin/Data Jadwal';
+import DataJadwal from './Page/SuperAdmin/Jadwal/Data Jadwal';
+import TambahJadwal from './Page/SuperAdmin/Jadwal/Tambah/Tambah';
+import EditJadwal from './Page/SuperAdmin/Jadwal/Edit/Edit';
 import DataAbsensi from './Page/SuperAdmin/Absensi/Data Absensi';
 import DataMentorSiswa from './Page/SuperAdmin/Data Mentor-Siswa';
 import DataGuruSiswa from './Page/SuperAdmin/Data Guru - Siswa';
@@ -85,6 +87,8 @@ function App() {
         <Route path='/Institusi/edit/:id' element={<Layout><EditInstitusi /></Layout>} />
         <Route path='/DataTugas' element={<Layout><DataTugas /></Layout>} />
         <Route path='/DataJadwal' element={<Layout><DataJadwal /></Layout>} />
+        <Route path='/DataJadwal/tambah' element={<Layout><TambahJadwal /></Layout>} />
+        <Route path='/DataJadwal/edit/:id' element={<Layout><EditJadwal /></Layout>} />
         <Route path='/DataAbsensi' element={<Layout><DataAbsensi /></Layout>} />
         <Route path='/DataMentorSiswa' element={<Layout><DataMentorSiswa /></Layout>} />
         <Route path='/DataGuruSiswa' element={<Layout><DataGuruSiswa /></Layout>} />
