@@ -19,7 +19,7 @@ import EditUser from './Page/SuperAdmin/User Management/Edit/Edit';
 import Institusi from './Page/SuperAdmin/Institusi/Institusi';
 import TambahInstitusi from './Page/SuperAdmin/Institusi/Tambah/Tambah';
 import EditInstitusi from './Page/SuperAdmin/Institusi/Edit/Edit';
-import DataTugas from './Page/SuperAdmin/Data Tugas';
+import DataTugas from './Page/SuperAdmin/Tugas/Data Tugas';
 import DataJadwal from './Page/SuperAdmin/Data Jadwal';
 import DataAbsensi from './Page/SuperAdmin/Data Absensi';
 import DataMentorSiswa from './Page/SuperAdmin/Data Mentor-Siswa';
