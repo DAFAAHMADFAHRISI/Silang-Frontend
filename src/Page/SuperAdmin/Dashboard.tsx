@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import Layout from "../../Layout/Layout";
 import { Users, UserCheck, Clock, CheckCircle, TrendingUp, Calendar, Award, AlertCircle } from "lucide-react";
 
 // StatCard diambil dari Dashboard siswa agar identik
@@ -135,57 +134,55 @@ const Dashboard: React.FC = () => {
   ];
 
   return (
-    <Layout>
-      <div className="p-6">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2 flex items-center space-x-3">
-          <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
-          <span>Dashboard</span>
-        </h1>
-        <p className="text-gray-400 mt-2 ml-5">Selamat datang, {userName}! Berikut rekap hari ini.</p>
-        <hr className="border-gray-700 my-4" />
-        <h2 className="text-2xl font-bold mb-6 flex items-center space-x-2">
-          <TrendingUp className="w-6 h-6 text-blue-400" />
-          <span className="text-white">Statistik</span>
-        </h2>
-        {loading ? (
-          <div className="text-white">Loading...</div>
-        ) : error ? (
-          <div className="text-red-400">{error}</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-            {stats.map((stat, idx) => (
-              <StatCard key={idx} {...stat} />
-            ))}
-          </div>
-        )}
-        <hr className="border-gray-700 mt-6" />
-        <Divider />
-        <h2 className="text-2xl font-bold mb-6 flex items-center space-x-2">
-          <Award className="w-6 h-6 text-yellow-400" />
-          <span className="text-white">Tugas & Pengumuman</span>
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <TaskCard
-            title="Verifikasi Data Institusi Baru"
-            dueDate="Hari ini"
-            status="pending"
-            notes="Segera verifikasi data institusi yang baru mendaftar agar dapat menggunakan sistem."
-          />
-          <TaskCard
-            title="Review Laporan Bulanan"
-            dueDate="Minggu ini"
-            status="completed"
-            notes="Laporan bulanan sudah tersedia, silakan review dan arsipkan jika sudah sesuai."
-          />
-          <TaskCard
-            title="Update Data Mentor"
-            dueDate="2 hari lagi"
-            status="pending"
-            notes="Pastikan data mentor sudah diperbarui untuk semester baru."
-          />
+    <div className="p-6">
+      <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2 flex items-center space-x-3">
+        <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
+        <span>Dashboard</span>
+      </h1>
+      <p className="text-gray-400 mt-2 ml-5">Selamat datang, {userName}! Berikut rekap hari ini.</p>
+      <hr className="border-gray-700 my-4" />
+      <h2 className="text-2xl font-bold mb-6 flex items-center space-x-2">
+        <TrendingUp className="w-6 h-6 text-blue-400" />
+        <span className="text-white">Statistik</span>
+      </h2>
+      {loading ? (
+        <div className="text-white">Loading...</div>
+      ) : error ? (
+        <div className="text-red-400">{error}</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          {stats.map((stat, idx) => (
+            <StatCard key={idx} {...stat} />
+          ))}
         </div>
+      )}
+      <hr className="border-gray-700 mt-6" />
+      <Divider />
+      <h2 className="text-2xl font-bold mb-6 flex items-center space-x-2">
+        <Award className="w-6 h-6 text-yellow-400" />
+        <span className="text-white">Tugas & Pengumuman</span>
+      </h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <TaskCard
+          title="Verifikasi Data Institusi Baru"
+          dueDate="Hari ini"
+          status="pending"
+          notes="Segera verifikasi data institusi yang baru mendaftar agar dapat menggunakan sistem."
+        />
+        <TaskCard
+          title="Review Laporan Bulanan"
+          dueDate="Minggu ini"
+          status="completed"
+          notes="Laporan bulanan sudah tersedia, silakan review dan arsipkan jika sudah sesuai."
+        />
+        <TaskCard
+          title="Update Data Mentor"
+          dueDate="2 hari lagi"
+          status="pending"
+          notes="Pastikan data mentor sudah diperbarui untuk semester baru."
+        />
       </div>
-    </Layout>
+    </div>
   );
 };
 

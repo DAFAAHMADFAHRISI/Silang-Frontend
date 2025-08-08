@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Edit as EditIcon, ArrowLeft, FileText, Calendar, Users, AlertCircle, Save } from "lucide-react";
 import { useNavigate, useParams } from 'react-router-dom';
-import Layout from "../../../../Layout/Layout";
+
 
 interface Tugas {
   id: number;
@@ -308,7 +308,7 @@ const Edit: React.FC = () => {
 
   if (loadingTask) {
     return (
-      <Layout>
+      
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
@@ -317,13 +317,13 @@ const Edit: React.FC = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      
     );
   }
 
   if (!task) {
     return (
-      <Layout>
+      
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
@@ -338,12 +338,12 @@ const Edit: React.FC = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      
     );
   }
 
   return (
-    <Layout>
+    
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
         {/* Header Section */}
         <div className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700/50">
@@ -606,7 +606,7 @@ const Edit: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    
   );
 };
 

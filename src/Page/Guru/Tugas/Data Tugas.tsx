@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../../../Layout/Layout';
+
 import { useNavigate } from 'react-router-dom';
 import { FileText, Clock, CheckCircle, AlertCircle, Eye, Search } from 'lucide-react';
 
@@ -122,20 +122,20 @@ const DataTugas: React.FC = () => {
 
   if (loading) {
     return (
-      <Layout>
+      
         <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
             <p className="text-gray-400">Memuat data tugas...</p>
           </div>
         </div>
-      </Layout>
+      
     );
   }
 
   if (error) {
     return (
-      <Layout>
+      
         <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
@@ -150,12 +150,12 @@ const DataTugas: React.FC = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      
     );
   }
 
   return (
-    <Layout>
+    
       <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
         {/* Header */}
         <div className="mb-6 mt-0">
@@ -240,7 +240,7 @@ const DataTugas: React.FC = () => {
           </div>
         )}
       </div>
-    </Layout>
+    
   );
 };
 

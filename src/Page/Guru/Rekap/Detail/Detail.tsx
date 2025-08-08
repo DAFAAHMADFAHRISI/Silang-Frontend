@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Layout from '../../../../Layout/Layout';
+
 import { BarChart3, PieChart, TrendingUp, Users, Calendar, Search, Eye, ArrowLeft } from 'lucide-react';
 
 interface RekapData {
@@ -95,20 +95,20 @@ const Detail: React.FC = () => {
 
   if (loading) {
     return (
-      <Layout>
+      
         <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
             <p className="text-gray-400">Memuat detail rekap...</p>
           </div>
         </div>
-      </Layout>
+      
     );
   }
 
   if (error) {
     return (
-      <Layout>
+      
         <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
@@ -123,13 +123,13 @@ const Detail: React.FC = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      
     );
   }
 
   if (!rekap) {
     return (
-      <Layout>
+      
         <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
@@ -144,12 +144,12 @@ const Detail: React.FC = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      
     );
   }
 
   return (
-    <Layout>
+    
       <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
         {/* Header */}
         <div className="mb-6 mt-0">
@@ -280,7 +280,7 @@ const Detail: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    
   );
 };
 
