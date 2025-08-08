@@ -81,6 +81,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </button>
           </div>
           
+          
           <nav className="flex flex-col space-y-2">
             {menuItems.length === 0 ? (
               <div className="text-gray-500 text-center">No menu available</div>

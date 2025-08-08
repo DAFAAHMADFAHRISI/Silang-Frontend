@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Layout from "../../Layout/Layout";
+
 import { Users, UserCheck, Clock, CheckCircle, AlertCircle, Calendar, Award, TrendingUp, Mail, RefreshCw } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 
@@ -142,49 +142,45 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <Layout>
-        <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-gray-400">Memuat data dashboard...</p>
-          </div>
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-400">Memuat data dashboard...</p>
         </div>
-      </Layout>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Layout>
-        <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <div className="w-12 h-12 text-red-500 mx-auto mb-4">⚠️</div>
-              <p className="text-red-400 mb-4 text-lg font-semibold">Error: {error}</p>
-              <div className="bg-gray-800 p-4 rounded-lg mb-4 text-left">
-                <p className="text-gray-300 text-sm mb-2">Debug Info:</p>
-                <p className="text-gray-400 text-xs">Token: {localStorage.getItem('token') ? 'Ada' : 'Tidak ada'}</p>
-                <p className="text-gray-400 text-xs">Role: {localStorage.getItem('role') || 'Tidak ada'}</p>
-                <p className="text-gray-400 text-xs">Nama: {localStorage.getItem('nama') || 'Tidak ada'}</p>
-              </div>
-              <div className="space-y-2">
-                <button 
-                  onClick={fetchDashboardData} 
-                  className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors font-semibold"
-                >
-                  Coba Lagi
-                </button>
-                <button 
-                  onClick={() => navigate('/Login')} 
-                  className="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-lg transition-colors font-semibold ml-2"
-                >
-                  Login Ulang
-                </button>
-              </div>
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="w-12 h-12 text-red-500 mx-auto mb-4">⚠️</div>
+            <p className="text-red-400 mb-4 text-lg font-semibold">Error: {error}</p>
+            <div className="bg-gray-800 p-4 rounded-lg mb-4 text-left">
+              <p className="text-gray-300 text-sm mb-2">Debug Info:</p>
+              <p className="text-gray-400 text-xs">Token: {localStorage.getItem('token') ? 'Ada' : 'Tidak ada'}</p>
+              <p className="text-gray-400 text-xs">Role: {localStorage.getItem('role') || 'Tidak ada'}</p>
+              <p className="text-gray-400 text-xs">Nama: {localStorage.getItem('nama') || 'Tidak ada'}</p>
+            </div>
+            <div className="space-y-2">
+              <button 
+                onClick={fetchDashboardData} 
+                className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors font-semibold"
+              >
+                Coba Lagi
+              </button>
+              <button 
+                onClick={() => navigate('/Login')} 
+                className="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-lg transition-colors font-semibold ml-2"
+              >
+                Login Ulang
+              </button>
             </div>
           </div>
         </div>
-      </Layout>
+      </div>
     );
   }
 

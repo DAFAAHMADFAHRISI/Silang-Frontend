@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Plus, X, ArrowLeft, FileText, Calendar, Users, AlertCircle, Save } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
-import Layout from "../../../../Layout/Layout";
+
 
 interface Student {
   id: number;
@@ -172,7 +172,7 @@ const Tambah: React.FC = () => {
   };
 
   return (
-    <Layout>
+    
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
         {/* Header Section */}
         <div className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700/50">
@@ -435,7 +435,7 @@ const Tambah: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    
   );
 };
 

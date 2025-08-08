@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../../Layout/Layout';
+
 import { useNavigate } from 'react-router-dom';
 import { TrendingUp, Calendar, Clock, MapPin, Users, AlertCircle, CheckCircle, Camera, User, Filter, Map } from 'lucide-react';
 
@@ -167,19 +167,19 @@ const DataAbsensi: React.FC = () => {
 
   if (loading) {
     return (
-      <Layout>
+      
         <div className="p-6">
           <div className="flex items-center justify-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
           </div>
         </div>
-      </Layout>
+      
     );
   }
 
   if (error) {
     return (
-      <Layout>
+      
         <div className="p-6">
           <div className="max-w-7xl mx-auto">
             <div className="bg-red-900 border border-red-700 text-red-100 px-4 py-3 rounded mb-6">
@@ -215,12 +215,12 @@ const DataAbsensi: React.FC = () => {
             </div>
           </div>
         </div>
-      </Layout>
+      
     );
   }
 
   return (
-    <Layout>
+    
       <div className="p-6">
         <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2 flex items-center space-x-3">
           <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
@@ -392,7 +392,7 @@ const DataAbsensi: React.FC = () => {
           </div>
         )}
       </div>
-    </Layout>
+    
   );
 };
 
