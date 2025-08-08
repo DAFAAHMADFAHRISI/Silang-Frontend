@@ -15,7 +15,6 @@ const Institusi: React.FC = () => {
   const [institusiData, setInstitusiData] = useState<InstitusiRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
   const [notif, setNotif] = useState<string|null>(null);
   const navigate = useNavigate();
 
@@ -32,12 +31,25 @@ const Institusi: React.FC = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token tidak ditemukan');
+      }
+      
       const res = await fetch('http://localhost:3000/api/institusi', {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
       });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       const json = await res.json();
       setInstitusiData(Array.isArray(json) ? json : []);
-    } catch {
+    } catch (error) {
+      console.error('Error fetching institusi data:', error);
       setInstitusiData([]);
     } finally {
       setLoading(false);
@@ -48,20 +60,31 @@ const Institusi: React.FC = () => {
     if (!window.confirm('Yakin ingin menghapus institusi ini?')) return;
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        setNotif('Token tidak ditemukan');
+        return;
+      }
+      
       const res = await fetch(`http://localhost:3000/api/institusi/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
       });
-      const json = await res.json();
-      if (res.ok) {
-        setNotif('Institusi berhasil dihapus!');
-        handleRefresh();
-        setTimeout(() => setNotif(null), 2000);
-      } else {
-        setNotif(json.message || 'Gagal menghapus institusi');
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || `HTTP error! status: ${res.status}`);
       }
-    } catch {
-      setNotif('Gagal menghapus institusi');
+      
+      const json = await res.json();
+      setNotif('Institusi berhasil dihapus!');
+      handleRefresh();
+      setTimeout(() => setNotif(null), 2000);
+    } catch (error) {
+      console.error('Error deleting institusi:', error);
+      setNotif(error instanceof Error ? error.message : 'Gagal menghapus institusi');
     }
   };
 
@@ -71,16 +94,26 @@ const Institusi: React.FC = () => {
       setError(null);
       try {
         const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Token tidak ditemukan');
+        }
+        
         const res = await fetch('http://localhost:3000/api/institusi', {
           headers: {
-            Authorization: `Bearer ${token}`,
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
           },
         });
-        if (!res.ok) throw new Error('Gagal mengambil data institusi');
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
         const json = await res.json();
         setInstitusiData(Array.isArray(json) ? json : []);
       } catch (err: any) {
-        setError(err.message || 'Terjadi kesalahan');
+        console.error('Error fetching institusi:', err);
+        setError(err.message || 'Terjadi kesalahan saat mengambil data institusi');
         setInstitusiData([]);
       } finally {
         setLoading(false);
@@ -110,7 +143,7 @@ const Institusi: React.FC = () => {
           className="bg-gray-800 text-white px-4 py-2 rounded focus:outline-none border border-gray-700 w-full md:w-64"
         />
         <div className="flex gap-2 items-center">
-          <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center" onClick={() => setShowModal(true)}>
+          <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center" onClick={() => navigate('/Institusi/tambah')}>
             <span className="mr-1">＋</span> Tambah Institusi
           </button>
         </div>
@@ -147,9 +180,16 @@ const Institusi: React.FC = () => {
                   <td className="px-3 py-2 whitespace-nowrap text-gray-400 text-xs font-mono">{new Date(row.created_at).toLocaleString('id-ID')}</td>
                   <td className="px-3 py-2 whitespace-nowrap text-center">
                     {typeof row.id !== 'undefined' ? (
-                      <button type="button" onClick={() => handleDelete(row.id)} className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs font-bold shadow-sm">
-                        Hapus
-                      </button>
+                      <>
+                        <button type="button" onClick={() => handleDelete(row.id)} className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs font-bold shadow-sm mr-1">
+                          Hapus
+                        </button>
+                        <button type="button" onClick={() => {
+                          navigate(`/Institusi/edit/${row.id}`);
+                        }} className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-bold shadow-sm">
+                          Edit
+                        </button>
+                      </>
                     ) : (
                       <span className="text-gray-500 text-xs">-</span>
                     )}
@@ -160,61 +200,6 @@ const Institusi: React.FC = () => {
           </table>
         )}
       </div>
-      {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-white">Tambah Institusi</h2>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white">
-                ✕
-              </button>
-            </div>
-            <form className="space-y-4" onSubmit={async e => {
-              e.preventDefault();
-              const form = e.target as HTMLFormElement;
-              const fd = new FormData(form);
-              setNotif(null);
-              try {
-                const token = localStorage.getItem('token');
-                const res = await fetch('http://localhost:3000/api/institusi/create', {
-                  method: 'POST',
-                  headers: { Authorization: `Bearer ${token}` },
-                  body: fd,
-                });
-                const json = await res.json();
-                if (res.ok) {
-                  setNotif('Institusi berhasil ditambahkan!');
-                  setShowModal(false);
-                  // Refresh institusi table
-                  setTimeout(() => setNotif(null), 2000);
-                  // Re-fetch institusi data
-                  const res2 = await fetch('http://localhost:3000/api/institusi', { headers: { Authorization: `Bearer ${token}` } });
-                  const json2 = await res2.json();
-                  setInstitusiData(Array.isArray(json2) ? json2 : []);
-                } else {
-                  setNotif(json.message || 'Gagal menambah institusi');
-                }
-              } catch {
-                setNotif('Gagal menambah institusi');
-              }
-            }} encType="multipart/form-data">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm text-gray-300 mb-1">Nama Institusi</label>
-                  <input name="nama_institusi" required className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white" />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-300 mb-1">Alamat</label>
-                  <textarea name="alamat" required className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white" rows={3} />
-                </div>
-              </div>
-              <button type="submit" className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded">Simpan</button>
-              {notif && <div className="mt-2 text-center text-sm text-green-400">{notif}</div>}
-            </form>
-          </div>
-        </div>
-      )}
       <Divider />
       {/* Footer Section */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mt-4">

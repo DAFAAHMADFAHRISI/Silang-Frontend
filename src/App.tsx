@@ -15,6 +15,8 @@ import DashboardMentor from './Page/Mentor/Dashboard';
 import DashboardGuru from './Page/Guru/Dashboard';
 import UserManagement from './Page/SuperAdmin/User Management';
 import Institusi from './Page/SuperAdmin/Institusi/Institusi';
+import TambahInstitusi from './Page/SuperAdmin/Institusi/Tambah/Tambah';
+import EditInstitusi from './Page/SuperAdmin/Institusi/Edit/Edit';
 import DataTugas from './Page/SuperAdmin/Data Tugas';
 import DataJadwal from './Page/SuperAdmin/Data Jadwal';
 import DataAbsensi from './Page/SuperAdmin/Data Absensi';
@@ -75,6 +77,8 @@ function App() {
         
         <Route path='/UserManagement' element={<Layout><UserManagement /></Layout>} />
         <Route path='/Institusi' element={<Layout><Institusi /></Layout>} />
+        <Route path='/Institusi/tambah' element={<Layout><TambahInstitusi /></Layout>} />
+        <Route path='/Institusi/edit/:id' element={<Layout><EditInstitusi /></Layout>} />
         <Route path='/DataTugas' element={<Layout><DataTugas /></Layout>} />
         <Route path='/DataJadwal' element={<Layout><DataJadwal /></Layout>} />
         <Route path='/DataAbsensi' element={<Layout><DataAbsensi /></Layout>} />
