@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import Institusi from './Institusi';
+import Institusi from './Institusi/Institusi';
 
 const Divider: React.FC = () => <div className="border-t border-gray-700/50 my-8 w-full" />;
 
