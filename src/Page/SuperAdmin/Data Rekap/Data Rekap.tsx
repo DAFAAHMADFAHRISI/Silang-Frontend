@@ -298,18 +298,6 @@ const DataRekap: React.FC = () => {
             <BarChart3 className="w-6 h-6 text-blue-400" />
             <span className="text-white">Rekap Guru & Siswa</span>
           </h2>
-          <button
-            onClick={handleRefresh}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
-            disabled={refreshing}
-          >
-            {refreshing ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mx-2"></div>
-            ) : (
-              <i className="fa fa-refresh mr-2"></i>
-            )}
-            {refreshing ? 'Mengambil Data...' : 'Refresh'}
-          </button>
         </div>
 
         {/* Guru Cards Grid */}
