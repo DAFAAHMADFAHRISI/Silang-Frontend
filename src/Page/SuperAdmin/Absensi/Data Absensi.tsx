@@ -242,13 +242,6 @@ const DataAbsensi: React.FC = () => {
               <Filter className="w-4 h-4 mr-2" />
               {formatSelectedDate(selectedDate)}
             </button>
-            <button
-              onClick={fetchAttendances}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
-            >
-              <i className="fa fa-refresh mr-2"></i>
-              Refresh
-            </button>
           </div>
         </div>
 
