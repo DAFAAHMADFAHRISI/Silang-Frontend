@@ -7,8 +7,6 @@ interface InstitusiRow {
   id: number;
   nama_institusi: string;
   alamat: string;
-  no_hp: string;
-  email: string;
   created_at: string;
   updated_at: string;
 }
@@ -112,10 +110,7 @@ const Institusi: React.FC = () => {
           className="bg-gray-800 text-white px-4 py-2 rounded focus:outline-none border border-gray-700 w-full md:w-64"
         />
         <div className="flex gap-2 items-center">
-          <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center" onClick={handleRefresh}>
-            <span className="mr-1">⟳</span> Refresh
-          </button>
-          <button className="bg-fuchsia-600 hover:bg-fuchsia-700 text-white px-4 py-2 rounded flex items-center" onClick={() => setShowModal(true)}>
+          <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center" onClick={() => setShowModal(true)}>
             <span className="mr-1">＋</span> Tambah Institusi
           </button>
         </div>
@@ -134,8 +129,6 @@ const Institusi: React.FC = () => {
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">No</th>
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Nama Institusi</th>
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Alamat</th>
-                <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">No HP</th>
-                <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Email</th>
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Created At</th>
                 <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider">Aksi</th>
               </tr>
@@ -151,8 +144,6 @@ const Institusi: React.FC = () => {
                   <td className="px-3 py-2 whitespace-nowrap text-blue-400 font-bold text-center">{idx + 1}</td>
                   <td className="px-3 py-2 whitespace-nowrap font-semibold text-white">{row.nama_institusi}</td>
                   <td className="px-3 py-2 whitespace-nowrap text-gray-300">{row.alamat}</td>
-                  <td className="px-3 py-2 whitespace-nowrap text-gray-300">{row.no_hp}</td>
-                  <td className="px-3 py-2 whitespace-nowrap text-gray-300">{row.email}</td>
                   <td className="px-3 py-2 whitespace-nowrap text-gray-400 text-xs font-mono">{new Date(row.created_at).toLocaleString('id-ID')}</td>
                   <td className="px-3 py-2 whitespace-nowrap text-center">
                     {typeof row.id !== 'undefined' ? (
@@ -216,14 +207,6 @@ const Institusi: React.FC = () => {
                 <div>
                   <label className="block text-sm text-gray-300 mb-1">Alamat</label>
                   <textarea name="alamat" required className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white" rows={3} />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-300 mb-1">No HP</label>
-                  <input name="no_hp" required className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white" />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-300 mb-1">Email</label>
-                  <input name="email" type="email" required className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white" />
                 </div>
               </div>
               <button type="submit" className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded">Simpan</button>

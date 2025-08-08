@@ -14,7 +14,7 @@ import DashboardSuperAdmin from './Page/SuperAdmin/Dashboard';
 import DashboardMentor from './Page/Mentor/Dashboard';
 import DashboardGuru from './Page/Guru/Dashboard';
 import UserManagement from './Page/SuperAdmin/User Management';
-import Institusi from './Page/SuperAdmin/Institusi';
+import Institusi from './Page/SuperAdmin/Institusi/Institusi';
 import DataTugas from './Page/SuperAdmin/Data Tugas';
 import DataJadwal from './Page/SuperAdmin/Data Jadwal';
 import DataAbsensi from './Page/SuperAdmin/Data Absensi';
