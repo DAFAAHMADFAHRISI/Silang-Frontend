@@ -169,7 +169,7 @@ const TugasMentor: React.FC = () => {
         throw new Error('Token tidak ditemukan. Silakan login ulang.');
       }
       
-      const response = await fetch('http://localhost:3000/api/tugas-mentor', {
+      const response = await fetch('http://localhost:3000/API/tugas-mentor', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -225,7 +225,7 @@ const TugasMentor: React.FC = () => {
         throw new Error('Token tidak ditemukan. Silakan login ulang.');
       }
       
-      const response = await fetch(`http://localhost:3000/api/tugas-mentor/${taskId}`, {
+      const response = await fetch(`http://localhost:3000/API/tugas-mentor/${taskId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -267,7 +267,7 @@ const TugasMentor: React.FC = () => {
         throw new Error('Token tidak ditemukan. Silakan login ulang.');
       }
       
-      const response = await fetch(`http://localhost:3000/api/tugas-mentor/${taskId}/submissions`, {
+      const response = await fetch(`http://localhost:3000/API/tugas-mentor/${taskId}/submissions`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -309,7 +309,7 @@ const TugasMentor: React.FC = () => {
         throw new Error('Token tidak ditemukan. Silakan login ulang.');
       }
       
-             const response = await fetch('http://localhost:3000/api/siswa-mentor', {
+             const response = await fetch('http://localhost:3000/API/siswa-mentor', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -373,7 +373,7 @@ const TugasMentor: React.FC = () => {
         throw new Error('Token tidak ditemukan. Silakan login ulang.');
       }
       
-      const response = await fetch(`http://localhost:3000/api/tugas-mentor/${task.id}`, {
+      const response = await fetch(`http://localhost:3000/API/tugas-mentor/${task.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -474,7 +474,7 @@ const TugasMentor: React.FC = () => {
 
   return (
     
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6 min-h-screen">
         {/* Header */}
         <div className="mb-6 mt-0">
           <div className="flex items-center justify-between">
@@ -590,25 +590,58 @@ const TugasMentor: React.FC = () => {
             <span>Daftar Tugas ({filteredTasks.length})</span>
           </h2>
           
-          {filteredTasks.length === 0 ? (
-            <div className="text-center py-12">
-              <FileText className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg">Tidak ada tugas ditemukan.</p>
-              <p className="text-gray-500 text-sm">Coba ubah filter atau tambah tugas baru.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredTasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  onView={handleViewTask}
-                  onEdit={handleEditTask}
-                  onDelete={handleDeleteTask}
-                />
-              ))}
-            </div>
-          )}
+          <div className="bg-gray-800 rounded-xl border border-gray-700 min-h-[400px]">
+            {filteredTasks.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 px-6">
+                <div className="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center mb-6">
+                  <FileText className="w-10 h-10 text-gray-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-300 mb-3">
+                  {searchTerm || priorityFilter !== "all" ? 'Tidak Ada Hasil Filter' : 'Belum Ada Tugas'}
+                </h3>
+                <p className="text-gray-400 text-center mb-6 max-w-md leading-relaxed">
+                  {searchTerm || priorityFilter !== "all" 
+                    ? 'Tidak ditemukan tugas yang sesuai dengan filter. Coba ubah kata kunci atau filter.'
+                    : 'Belum ada tugas yang dibuat. Mulai dengan menambahkan tugas baru untuk siswa Anda.'
+                  }
+                </p>
+                <div className="flex space-x-3">
+                  {(searchTerm || priorityFilter !== "all") && (
+                    <button
+                      onClick={() => {
+                        setSearchTerm('');
+                        setPriorityFilter('all');
+                      }}
+                      className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors text-sm"
+                    >
+                      Hapus Filter
+                    </button>
+                  )}
+                  <button
+                    onClick={handleCreateTask}
+                    className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 text-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Tambah Tugas</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredTasks.map((task) => (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      onView={handleViewTask}
+                      onEdit={handleEditTask}
+                      onDelete={handleDeleteTask}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Create Task Modal */}
