@@ -147,7 +147,7 @@ const Edit: React.FC = () => {
               onClick={() => navigate('/Institusi')}
               className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
             >
-              Batal
+              Kembali
             </button>
           </div>
           {notif && <div className="mt-2 text-center text-sm text-green-400">{notif}</div>}
