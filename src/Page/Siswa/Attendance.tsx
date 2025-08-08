@@ -182,7 +182,7 @@ const Attendance: React.FC = () => {
     }
 
     // Check if it's check-in time (6:00-14:00)
-    if (hour >= 6 && hour < 14) {
+    if (hour >= 6 && hour < 15) {
       return { action: 'checkin', message: 'Check In' };
     }
     
