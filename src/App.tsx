@@ -26,7 +26,7 @@ import EditJadwal from './Page/SuperAdmin/Jadwal/Edit/Edit';
 import DataAbsensi from './Page/SuperAdmin/Absensi/Data Absensi';
 import DataMentorSiswa from './Page/SuperAdmin/Data Mentor-Siswa';
 import DataGuruSiswa from './Page/SuperAdmin/Data Guru - Siswa';
-import DataRekap from './Page/SuperAdmin/Data Rekap';
+import DataRekap from './Page/SuperAdmin/Data Rekap/Data Rekap';
 import DataTugasGuru from './Page/Guru/Tugas/Data Tugas';
 import DataAbsensiGuru from './Page/Guru/Absensi/Data Absensi';
 import DataRekapGuru from './Page/Guru/Rekap/Data Rekap';
