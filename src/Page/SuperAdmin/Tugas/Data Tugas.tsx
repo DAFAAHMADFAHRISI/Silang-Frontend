@@ -198,18 +198,11 @@ const DataTugas: React.FC = () => {
         <p className="text-gray-400 mt-2 ml-5">Kelola dan pantau semua tugas yang diberikan kepada siswa.</p>
         <hr className="border-gray-700 my-4" />
         
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center mb-6">
           <h2 className="text-2xl font-bold flex items-center space-x-2">
             <FileText className="w-6 h-6 text-blue-400" />
             <span className="text-white">Daftar Tugas</span>
           </h2>
-          <button
-            onClick={fetchTasks}
-            className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
-          >
-            <i className="fa fa-refresh mr-2"></i>
-            Refresh
-          </button>
         </div>
 
         {/* Tasks Grid */}
