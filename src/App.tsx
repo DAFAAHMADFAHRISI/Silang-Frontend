@@ -7,7 +7,7 @@ import DashboardSiswa from './Page/Siswa/Dashboard';
 import Todo from './Page/Siswa/Todo/Todo';
 import Detail from './Page/Siswa/Todo/Detail/Detail';
 import Edit from './Page/Siswa/Todo/Edit/Edit';
-import Attendance from './Page/Siswa/Attendance';
+import Attendance from './Page/Siswa/Absensi/Attendance';
 import Chat from './Page/Siswa/Chat/Chat';
 import Report from './Page/Siswa/Report';
 import Layout from './Layout/Layout';
