@@ -74,7 +74,7 @@ const EditGuruSiswa: React.FC = () => {
         setLoadingOptions(true);
         const [guruRes, siswaRes, mentorsRes, mentorSiswaRes] = await Promise.all([
           fetch('http://localhost:3000/api/guru', { headers }),
-          fetch('http://localhost:3000/api/siswa', { headers }),
+          fetch('http://localhost:3000/api/user?role=siswa', { headers }),
           fetch('http://localhost:3000/api/mentors', { headers }),
           fetch('http://localhost:3000/api/mentor-siswa', { headers }),
         ]);
@@ -110,8 +110,7 @@ const EditGuruSiswa: React.FC = () => {
         // Fallback via /api/rekap when lists are empty
         const needGuru = guruOptions.length === 0;
         const needSiswa = siswaOptions.length === 0;
-        const needMentorMap = mentorSiswaMaps.length === 0;
-        if (needGuru || needSiswa || needMentorMap) {
+        if (needGuru || needSiswa) {
           const rekapRes = await fetch('http://localhost:3000/api/rekap', { headers });
           if (rekapRes.ok) {
             const rekap = await rekapRes.json();
@@ -120,24 +119,18 @@ const EditGuruSiswa: React.FC = () => {
                 const guruFromRekap: GuruOption[] = rekap.map((g: any) => ({ id: g.guru_id, nama: g.nama_guru })).filter((g: GuruOption) => g.id && g.nama);
                 if (guruFromRekap.length) setGuruOptions(guruFromRekap);
               }
-              if (needSiswa || needMentorMap) {
+              if (needSiswa) {
                 const siswaSet: Record<number, string> = {};
-                const maps: MentorSiswaMap[] = [];
                 rekap.forEach((g: any) => {
-                  const gid = g.guru_id; const gname = g.nama_guru;
                   (g.siswa || []).forEach((s: any) => {
                     if (s && (s.id ?? s.siswa_id)) {
                       const sid = Number(s.id ?? s.siswa_id);
                       siswaSet[sid] = s.nama_siswa ?? s.nama ?? '';
-                      if (gid) maps.push({ mentor_id: Number(gid), siswa_id: sid });
                     }
                   });
                 });
-                if (needSiswa) {
-                  const siswaFromRekap: SiswaOption[] = Object.entries(siswaSet).map(([id, nama]) => ({ id: Number(id), nama: String(nama) })).filter(x => x.id && x.nama);
-                  if (siswaFromRekap.length) setSiswaOptions(siswaFromRekap);
-                }
-                if (needMentorMap && maps.length) setMentorSiswaMaps(maps);
+                const siswaFromRekap: SiswaOption[] = Object.entries(siswaSet).map(([id, nama]) => ({ id: Number(id), nama: String(nama) })).filter(x => x.id && x.nama);
+                if (siswaFromRekap.length) setSiswaOptions(siswaFromRekap);
               }
             }
           }
@@ -197,7 +190,7 @@ const EditGuruSiswa: React.FC = () => {
       } as HeadersInit;
       const [guruLiveRes, siswaLiveRes] = await Promise.all([
         fetch('http://localhost:3000/api/guru', { headers }),
-        fetch('http://localhost:3000/api/siswa', { headers }),
+        fetch('http://localhost:3000/api/user?role=siswa', { headers }),
       ]);
 
       const normalize = (s?: string) => (s ?? '').trim().toLowerCase();
@@ -236,6 +229,7 @@ const EditGuruSiswa: React.FC = () => {
           ? siswaLive.find((s: any) => normalize(s.nama ?? s.nama_siswa ?? s.name) === selectedSiswaName)
           : undefined;
         if (!foundSiswa) {
+          // Fallback to siswa-mentor
           const siswaMentorRes = await fetch('http://localhost:3000/api/siswa-mentor', { headers });
           if (siswaMentorRes.ok) {
             const list = await siswaMentorRes.json();
@@ -245,6 +239,7 @@ const EditGuruSiswa: React.FC = () => {
           }
         }
         if (!foundSiswa) {
+          // Fallback to rekap
           const rekapRes = await fetch('http://localhost:3000/api/rekap', { headers });
           if (rekapRes.ok) {
             const rekap = await rekapRes.json();
