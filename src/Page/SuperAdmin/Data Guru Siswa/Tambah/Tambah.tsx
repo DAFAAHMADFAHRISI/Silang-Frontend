@@ -46,30 +46,44 @@ const TambahGuruSiswa: React.FC = () => {
           'Authorization': `Bearer ${token}`,
         } as HeadersInit;
 
-        // Try common endpoints; adjust as needed if your API differs
-        const [guruRes, siswaRes, mentorsRes, mentorSiswaRes] = await Promise.all([
-          fetch('http://localhost:3000/api/guru', { headers }),
-          fetch('http://localhost:3000/api/siswa', { headers }),
-          fetch('http://localhost:3000/api/mentors', { headers }),
-          fetch('http://localhost:3000/api/mentor-siswa', { headers }),
-        ]);
-
+        // Fetch guru data
+        const guruRes = await fetch('http://localhost:3000/api/guru', { headers });
         if (guruRes.ok) {
           const guruData = await guruRes.json();
+          console.log('Raw guru data from API:', guruData);
           const mapped: GuruOption[] = Array.isArray(guruData)
             ? guruData.map((g: any) => ({ id: g.id ?? g.guru_id ?? g.id_guru, nama: g.nama ?? g.nama_guru ?? g.name }))
             : [];
-          setGuruOptions(mapped.filter(opt => opt.id && opt.nama));
+          console.log('Mapped guru options:', mapped);
+          const filtered = mapped.filter(opt => opt.id && opt.nama);
+          console.log('Filtered guru options:', filtered);
+          console.log('About to set guruOptions with:', filtered);
+          setGuruOptions(filtered);
+          console.log('setGuruOptions called with length:', filtered.length);
+        } else {
+          console.error('Failed to fetch guru data:', guruRes.status, guruRes.statusText);
         }
 
+        // Fetch siswa data from students endpoint
+        const siswaRes = await fetch('http://localhost:3000/api/students', { headers });
         if (siswaRes.ok) {
           const siswaData = await siswaRes.json();
+          console.log('Raw siswa data from API:', siswaData);
           const mapped: SiswaOption[] = Array.isArray(siswaData)
             ? siswaData.map((s: any) => ({ id: s.id ?? s.siswa_id ?? s.id_siswa, nama: s.nama ?? s.nama_siswa ?? s.name }))
             : [];
-          setSiswaOptions(mapped.filter(opt => opt.id && opt.nama));
+          console.log('Mapped siswa options:', mapped);
+          const filtered = mapped.filter(opt => opt.id && opt.nama);
+          console.log('Filtered siswa options:', filtered);
+          console.log('About to set siswaOptions with:', filtered);
+          setSiswaOptions(filtered);
+          console.log('setSiswaOptions called with length:', filtered.length);
+        } else {
+          console.error('Failed to fetch siswa data:', siswaRes.status, siswaRes.statusText);
         }
 
+        // Fetch mentor data
+        const mentorsRes = await fetch('http://localhost:3000/api/mentors', { headers });
         if (mentorsRes.ok) {
           const mentorData = await mentorsRes.json();
           const mapped: MentorOption[] = Array.isArray(mentorData)
@@ -78,6 +92,8 @@ const TambahGuruSiswa: React.FC = () => {
           setMentorOptions(mapped.filter(opt => opt.id && opt.nama));
         }
 
+        // Fetch mentor-siswa mapping
+        const mentorSiswaRes = await fetch('http://localhost:3000/api/mentor-siswa', { headers });
         if (mentorSiswaRes.ok) {
           const msData = await mentorSiswaRes.json();
           const mapped: MentorSiswaMap[] = Array.isArray(msData)
@@ -86,37 +102,36 @@ const TambahGuruSiswa: React.FC = () => {
           setMentorSiswaMaps(mapped.filter(r => r.mentor_id && r.siswa_id));
         }
 
-        // Fallback: use /api/rekap to derive guruOptions, siswaOptions, and mentor mapping if lists are empty
-        const needGuru = guruOptions.length === 0;
-        const needSiswa = siswaOptions.length === 0;
-        const needMentorMap = mentorSiswaMaps.length === 0;
-        if (needGuru || needSiswa || needMentorMap) {
+        // Fallback: only if primary endpoints failed to return data
+        let needFallback = false;
+        if (!guruRes.ok || !siswaRes.ok) {
+          needFallback = true;
+        }
+
+        if (needFallback) {
           const rekapRes = await fetch('http://localhost:3000/api/rekap', { headers });
           if (rekapRes.ok) {
             const rekap = await rekapRes.json();
             if (Array.isArray(rekap)) {
-              if (needGuru) {
+              // Fallback for guru if primary failed
+              if (!guruRes.ok) {
                 const guruFromRekap: GuruOption[] = rekap.map((g: any) => ({ id: g.guru_id, nama: g.nama_guru })).filter((g: GuruOption) => g.id && g.nama);
                 if (guruFromRekap.length) setGuruOptions(guruFromRekap);
               }
-              if (needSiswa || needMentorMap) {
+              
+              // Fallback for siswa if primary failed
+              if (!siswaRes.ok) {
                 const siswaSet: Record<number, string> = {};
-                const maps: MentorSiswaMap[] = [];
                 rekap.forEach((g: any) => {
-                  const gid = g.guru_id; const gname = g.nama_guru;
                   (g.siswa || []).forEach((s: any) => {
                     if (s && (s.id ?? s.siswa_id)) {
                       const sid = Number(s.id ?? s.siswa_id);
                       siswaSet[sid] = s.nama_siswa ?? s.nama ?? '';
-                      if (gid) maps.push({ mentor_id: Number(gid), siswa_id: sid });
                     }
                   });
                 });
-                if (needSiswa) {
-                  const siswaFromRekap: SiswaOption[] = Object.entries(siswaSet).map(([id, nama]) => ({ id: Number(id), nama: String(nama) })).filter(x => x.id && x.nama);
-                  if (siswaFromRekap.length) setSiswaOptions(siswaFromRekap);
-                }
-                if (needMentorMap && maps.length) setMentorSiswaMaps(maps);
+                const siswaFromRekap: SiswaOption[] = Object.entries(siswaSet).map(([id, nama]) => ({ id: Number(id), nama: String(nama) })).filter(x => x.id && x.nama);
+                if (siswaFromRekap.length) setSiswaOptions(siswaFromRekap);
               }
             }
           }
@@ -130,6 +145,11 @@ const TambahGuruSiswa: React.FC = () => {
 
     loadOptions();
   }, []);
+
+  // Debug: log when siswaOptions changes
+  useEffect(() => {
+    console.log('siswaOptions state updated:', siswaOptions);
+  }, [siswaOptions]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,7 +167,7 @@ const TambahGuruSiswa: React.FC = () => {
       } as HeadersInit;
       const [guruLiveRes, siswaLiveRes] = await Promise.all([
         fetch('http://localhost:3000/api/guru', { headers }),
-        fetch('http://localhost:3000/api/siswa', { headers }),
+        fetch('http://localhost:3000/api/students', { headers }),
       ]);
 
       const normalize = (s?: string) => (s ?? '').trim().toLowerCase();
@@ -249,7 +269,9 @@ const TambahGuruSiswa: React.FC = () => {
       <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Guru</label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Guru
+            </label>
             <select
               value={formData.guru_id}
               onChange={(e) => setFormData({ ...formData, guru_id: e.target.value })}
@@ -265,7 +287,9 @@ const TambahGuruSiswa: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Siswa</label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Siswa 
+            </label>
             <select
               value={formData.siswa_id}
               onChange={(e) => setFormData({ ...formData, siswa_id: e.target.value })}
