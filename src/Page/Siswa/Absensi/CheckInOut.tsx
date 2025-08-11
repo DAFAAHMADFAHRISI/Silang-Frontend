@@ -65,8 +65,8 @@ const CheckInOut: React.FC = () => {
       return { action: 'weekend', message: 'Hari libur - tidak ada absensi' };
     }
 
-    // Check if it's check-in time (6:00-9:00)
-    if (hour >= 6 && hour < 9) {
+    // Check if it's check-in time (6:00-12:00)
+    if (hour >= 6 && hour < 12) {
       return { action: 'checkin', message: 'Check In' };
     }
     
@@ -242,25 +242,25 @@ const CheckInOut: React.FC = () => {
           {/* Action Buttons */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             {/* Check In Button */}
-            <button
-              onClick={() => handleCheckInOut('checkin')}
-              disabled={isLoading || !selectedFile}
-              className={`p-6 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center space-y-3 ${
-                isLoading || !selectedFile
-                  ? 'border-gray-600 bg-gray-700 text-gray-400 cursor-not-allowed'
-                  : action === 'checkin'
-                  ? 'border-green-500 bg-green-600 hover:bg-green-700 text-white shadow-lg'
-                  : 'border-gray-600 bg-gray-700 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              <LogIn className={`w-8 h-8 ${
-                action === 'checkin' ? 'text-white' : 'text-gray-500'
-              }`} />
-              <div className="text-center">
-                <div className="font-semibold text-lg">Check In</div>
-                <div className="text-sm opacity-75">06:00 - 09:00</div>
-              </div>
-            </button>
+            {action === 'checkin' && (
+              <button
+                onClick={() => handleCheckInOut('checkin')}
+                disabled={isLoading || !selectedFile}
+                className={`p-6 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center space-y-3 ${
+                  isLoading || !selectedFile
+                    ? 'border-gray-600 bg-gray-700 text-gray-400 cursor-not-allowed'
+                    : 'border-green-500 bg-green-600 hover:bg-green-700 text-white shadow-lg'
+                }`}
+              >
+                <LogIn className={`w-8 h-8 ${
+                  action === 'checkin' ? 'text-white' : 'text-gray-500'
+                }`} />
+                <div className="text-center">
+                  <div className="font-semibold text-lg">Check In</div>
+                  <div className="text-sm opacity-75">06:00 - 12:00</div>
+                </div>
+              </button>
+            )}
 
             {/* Check Out Button */}
             <button
