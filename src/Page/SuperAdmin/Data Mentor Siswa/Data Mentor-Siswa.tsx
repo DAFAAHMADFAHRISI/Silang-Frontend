@@ -15,22 +15,6 @@ interface MentorSiswaDetail {
   nama_siswa: string;
 }
 
-interface MentorSiswaForm {
-  mentor_id: string;
-  siswa_id: string;
-}
-
-interface Mentor {
-  id: number;
-  nama: string;
-}
-
-interface Siswa {
-  id: number;
-  nama: string;
-  institusi: string;
-}
-
 const DataMentorSiswa: React.FC = () => {
   const [mentorSiswaData, setMentorSiswaData] = useState<MentorSiswa[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,18 +22,6 @@ const DataMentorSiswa: React.FC = () => {
   const [selectedRecord, setSelectedRecord] = useState<MentorSiswaDetail | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editingRecord, setEditingRecord] = useState<MentorSiswaDetail | null>(null);
-  const [formData, setFormData] = useState<MentorSiswaForm>({
-    mentor_id: '',
-    siswa_id: ''
-  });
-  const [submitting, setSubmitting] = useState(false);
-  const [mentors, setMentors] = useState<Mentor[]>([]);
-  const [students, setStudents] = useState<Siswa[]>([]);
-  const [loadingMentors, setLoadingMentors] = useState(false);
-  const [loadingStudents, setLoadingStudents] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -70,8 +42,6 @@ const DataMentorSiswa: React.FC = () => {
     }
 
     fetchMentorSiswaData();
-    fetchMentors();
-    fetchStudents();
   }, []);
 
   const fetchMentorSiswaData = async () => {
@@ -118,113 +88,6 @@ const DataMentorSiswa: React.FC = () => {
       console.error('Error fetching mentor-siswa data:', err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchMentors = async () => {
-    try {
-      setLoadingMentors(true);
-      
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        throw new Error('Token tidak ditemukan. Silakan login ulang.');
-      }
-
-      const response = await fetch('http://localhost:3000/api/mentors', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      if (response.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('nama');
-        localStorage.removeItem('role');
-        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
-      }
-      
-      if (response.status === 403) {
-        throw new Error('Anda tidak memiliki izin untuk mengakses data ini.');
-      }
-      
-      if (!response.ok) {
-        throw new Error(`Error server: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log('Mentors data from API:', data);
-      setMentors(data);
-    } catch (err) {
-      console.error('Error fetching mentors:', err);
-      // If mentors API fails, use demo data
-      const demoMentors = [
-        { id: 1, nama: 'Mentor Satu' },
-        { id: 2, nama: 'Mentor Dua' },
-        { id: 3, nama: 'Mentor Tiga' },
-        { id: 4, nama: 'Mentor Empat' },
-        { id: 5, nama: 'Mentor Lima' },
-      ];
-      console.log('Using demo mentors:', demoMentors);
-      setMentors(demoMentors);
-    } finally {
-      setLoadingMentors(false);
-    }
-  };
-
-  const fetchStudents = async () => {
-    try {
-      setLoadingStudents(true);
-      
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        throw new Error('Token tidak ditemukan. Silakan login ulang.');
-      }
-
-      const response = await fetch('http://localhost:3000/api/students', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      if (response.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('nama');
-        localStorage.removeItem('role');
-        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
-      }
-      
-      if (response.status === 403) {
-        throw new Error('Anda tidak memiliki izin untuk mengakses data ini.');
-      }
-      
-      if (!response.ok) {
-        throw new Error(`Error server: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      setStudents(data);
-    } catch (err) {
-      console.error('Error fetching students:', err);
-      // If students API fails, use demo data
-      const demoStudents = [
-        { id: 1, nama: 'Siswa Satu', institusi: 'SMK Negeri 1 Sumenep' },
-        { id: 2, nama: 'Siswa Dua', institusi: 'SMK Negeri 1 Sumenep' },
-        { id: 3, nama: 'Siswa Tiga', institusi: 'SMK Negeri 2 Sumenep' },
-        { id: 4, nama: 'Siswa Empat', institusi: 'SMK Negeri 2 Sumenep' },
-        { id: 5, nama: 'Siswa Lima', institusi: 'SMK Negeri 3 Sumenep' },
-      ];
-      console.log('Using demo students:', demoStudents);
-      setStudents(demoStudents);
-    } finally {
-      setLoadingStudents(false);
     }
   };
 
@@ -275,141 +138,6 @@ const DataMentorSiswa: React.FC = () => {
       console.error('Error fetching mentor-siswa detail:', err);
     } finally {
       setDetailLoading(false);
-    }
-  };
-
-  const handleAddMentorSiswa = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.mentor_id || !formData.siswa_id) {
-      alert('Mohon isi semua field yang diperlukan.');
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        throw new Error('Token tidak ditemukan. Silakan login ulang.');
-      }
-
-      const formBody = new URLSearchParams();
-      formBody.append('mentor_id', formData.mentor_id);
-      formBody.append('siswa_id', formData.siswa_id);
-
-      const response = await fetch('http://localhost:3000/api/mentor-siswa/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formBody,
-      });
-      
-      if (response.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('nama');
-        localStorage.removeItem('role');
-        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
-      }
-      
-      if (response.status === 403) {
-        throw new Error('Anda tidak memiliki izin untuk mengakses data ini.');
-      }
-      
-      if (!response.ok) {
-        throw new Error(`Error server: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log('Data berhasil ditambahkan:', data);
-      
-      // Reset form and close modal
-      setFormData({ mentor_id: '', siswa_id: '' });
-      setShowAddModal(false);
-      
-      // Refresh data
-      await fetchMentorSiswaData();
-      
-      alert('Data mentor-siswa berhasil ditambahkan!');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Gagal menambahkan data mentor-siswa.';
-      alert(errorMessage);
-      console.error('Error adding mentor-siswa:', err);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleEditMentorSiswa = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!editingRecord || !formData.mentor_id || !formData.siswa_id) {
-      alert('Mohon isi semua field yang diperlukan.');
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        throw new Error('Token tidak ditemukan. Silakan login ulang.');
-      }
-
-      const formBody = new URLSearchParams();
-      formBody.append('mentor_id', formData.mentor_id);
-      formBody.append('siswa_id', formData.siswa_id);
-
-      const response = await fetch(`http://localhost:3000/api/mentor-siswa/update/${editingRecord.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formBody,
-      });
-      
-      if (response.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('nama');
-        localStorage.removeItem('role');
-        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
-      }
-      
-      if (response.status === 403) {
-        throw new Error('Anda tidak memiliki izin untuk mengakses data ini.');
-      }
-      
-      if (response.status === 404) {
-        throw new Error('Data tidak ditemukan.');
-      }
-      
-      if (!response.ok) {
-        throw new Error(`Error server: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      console.log('Data berhasil diupdate:', data);
-      
-      // Reset form and close modal
-      setFormData({ mentor_id: '', siswa_id: '' });
-      setShowEditModal(false);
-      setEditingRecord(null);
-      
-      // Refresh data
-      await fetchMentorSiswaData();
-      
-      alert('Data mentor-siswa berhasil diupdate!');
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Gagal mengupdate data mentor-siswa.';
-      alert(errorMessage);
-      console.error('Error updating mentor-siswa:', err);
-    } finally {
-      setSubmitting(false);
     }
   };
 
@@ -573,18 +301,11 @@ const DataMentorSiswa: React.FC = () => {
           </h2>
           <div className="flex space-x-3">
             <button
-              onClick={() => setShowAddModal(true)}
+              onClick={() => navigate('/DataMentorSiswa/tambah')}
               className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
             >
               <Plus className="w-4 h-4 mr-2" />
               Tambah
-            </button>
-            <button
-              onClick={fetchMentorSiswaData}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
-            >
-              <i className="fa fa-refresh mr-2"></i>
-              Refresh
             </button>
           </div>
         </div>
@@ -639,11 +360,7 @@ const DataMentorSiswa: React.FC = () => {
                               <span>Lihat</span>
                             </button>
                             <button
-                              onClick={() => {
-                                setEditingRecord(student);
-                                setFormData({ mentor_id: '2', siswa_id: '5' }); // Default values
-                                setShowEditModal(true);
-                              }}
+                              onClick={() => navigate(`/DataMentorSiswa/edit/${student.id}`)}
                               className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs flex items-center space-x-1 transition-colors"
                             >
                               <Edit className="w-3 h-3" />
@@ -779,222 +496,6 @@ const DataMentorSiswa: React.FC = () => {
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-        )}
-
-        {/* Add Modal */}
-        {showAddModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-white">Tambah Mentor-Siswa</h3>
-                <button
-                  onClick={() => {
-                    setShowAddModal(false);
-                    setFormData({ mentor_id: '', siswa_id: '' });
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <i className="fa fa-times text-xl"></i>
-                </button>
-              </div>
-
-              <form onSubmit={handleAddMentorSiswa} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Pilih Mentor
-                  </label>
-                  <select
-                    value={formData.mentor_id}
-                    onChange={(e) => setFormData({ ...formData, mentor_id: e.target.value })}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-                    required
-                    disabled={loadingMentors}
-                  >
-                    <option value="">Pilih Mentor</option>
-                    {mentors.length > 0 ? (
-                      mentors.map((mentor) => (
-                        <option key={mentor.id} value={mentor.id}>
-                          {mentor.nama}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="" disabled>
-                        {loadingMentors ? 'Memuat mentor...' : 'Tidak ada mentor tersedia'}
-                      </option>
-                    )}
-                  </select>
-                  {loadingMentors && (
-                    <p className="text-xs text-gray-400 mt-1">Memuat data mentor...</p>
-                  )}
-                  {!loadingMentors && mentors.length === 0 && (
-                    <p className="text-xs text-red-400 mt-1">Tidak ada data mentor yang tersedia</p>
-                  )}
-                  <p className="text-xs text-gray-400 mt-1">Total mentor: {mentors.length}</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Pilih Siswa
-                  </label>
-                  <select
-                    value={formData.siswa_id}
-                    onChange={(e) => setFormData({ ...formData, siswa_id: e.target.value })}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-                    required
-                    disabled={loadingStudents}
-                  >
-                    <option value="">Pilih Siswa</option>
-                    {students.length > 0 ? (
-                      students.map((student) => (
-                        <option key={student.id} value={student.id}>
-                          {student.nama} - {student.institusi}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="" disabled>
-                        {loadingStudents ? 'Memuat siswa...' : 'Tidak ada siswa tersedia'}
-                      </option>
-                    )}
-                  </select>
-                  {loadingStudents && (
-                    <p className="text-xs text-gray-400 mt-1">Memuat data siswa...</p>
-                  )}
-                  {!loadingStudents && students.length === 0 && (
-                    <p className="text-xs text-red-400 mt-1">Tidak ada data siswa yang tersedia</p>
-                  )}
-                  <p className="text-xs text-gray-400 mt-1">Total siswa: {students.length}</p>
-                </div>
-
-                <div className="flex space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowAddModal(false);
-                      setFormData({ mentor_id: '', siswa_id: '' });
-                    }}
-                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting || loadingMentors || loadingStudents}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    {submitting ? 'Menambahkan...' : 'Tambah'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Edit Modal */}
-        {showEditModal && editingRecord && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-white">Edit Mentor-Siswa</h3>
-                <button
-                  onClick={() => {
-                    setShowEditModal(false);
-                    setEditingRecord(null);
-                    setFormData({ mentor_id: '', siswa_id: '' });
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <i className="fa fa-times text-xl"></i>
-                </button>
-              </div>
-
-              <form onSubmit={handleEditMentorSiswa} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Pilih Mentor
-                  </label>
-                  <select
-                    value={formData.mentor_id}
-                    onChange={(e) => setFormData({ ...formData, mentor_id: e.target.value })}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-                    required
-                    disabled={loadingMentors}
-                  >
-                    <option value="">Pilih Mentor</option>
-                    {mentors.length > 0 ? (
-                      mentors.map((mentor) => (
-                        <option key={mentor.id} value={mentor.id}>
-                          {mentor.nama}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="" disabled>
-                        {loadingMentors ? 'Memuat mentor...' : 'Tidak ada mentor tersedia'}
-                      </option>
-                    )}
-                  </select>
-                  {loadingMentors && (
-                    <p className="text-xs text-gray-400 mt-1">Memuat data mentor...</p>
-                  )}
-                  {!loadingMentors && mentors.length === 0 && (
-                    <p className="text-xs text-red-400 mt-1">Tidak ada data mentor yang tersedia</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Pilih Siswa
-                  </label>
-                  <select
-                    value={formData.siswa_id}
-                    onChange={(e) => setFormData({ ...formData, siswa_id: e.target.value })}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-                    required
-                    disabled={loadingStudents}
-                  >
-                    <option value="">Pilih Siswa</option>
-                    {students.length > 0 ? (
-                      students.map((student) => (
-                        <option key={student.id} value={student.id}>
-                          {student.nama} - {student.institusi}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="" disabled>
-                        {loadingStudents ? 'Memuat siswa...' : 'Tidak ada siswa tersedia'}
-                      </option>
-                    )}
-                  </select>
-                  {loadingStudents && (
-                    <p className="text-xs text-gray-400 mt-1">Memuat data siswa...</p>
-                  )}
-                  {!loadingStudents && students.length === 0 && (
-                    <p className="text-xs text-red-400 mt-1">Tidak ada data siswa yang tersedia</p>
-                  )}
-                </div>
-
-                <div className="flex space-x-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowEditModal(false);
-                      setEditingRecord(null);
-                      setFormData({ mentor_id: '', siswa_id: '' });
-                    }}
-                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting || loadingMentors || loadingStudents}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    {submitting ? 'Mengupdate...' : 'Update'}
-                  </button>
-                </div>
-              </form>
             </div>
           </div>
         )}
