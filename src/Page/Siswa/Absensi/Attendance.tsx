@@ -188,7 +188,7 @@ const Attendance: React.FC = () => {
     }
 
     // Check if it's check-in time (6:00-14:00)
-    if (hour >= 6 && hour < 15) {
+    if (hour >= 6 && hour < 16) {
       return { action: 'checkin', message: 'Check In' };
     }
     
@@ -867,7 +867,7 @@ const Attendance: React.FC = () => {
               }`} />
               <div className="text-center">
                 <div className="font-semibold text-lg">Check In</div>
-                <div className="text-sm opacity-75">06:00 - 14:00</div>
+                <div className="text-sm opacity-75">06:00 - 12:00</div>
               </div>
             </button>
 
@@ -895,7 +895,7 @@ const Attendance: React.FC = () => {
           {getCurrentAction().action === 'closed' && (
             <div className="bg-yellow-600 text-white px-4 py-3 rounded-lg text-center">
               <p className="font-semibold">Tidak dalam jam kerja</p>
-              <p className="text-sm opacity-90">Check In: 06:00-14:00 | Check Out: 15:00-20:00</p>
+              <p className="text-sm opacity-90">Check In: 06:00-12:00 | Check Out: 15:00-20:00</p>
             </div>
           )}
         </div>
@@ -1062,27 +1062,7 @@ const Attendance: React.FC = () => {
             <option value="ontime">Tepat Waktu</option>
             <option value="late">Terlambat</option>
           </select>
-          <button 
-            onClick={() => handleCheckInOut('checkin')}
-            disabled={isLoading || getCurrentAction().action !== 'checkin'}
-            className={`px-3 py-2 sm:px-4 sm:py-2 rounded flex items-center text-xs sm:text-sm transition-colors ${
-              isLoading || getCurrentAction().action !== 'checkin'
-                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                : 'bg-green-600 hover:bg-green-700 text-white'
-            }`}
-          >
-            {isLoading && actionType === 'checkin' ? (
-              <>
-                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>
-                Loading...
-              </>
-            ) : (
-              <>
-                <LogIn className="w-3 h-3 mr-1" />
-                Check In
-              </>
-            )}
-          </button>
+          {/* Tombol Check In dihapus sesuai permintaan user */}
         </div>
       </div>
       
