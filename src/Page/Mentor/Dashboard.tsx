@@ -197,13 +197,6 @@ const Dashboard: React.FC = () => {
                 Dashboard
               </h1>
             </div>
-            <button
-              onClick={fetchDashboardData}
-              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              <span>Refresh</span>
-            </button>
           </div>
           <p className="text-gray-400 mt-2 ml-5">Selamat datang, {userName}! Berikut rekap hari ini.</p>
         </div>
