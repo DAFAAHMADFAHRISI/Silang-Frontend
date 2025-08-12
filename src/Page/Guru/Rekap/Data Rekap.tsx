@@ -173,13 +173,6 @@ const DataRekap: React.FC = () => {
                 Data Rekap
               </h1>
             </div>
-            <button
-              onClick={fetchRekapData}
-              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-            >
-              <span>🔄</span>
-              <span>Refresh</span>
-            </button>
           </div>
           <p className="text-gray-400 mt-2 ml-5">Rekap data akademik dan performa siswa.</p>
         </div>
