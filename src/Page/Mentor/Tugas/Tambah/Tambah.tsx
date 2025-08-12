@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, X, ArrowLeft, FileText, Calendar, Users, AlertCircle, Save } from "lucide-react";
+import { Plus, X, ArrowLeft, FileText, Calendar, Users, AlertCircle, Save, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 
 
@@ -23,6 +23,10 @@ const Tambah: React.FC = () => {
   const [loadingAction, setLoadingAction] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTime, setSelectedTime] = useState('12:00');
   const [createForm, setCreateForm] = useState<CreateTaskForm>({
     judul: '',
     deskripsi: '',
@@ -171,35 +175,104 @@ const Tambah: React.FC = () => {
     }
   };
 
+  // Date picker functions
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDay = firstDay.getDay();
+    
+    const days = [];
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDay; i++) {
+      days.push(null);
+    }
+    
+    // Add all days of the month
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(new Date(year, month, i));
+    }
+    
+    return days;
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('id-ID', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatTime = (time: string) => {
+    const [hours, minutes] = time.split(':');
+    return `${hours}:${minutes}`;
+  };
+
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
+  };
+
+  const handleTimeChange = (time: string) => {
+    setSelectedTime(time);
+  };
+
+  const handleConfirmDateTime = () => {
+    if (selectedDate) {
+      const [hours, minutes] = selectedTime.split(':');
+      const dateTime = new Date(selectedDate);
+      dateTime.setHours(parseInt(hours), parseInt(minutes));
+      
+      // Format for input value (YYYY-MM-DDTHH:MM)
+      const year = dateTime.getFullYear();
+      const month = String(dateTime.getMonth() + 1).padStart(2, '0');
+      const day = String(dateTime.getDate()).padStart(2, '0');
+      const timeString = `${hours}:${minutes}`;
+      
+      const formattedDateTime = `${year}-${month}-${day}T${timeString}`;
+      setCreateForm({...createForm, batas_waktu: formattedDateTime});
+    }
+    setShowDatePicker(false);
+  };
+
+  const nextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  const prevMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
   return (
     
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-        {/* Header Section */}
-        <div className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700/50">
-          <div className="max-w-7xl mx-auto px-6 py-8">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => navigate('/mentor/tugas')}
-                  className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors duration-200 p-2 rounded-lg hover:bg-gray-700/50"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                  <span className="font-medium">Kembali</span>
-                </button>
-                <div className="w-1 h-10 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
-                <div>
-                  <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                    Tambah Tugas Baru
-                  </h1>
-                  <p className="text-gray-400 mt-1">Buat dan atur tugas untuk siswa Anda</p>
-                </div>
-              </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
+        {/* Header */}
+        <div className="mb-6 mt-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => navigate('/mentor/tugas')}
+                className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors duration-200 p-2 rounded-lg hover:bg-gray-700/50"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span className="font-medium">Kembali</span>
+              </button>
             </div>
           </div>
+          <div className="flex items-center space-x-3 mt-4">
+            <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+              Tambah Tugas Baru
+            </h1>
+          </div>
+          <p className="text-gray-400 mt-2 ml-5">Buat dan atur tugas untuk siswa Anda</p>
         </div>
 
         {/* Main Content */}
-        <div className="max-w-4xl mx-auto px-6 py-8">
+        <div className="max-w-4xl mx-auto">
           {error && (
             <div className="mb-8 p-4 bg-red-900/50 border border-red-700/50 rounded-xl flex items-center space-x-3">
               <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
@@ -280,10 +353,18 @@ const Tambah: React.FC = () => {
                   </label>
                   <div className="relative">
                     <input
-                      type="datetime-local"
-                      value={createForm.batas_waktu}
-                      onChange={(e) => setCreateForm({...createForm, batas_waktu: e.target.value})}
-                      className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200"
+                      type="text"
+                      value={createForm.batas_waktu ? new Date(createForm.batas_waktu).toLocaleDateString('id-ID', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }) : ''}
+                      onClick={() => setShowDatePicker(true)}
+                      readOnly
+                      className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 cursor-pointer"
+                      placeholder="Pilih tanggal dan waktu"
                     />
                     <Calendar className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   </div>
@@ -309,6 +390,121 @@ const Tambah: React.FC = () => {
                 )}
               </div>
             </div>
+
+            {/* Date Picker Popup */}
+            {showDatePicker && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-gray-800 rounded-2xl border border-gray-700/50 shadow-2xl max-w-md w-full">
+                  {/* Header */}
+                  <div className="bg-gradient-to-r from-gray-700/50 to-gray-800/50 px-6 py-4 border-b border-gray-700/50 rounded-t-2xl">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-white">Pilih Tanggal & Waktu</h3>
+                      <button
+                        onClick={() => setShowDatePicker(false)}
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Calendar */}
+                  <div className="p-6">
+                    {/* Month Navigation */}
+                    <div className="flex items-center justify-between mb-4">
+                      <button
+                        onClick={prevMonth}
+                        className="p-2 text-gray-400 hover:text-white transition-colors"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+                      <h4 className="text-white font-semibold">
+                        {currentDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
+                      </h4>
+                      <button
+                        onClick={nextMonth}
+                        className="p-2 text-gray-400 hover:text-white transition-colors"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {/* Days of Week */}
+                    <div className="grid grid-cols-7 gap-1 mb-2">
+                      {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map((day) => (
+                        <div key={day} className="text-center text-gray-400 text-sm font-medium py-2">
+                          {day}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Calendar Grid */}
+                    <div className="grid grid-cols-7 gap-1">
+                      {getDaysInMonth(currentDate).map((date, index) => (
+                        <button
+                          key={index}
+                          onClick={() => date && handleDateSelect(date)}
+                          disabled={!date}
+                          className={`
+                            p-2 text-sm rounded-lg transition-all duration-200
+                            ${!date ? 'invisible' : ''}
+                            ${date && selectedDate && date.toDateString() === selectedDate.toDateString()
+                              ? 'bg-blue-600 text-white'
+                              : date && date < new Date()
+                              ? 'text-gray-500 cursor-not-allowed'
+                              : 'text-white hover:bg-gray-600/50 cursor-pointer'
+                            }
+                          `}
+                        >
+                          {date ? date.getDate() : ''}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Time Selection */}
+                    <div className="mt-6">
+                      <label className="block text-gray-300 text-sm font-medium mb-2">
+                        Waktu
+                      </label>
+                      <input
+                        type="time"
+                        value={selectedTime}
+                        onChange={(e) => handleTimeChange(e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200"
+                      />
+                    </div>
+
+                    {/* Selected Date Display */}
+                    {selectedDate && (
+                      <div className="mt-4 p-3 bg-blue-600/20 border border-blue-700/50 rounded-lg">
+                        <p className="text-blue-400 text-sm">
+                          Dipilih: {formatDate(selectedDate)} {formatTime(selectedTime)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="bg-gray-800/50 px-6 py-4 border-t border-gray-700/50 rounded-b-2xl">
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setShowDatePicker(false)}
+                        className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 font-medium"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        onClick={handleConfirmDateTime}
+                        disabled={!selectedDate}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors duration-200 font-medium"
+                      >
+                        Konfirmasi
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Students Selection Section */}
             <div className="border-t border-gray-700/50">
