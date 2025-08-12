@@ -40,7 +40,7 @@ import DataRekapGuru from './Page/Guru/Rekap/Data Rekap';
 import TugasMentor from './Page/Mentor/Tugas/TugasMentor';
 import TambahTugas from './Page/Mentor/Tugas/Tambah/Tambah';
 import EditTugas from './Page/Mentor/Tugas/Edit/Edit';
-import DataAbsensiMentor from './Page/Mentor/Data Absensi';
+import DataAbsensiMentor from './Page/Mentor/Absensi/Data Absensi';
 import DataRekapMentor from './Page/Mentor/Data Rekap';
 import DetailTugas from './Page/Guru/Tugas/Detail/Detail';
 import DetailAbsensi from './Page/Guru/Absensi/Detail/Detail';
