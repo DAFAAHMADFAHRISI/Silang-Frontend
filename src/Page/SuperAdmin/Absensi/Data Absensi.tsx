@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Calendar, Clock, MapPin, Users, AlertCircle, CheckCircle, Camera, User, Filter, Map } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, AlertCircle, CheckCircle, Filter, UserCheck } from 'lucide-react';
 
 interface Attendance {
   nama_siswa: string;
@@ -15,13 +15,28 @@ interface Attendance {
   lokasi_out: string;
 }
 
+interface Mentor {
+  id: number;
+  nama: string;
+}
+
+interface MentorSiswa {
+  mentor_id: number;
+  siswa_id: number;
+  nama_siswa: string;
+}
+
 const DataAbsensi: React.FC = () => {
   const [attendances, setAttendances] = useState<Attendance[]>([]);
   const [filteredAttendances, setFilteredAttendances] = useState<Attendance[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedMentor, setSelectedMentor] = useState<string>('');
   const [showDateModal, setShowDateModal] = useState(false);
+  const [showMentorModal, setShowMentorModal] = useState(false);
+  const [mentors, setMentors] = useState<Mentor[]>([]);
+  const [mentorSiswaMaps, setMentorSiswaMaps] = useState<MentorSiswa[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -42,14 +57,16 @@ const DataAbsensi: React.FC = () => {
     }
 
     fetchAttendances();
+    fetchMentors();
+    fetchMentorSiswaMaps();
   }, []);
 
   useEffect(() => {
-    // Filter attendances based on selected date
-    if (selectedDate === '') {
-      setFilteredAttendances(attendances);
-    } else {
-      const filtered = attendances.filter(attendance => {
+    // Filter attendances based on selected date and mentor
+    let filtered = attendances;
+    
+    if (selectedDate !== '') {
+      filtered = filtered.filter(attendance => {
         const attendanceDate = new Date(attendance.tanggal_absensi);
         const selectedDateObj = new Date(selectedDate);
         
@@ -57,9 +74,21 @@ const DataAbsensi: React.FC = () => {
                attendanceDate.getMonth() === selectedDateObj.getMonth() &&
                attendanceDate.getDate() === selectedDateObj.getDate();
       });
-      setFilteredAttendances(filtered);
     }
-  }, [selectedDate, attendances]);
+    
+    if (selectedMentor !== '') {
+      const mentorId = parseInt(selectedMentor);
+      const siswaIds = mentorSiswaMaps
+        .filter(ms => ms.mentor_id === mentorId)
+        .map(ms => ms.nama_siswa);
+      
+      filtered = filtered.filter(attendance => 
+        siswaIds.includes(attendance.nama_siswa)
+      );
+    }
+    
+    setFilteredAttendances(filtered);
+  }, [selectedDate, selectedMentor, attendances, mentorSiswaMaps]);
 
   const fetchAttendances = async () => {
     try {
@@ -106,6 +135,86 @@ const DataAbsensi: React.FC = () => {
       console.error('Error fetching attendances:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchMentors = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token tidak ditemukan. Silakan login ulang.');
+      }
+
+      const response = await fetch('http://localhost:3000/api/mentors', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('nama');
+        localStorage.removeItem('role');
+        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
+      }
+
+      if (response.status === 403) {
+        throw new Error('Anda tidak memiliki izin untuk mengakses data ini.');
+      }
+
+      if (!response.ok) {
+        throw new Error(`Error server: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setMentors(data);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Gagal mengambil data mentor.';
+      setError(errorMessage);
+      console.error('Error fetching mentors:', err);
+    }
+  };
+
+  const fetchMentorSiswaMaps = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token tidak ditemukan. Silakan login ulang.');
+      }
+
+      const response = await fetch('http://localhost:3000/api/mentor-siswa', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('nama');
+        localStorage.removeItem('role');
+        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
+      }
+
+      if (response.status === 403) {
+        throw new Error('Anda tidak memiliki izin untuk mengakses data ini.');
+      }
+
+      if (!response.ok) {
+        throw new Error(`Error server: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setMentorSiswaMaps(data);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Gagal mengambil data mentor-siswa.';
+      setError(errorMessage);
+      console.error('Error fetching mentor-siswa:', err);
     }
   };
 
@@ -236,6 +345,13 @@ const DataAbsensi: React.FC = () => {
           </h2>
           <div className="flex space-x-3">
             <button
+              onClick={() => setShowMentorModal(true)}
+              className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
+            >
+              <UserCheck className="w-4 h-4 mr-2" />
+              {selectedMentor ? mentors.find(m => m.id === parseInt(selectedMentor))?.nama || 'Pilih Mentor' : 'Pilih Mentor'}
+            </button>
+            <button
               onClick={() => setShowDateModal(true)}
               className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
             >
@@ -280,22 +396,7 @@ const DataAbsensi: React.FC = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Camera className="w-4 h-4" />
-                      <span>Foto In: {attendance.foto_in}</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Camera className="w-4 h-4" />
-                      <span>Foto Out: {attendance.foto_out}</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm">
-                      <MapPin className="w-4 h-4" />
-                      <span>Lokasi In: {locationIn.latitude}, {locationIn.longitude}</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm">
-                      <MapPin className="w-4 h-4" />
-                      <span>Lokasi Out: {locationOut.latitude}, {locationOut.longitude}</span>
-                    </div>
+                    {/* Removed photo and location information display */}
                   </div>
 
                   {/* View Maps Buttons */}
@@ -304,15 +405,15 @@ const DataAbsensi: React.FC = () => {
                       onClick={() => handleViewMaps(attendance.lokasi_in, `${attendance.nama_siswa} - Check-in`)}
                       className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded text-sm flex items-center justify-center transition-colors"
                     >
-                      <Map className="w-4 h-4 mr-1" />
-                      View Check-in
+                      <MapPin className="w-4 h-4 mr-1" />
+                      Check-in
                     </button>
                     <button
                       onClick={() => handleViewMaps(attendance.lokasi_out, `${attendance.nama_siswa} - Check-out`)}
                       className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded text-sm flex items-center justify-center transition-colors"
                     >
-                      <Map className="w-4 h-4 mr-1" />
-                      View Check-out
+                      <MapPin className="w-4 h-4 mr-1" />
+                      Check-out
                     </button>
                   </div>
                 </div>
@@ -378,6 +479,66 @@ const DataAbsensi: React.FC = () => {
                     className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors"
                   >
                     Terapkan
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mentor Selection Modal */}
+        {showMentorModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-white">Pilih Mentor</h3>
+                <button
+                  onClick={() => setShowMentorModal(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <i className="fa fa-times text-xl"></i>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Pilih Mentor
+                  </label>
+                  <select
+                    value={selectedMentor}
+                    onChange={(e) => setSelectedMentor(e.target.value)}
+                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="">Semua Mentor</option>
+                    {mentors.map((mentor) => (
+                      <option key={mentor.id} value={mentor.id}>
+                        {mentor.nama}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    onClick={() => {
+                      setSelectedMentor('');
+                      setShowMentorModal(false);
+                    }}
+                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors"
+                  >
+                    Semua Mentor
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (selectedMentor) {
+                        navigate(`/DataAbsensi/detail/${selectedMentor}`);
+                      }
+                      setShowMentorModal(false);
+                    }}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors"
+                  >
+                    Lihat Detail
                   </button>
                 </div>
               </div>
