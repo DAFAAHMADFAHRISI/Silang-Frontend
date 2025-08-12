@@ -28,6 +28,8 @@ const DataAbsensiMentor: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [showDateFilter, setShowDateFilter] = useState(false);
   const navigate = useNavigate();
 
   const fetchAbsensiData = async () => {
@@ -86,7 +88,15 @@ const DataAbsensiMentor: React.FC = () => {
   }, []);
 
   const filteredAbsensi = absensiData.filter(siswa => {
-    return siswa.siswa_nama.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = siswa.siswa_nama.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Filter berdasarkan tanggal yang dipilih
+    const matchesDate = siswa.absensi.some(absensi => {
+      const absensiDate = new Date(absensi.waktu_checkin).toISOString().split('T')[0];
+      return absensiDate === selectedDate;
+    });
+    
+    return matchesSearch && matchesDate;
   });
 
   if (loading) {
@@ -149,8 +159,9 @@ const DataAbsensiMentor: React.FC = () => {
         <p className="text-gray-400 mt-2 ml-4 text-sm">Kelola data absensi siswa dan monitoring kehadiran.</p>
       </div>
 
-      {/* Search */}
-      <div className="mb-6">
+      {/* Search and Filter */}
+      <div className="mb-6 space-y-4">
+        {/* Search Bar */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
@@ -161,6 +172,63 @@ const DataAbsensiMentor: React.FC = () => {
             className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
           />
         </div>
+
+        {/* Date Filter */}
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => setShowDateFilter(!showDateFilter)}
+            className="bg-gray-700 hover:bg-gray-600 px-4 py-3 rounded-lg transition-colors font-semibold flex items-center space-x-2"
+          >
+            <Filter className="w-4 h-4" />
+            <span>Filter Tanggal</span>
+          </button>
+          
+          {showDateFilter && (
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
+                <Calendar className="w-4 h-4 text-blue-400" />
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+              <button
+                onClick={() => {
+                  setSelectedDate(new Date().toISOString().split('T')[0]);
+                  setShowDateFilter(false);
+                }}
+                className="bg-gray-600 hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors text-sm"
+              >
+                Hari Ini
+              </button>
+              <button
+                onClick={() => setShowDateFilter(false)}
+                className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded-lg transition-colors text-sm"
+              >
+                Tutup
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Selected Date Display */}
+        {showDateFilter && (
+          <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
+            <div className="flex items-center space-x-2">
+              <Calendar className="w-4 h-4 text-blue-400" />
+              <span className="text-blue-400 font-medium">
+                Menampilkan absensi untuk tanggal: {new Date(selectedDate).toLocaleDateString('id-ID', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Absensi Data Grid */}
@@ -172,21 +240,38 @@ const DataAbsensiMentor: React.FC = () => {
                 <Calendar className="w-10 h-10 text-gray-400" />
               </div>
               <h3 className="text-xl font-semibold text-gray-300 mb-3">
-                {searchTerm ? 'Tidak Ada Hasil Pencarian' : 'Belum Ada Data Absensi'}
+                {searchTerm || showDateFilter ? 'Tidak Ada Hasil Pencarian' : 'Belum Ada Data Absensi'}
               </h3>
               <p className="text-gray-400 text-center mb-6 max-w-md leading-relaxed">
                 {searchTerm 
-                  ? `Tidak ditemukan siswa dengan nama "${searchTerm}". Coba ubah kata kunci pencarian.`
+                  ? `Tidak ditemukan siswa dengan nama "${searchTerm}" untuk tanggal yang dipilih.`
+                  : showDateFilter
+                  ? `Tidak ada data absensi untuk tanggal ${new Date(selectedDate).toLocaleDateString('id-ID')}.`
                   : 'Data absensi siswa akan muncul di sini setelah siswa melakukan check-in dan check-out.'
                 }
               </p>
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors text-sm"
-                >
-                  Hapus Filter
-                </button>
+              {(searchTerm || showDateFilter) && (
+                <div className="space-x-2">
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors text-sm"
+                    >
+                      Hapus Pencarian
+                    </button>
+                  )}
+                  {showDateFilter && (
+                    <button
+                      onClick={() => {
+                        setSelectedDate(new Date().toISOString().split('T')[0]);
+                        setShowDateFilter(false);
+                      }}
+                      className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg transition-colors text-sm"
+                    >
+                      Reset Filter
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           ) : (
@@ -237,12 +322,6 @@ const DataAbsensiMentor: React.FC = () => {
                     <p className="text-gray-400 text-xs text-center">Belum ada data absensi</p>
                   </div>
                 )}
-                
-                {/* Detail Button */}
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors font-semibold text-sm flex items-center justify-center space-x-2">
-                  <Eye className="w-4 h-4" />
-                  <span>Detail</span>
-                </button>
               </div>
             ))
           )}
