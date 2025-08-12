@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Edit as EditIcon, ArrowLeft, FileText, Calendar, Users, AlertCircle, Save } from "lucide-react";
+import { Edit as EditIcon, ArrowLeft, FileText, Calendar, Users, AlertCircle, Save, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useNavigate, useParams } from 'react-router-dom';
 
 
@@ -16,6 +16,7 @@ interface Tugas {
   updated_at: string;
   total_submissions: number;
   total_graded: number;
+  penerima_tugas?: number[]; // Added for assigned students
 }
 
 interface Student {
@@ -37,9 +38,14 @@ interface EditTaskForm {
 const Edit: React.FC = () => {
   const [loadingAction, setLoadingAction] = useState(false);
   const [loadingTask, setLoadingTask] = useState(true);
+  const [loadingStudents, setLoadingStudents] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [task, setTask] = useState<Tugas | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTime, setSelectedTime] = useState('12:00');
   const [editForm, setEditForm] = useState<EditTaskForm>({
     judul: '',
     deskripsi: '',
@@ -53,6 +59,7 @@ const Edit: React.FC = () => {
 
   const fetchStudents = async () => {
     try {
+      setLoadingStudents(true);
       setError(null);
       
       const token = localStorage.getItem('token');
@@ -87,6 +94,8 @@ const Edit: React.FC = () => {
       const errorMessage = err instanceof Error ? err.message : 'Gagal memuat data siswa.';
       setError(errorMessage);
       console.error('Error fetching students:', err);
+    } finally {
+      setLoadingStudents(false);
     }
   };
 
@@ -125,14 +134,34 @@ const Edit: React.FC = () => {
       
       setTask(data);
       
+      // Extract assigned student ids from various possible shapes
+      let assignedIds: number[] = [];
+      const rawAssigned: unknown = (data as any).penerima_tugas;
+      if (typeof rawAssigned === 'string') {
+        try {
+          const parsed = JSON.parse(rawAssigned);
+          if (Array.isArray(parsed)) {
+            assignedIds = parsed
+              .map((v) => (typeof v === 'number' ? v : typeof v === 'string' ? Number(v) : null))
+              .filter((v): v is number => typeof v === 'number' && !Number.isNaN(v));
+          }
+        } catch (e) {
+          console.warn('Failed to parse penerima_tugas string:', rawAssigned);
+        }
+      } else if (Array.isArray(rawAssigned)) {
+        assignedIds = rawAssigned
+          .map((v) => (typeof v === 'number' ? v : typeof v === 'string' ? Number(v) : null))
+          .filter((v): v is number => typeof v === 'number' && !Number.isNaN(v));
+      }
+      
       // Set form data
       setEditForm({
         judul: data.judul,
         deskripsi: data.deskripsi,
         priority: data.priority,
         file_tugas: null,
-        batas_waktu: data.batas_waktu.split('T')[0] + 'T' + data.batas_waktu.split('T')[1].substring(0, 5),
-        selectedStudents: [],
+        batas_waktu: data.batas_waktu,
+        selectedStudents: assignedIds,
       });
       
     } catch (err) {
@@ -144,39 +173,50 @@ const Edit: React.FC = () => {
     }
   };
 
-  const fetchTaskStudents = async (taskId: number) => {
+  // Strict endpoint: only returns explicitly assigned students. If not available, returns null
+  const fetchAssignedStudentsStrict = async (taskId: number): Promise<Student[] | null> => {
     try {
       const token = localStorage.getItem('token');
-      
-      if (!token) {
-        throw new Error('Token tidak ditemukan. Silakan login ulang.');
-      }
-      
-      const response = await fetch(`http://localhost:3000/api/tugas-mentor/${taskId}/students`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      if (!token) return null;
+      const response = await fetch(`http://localhost:3000/api/tugas-mentor/${taskId}/assigned-students`, {
+        headers: { 'Authorization': `Bearer ${token}` },
       });
-      
-      if (response.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('nama');
-        localStorage.removeItem('role');
-        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
-      }
-      
-      if (!response.ok) {
-        throw new Error(`Error server: ${response.status}`);
-      }
-      
+      if (!response.ok) return null;
       const data: Student[] = await response.json();
-      console.log('Debug - Task Students API Response:', data);
-      
       return data;
+    } catch {
+      return null;
+    }
+  };
+
+  const loadTaskStudents = async () => {
+    if (!task) return;
+
+    try {
+      console.log('=== Loading Task Students ===');
+      console.log('Task ID:', task.id);
+      console.log('Current students list length:', students.length);
+      
+      // Do not override if already populated from task data
+      if (editForm.selectedStudents && editForm.selectedStudents.length > 0) {
+        console.log('Selected students already set from task data. Skipping fetch.');
+        return;
+      }
+
+      const strictAssigned = await fetchAssignedStudentsStrict(task.id);
+      if (strictAssigned && strictAssigned.length >= 0) {
+        const assignedIds = strictAssigned.map((s) => s.id);
+        setEditForm((prev) => ({ ...prev, selectedStudents: assignedIds }));
+        return;
+      }
+
+      console.log('No strict assigned endpoint available. Leaving selection empty to avoid selecting all.');
+      // If no strict data, do not auto-select to avoid selecting all students incorrectly
+      setEditForm((prev) => ({ ...prev, selectedStudents: prev.selectedStudents ?? [] }));
       
     } catch (err) {
-      console.error('Error fetching task students:', err);
-      return [];
+      console.error('Error loading task students:', err);
+      setEditForm(prev => ({ ...prev, selectedStudents: [] }));
     }
   };
 
@@ -188,24 +228,22 @@ const Edit: React.FC = () => {
   }, [id]);
 
   useEffect(() => {
-    if (task) {
+    if (task && students.length > 0) {
       loadTaskStudents();
     }
-  }, [task]);
+  }, [task, students]);
 
-  const loadTaskStudents = async () => {
-    if (!task) return;
+  useEffect(() => {
+    console.log('=== Selected Students Changed ===');
+    console.log('Current selectedStudents:', editForm.selectedStudents);
+    console.log('Students list:', students.map(s => ({ id: s.id, nama: s.nama })));
+  }, [editForm.selectedStudents, students]);
 
-    try {
-      const assignedStudents = await fetchTaskStudents(task.id);
-      const assignedStudentIds = assignedStudents.map(student => student.id);
-      
-      setEditForm(prev => ({
-        ...prev,
-        selectedStudents: assignedStudentIds,
-      }));
-    } catch (err) {
-      console.error('Error loading task students:', err);
+  // Manual trigger for debugging
+  const manualLoadStudents = () => {
+    console.log('Manual trigger - loading task students');
+    if (task) {
+      loadTaskStudents();
     }
   };
 
@@ -306,6 +344,77 @@ const Edit: React.FC = () => {
     }
   };
 
+  // Date picker functions
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDay = firstDay.getDay();
+    
+    const days = [];
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDay; i++) {
+      days.push(null);
+    }
+    
+    // Add all days of the month
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(new Date(year, month, i));
+    }
+    
+    return days;
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('id-ID', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatTime = (time: string) => {
+    const [hours, minutes] = time.split(':');
+    return `${hours}:${minutes}`;
+  };
+
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
+  };
+
+  const handleTimeChange = (time: string) => {
+    setSelectedTime(time);
+  };
+
+  const handleConfirmDateTime = () => {
+    if (selectedDate) {
+      const [hours, minutes] = selectedTime.split(':');
+      const dateTime = new Date(selectedDate);
+      dateTime.setHours(parseInt(hours), parseInt(minutes));
+      
+      // Format for input value (YYYY-MM-DDTHH:MM)
+      const year = dateTime.getFullYear();
+      const month = String(dateTime.getMonth() + 1).padStart(2, '0');
+      const day = String(dateTime.getDate()).padStart(2, '0');
+      const timeString = `${hours}:${minutes}`;
+      
+      const formattedDateTime = `${year}-${month}-${day}T${timeString}`;
+      setEditForm({...editForm, batas_waktu: formattedDateTime});
+    }
+    setShowDatePicker(false);
+  };
+
+  const nextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  const prevMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
   if (loadingTask) {
     return (
       
@@ -344,33 +453,31 @@ const Edit: React.FC = () => {
 
   return (
     
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-        {/* Header Section */}
-        <div className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700/50">
-          <div className="max-w-7xl mx-auto px-6 py-8">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => navigate('/mentor/tugas')}
-                  className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors duration-200 p-2 rounded-lg hover:bg-gray-700/50"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                  <span className="font-medium">Kembali</span>
-                </button>
-                <div className="w-1 h-10 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
-                <div>
-                  <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                    Edit Tugas
-                  </h1>
-                  <p className="text-gray-400 mt-1">Edit tugas "{task.judul}"</p>
-                </div>
-              </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
+        {/* Header */}
+        <div className="mb-6 mt-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={() => navigate('/mentor/tugas')}
+                className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors duration-200 p-2 rounded-lg hover:bg-gray-700/50"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span className="font-medium">Kembali</span>
+              </button>
             </div>
           </div>
+          <div className="flex items-center space-x-3 mt-4">
+            <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+              Edit Tugas
+            </h1>
+          </div>
+          <p className="text-gray-400 mt-2 ml-5">Edit tugas "{task.judul}"</p>
         </div>
 
         {/* Main Content */}
-        <div className="max-w-4xl mx-auto px-6 py-8">
+        <div className="max-w-4xl mx-auto">
           {error && (
             <div className="mb-8 p-4 bg-red-900/50 border border-red-700/50 rounded-xl flex items-center space-x-3">
               <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
@@ -451,10 +558,18 @@ const Edit: React.FC = () => {
                   </label>
                   <div className="relative">
                     <input
-                      type="datetime-local"
-                      value={editForm.batas_waktu}
-                      onChange={(e) => setEditForm({...editForm, batas_waktu: e.target.value})}
-                      className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200"
+                      type="text"
+                      value={editForm.batas_waktu ? new Date(editForm.batas_waktu).toLocaleDateString('id-ID', { 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }) : ''}
+                      onClick={() => setShowDatePicker(true)}
+                      readOnly
+                      className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 cursor-pointer"
+                      placeholder="Pilih tanggal dan waktu"
                     />
                     <Calendar className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   </div>
@@ -466,20 +581,167 @@ const Edit: React.FC = () => {
                 <label className="block text-gray-300 text-sm font-medium mb-2">
                   File Tugas (Opsional)
                 </label>
-                <div className="relative">
-                  <input
-                    type="file"
-                    onChange={(e) => setEditForm({...editForm, file_tugas: e.target.files?.[0] || null})}
-                    className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700"
-                  />
-                </div>
+                
+                {/* Show file input only when no existing file or when user wants to change */}
+                {(!task.file_tugas || editForm.file_tugas) && (
+                  <div className="relative">
+                    <input
+                      type="file"
+                      onChange={(e) => setEditForm({...editForm, file_tugas: e.target.files?.[0] || null})}
+                      className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                    />
+                  </div>
+                )}
+
+                {/* Show existing file if available */}
+                {task.file_tugas && !editForm.file_tugas && (
+                  <div className="p-3 bg-gray-700/50 border border-gray-600/50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-blue-600/20 rounded-lg">
+                        <FileText className="w-4 h-4 text-blue-400" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-white text-sm font-medium">{task.file_tugas}</p>
+                        <p className="text-gray-400 text-xs">File yang sudah diupload</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          // Trigger file input click
+                          const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+                          if (fileInput) fileInput.click();
+                        }}
+                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition-colors"
+                      >
+                        Ganti File
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Show newly selected file */}
                 {editForm.file_tugas && (
                   <div className="mt-2 p-3 bg-green-900/20 border border-green-700/50 rounded-lg">
-                    <p className="text-green-400 text-sm">File dipilih: {editForm.file_tugas.name}</p>
+                    <p className="text-green-400 text-sm">File baru dipilih: {editForm.file_tugas.name}</p>
+                    <p className="text-green-300 text-xs mt-1">File ini akan mengganti file yang ada</p>
                   </div>
                 )}
               </div>
             </div>
+
+            {/* Date Picker Popup */}
+            {showDatePicker && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-gray-800 rounded-2xl border border-gray-700/50 shadow-2xl max-w-md w-full">
+                  {/* Header */}
+                  <div className="bg-gradient-to-r from-gray-700/50 to-gray-800/50 px-6 py-4 border-b border-gray-700/50 rounded-t-2xl">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-white">Pilih Tanggal & Waktu</h3>
+                      <button
+                        onClick={() => setShowDatePicker(false)}
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Calendar */}
+                  <div className="p-6">
+                    {/* Month Navigation */}
+                    <div className="flex items-center justify-between mb-4">
+                      <button
+                        onClick={prevMonth}
+                        className="p-2 text-gray-400 hover:text-white transition-colors"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+                      <h4 className="text-white font-semibold">
+                        {currentDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
+                      </h4>
+                      <button
+                        onClick={nextMonth}
+                        className="p-2 text-gray-400 hover:text-white transition-colors"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    {/* Days of Week */}
+                    <div className="grid grid-cols-7 gap-1 mb-2">
+                      {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map((day) => (
+                        <div key={day} className="text-center text-gray-400 text-sm font-medium py-2">
+                          {day}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Calendar Grid */}
+                    <div className="grid grid-cols-7 gap-1">
+                      {getDaysInMonth(currentDate).map((date, index) => (
+                        <button
+                          key={index}
+                          onClick={() => date && handleDateSelect(date)}
+                          disabled={!date}
+                          className={`
+                            p-2 text-sm rounded-lg transition-all duration-200
+                            ${!date ? 'invisible' : ''}
+                            ${date && selectedDate && date.toDateString() === selectedDate.toDateString()
+                              ? 'bg-blue-600 text-white'
+                              : date && date < new Date()
+                              ? 'text-gray-500 cursor-not-allowed'
+                              : 'text-white hover:bg-gray-600/50 cursor-pointer'
+                            }
+                          `}
+                        >
+                          {date ? date.getDate() : ''}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Time Selection */}
+                    <div className="mt-6">
+                      <label className="block text-gray-300 text-sm font-medium mb-2">
+                        Waktu
+                      </label>
+                      <input
+                        type="time"
+                        value={selectedTime}
+                        onChange={(e) => handleTimeChange(e.target.value)}
+                        className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200"
+                      />
+                    </div>
+
+                    {/* Selected Date Display */}
+                    {selectedDate && (
+                      <div className="mt-4 p-3 bg-blue-600/20 border border-blue-700/50 rounded-lg">
+                        <p className="text-blue-400 text-sm">
+                          Dipilih: {formatDate(selectedDate)} {formatTime(selectedTime)}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="bg-gray-800/50 px-6 py-4 border-t border-gray-700/50 rounded-b-2xl">
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setShowDatePicker(false)}
+                        className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 font-medium"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        onClick={handleConfirmDateTime}
+                        disabled={!selectedDate}
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg transition-colors duration-200 font-medium"
+                      >
+                        Konfirmasi
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Students Selection Section */}
             <div className="border-t border-gray-700/50">
@@ -530,14 +792,44 @@ const Edit: React.FC = () => {
                   </div>
 
                   {/* Students List */}
-                  <div className="max-h-80 overflow-y-auto">
-                    {students.length === 0 ? (
+                  <div>
+                    {loadingStudents ? (
+                      <div className="p-8 text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                        <p className="text-gray-400 text-sm">Memuat siswa...</p>
+                      </div>
+                    ) : students.length === 0 ? (
                       <div className="p-8 text-center">
                         <Users className="w-12 h-12 text-gray-500 mx-auto mb-3" />
                         <p className="text-gray-400 text-sm">Tidak ada siswa tersedia.</p>
                       </div>
                     ) : (
                       <div className="divide-y divide-gray-600/50">
+                        {/* Debug info */}
+                        <div className="p-2 bg-gray-800/50 text-xs text-gray-400">
+                          Debug: {editForm.selectedStudents.length} siswa dipilih dari {students.length} total siswa
+                          <button 
+                            onClick={manualLoadStudents}
+                            className="ml-2 px-2 py-1 bg-blue-600 text-white rounded text-xs"
+                          >
+                            Reload Students
+                          </button>
+                          <button 
+                            onClick={() => {
+                              console.log('Manual reset - clearing all selections');
+                              setEditForm(prev => ({
+                                ...prev,
+                                selectedStudents: [],
+                              }));
+                            }}
+                            className="ml-2 px-2 py-1 bg-red-600 text-white rounded text-xs"
+                          >
+                            Reset Selection
+                          </button>
+                          <div className="mt-1 text-gray-500">
+                            Selected IDs: [{editForm.selectedStudents.join(', ')}]
+                          </div>
+                        </div>
                         {students.map((student) => (
                           <label key={student.id} className="flex items-center space-x-4 p-4 hover:bg-gray-600/30 cursor-pointer transition-colors duration-200">
                             <input

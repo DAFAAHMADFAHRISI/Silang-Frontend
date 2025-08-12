@@ -484,14 +484,7 @@ const TugasMentor: React.FC = () => {
                 Tugas Mentor
               </h1>
             </div>
-            <div className="flex space-x-3">
-              <button
-                onClick={fetchTasks}
-                className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-              >
-                <RefreshCw className="w-4 h-4" />
-                <span>Refresh</span>
-              </button>
+            <div className="flex">
               <button 
                 onClick={handleCreateTask}
                 className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
