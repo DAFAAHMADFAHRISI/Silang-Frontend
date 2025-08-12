@@ -64,6 +64,7 @@ const Dashboard: React.FC = () => {
     total_siswa_telat: 0,
     total_siswa_tepat_waktu: 0,
     total_mentor: 0,
+    total_guru: 0,
     total_siswa: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -118,17 +119,24 @@ const Dashboard: React.FC = () => {
       trend: undefined,
     },
     {
+      title: "Jumlah Guru",
+      value: statsData.total_guru,
+      icon: <Users className="w-6 h-6 text-white" />,
+      color: "bg-gradient-to-br from-purple-500 to-pink-600",
+      trend: undefined,
+    },
+    {
       title: "Jumlah Mentor",
       value: statsData.total_mentor,
       icon: <Users className="w-6 h-6 text-white" />,
-      color: "bg-gradient-to-br from-purple-500 to-pink-600",
+      color: "bg-gradient-to-br from-indigo-500 to-purple-600",
       trend: undefined,
     },
     {
       title: "Jumlah Siswa",
       value: statsData.total_siswa,
       icon: <Users className="w-6 h-6 text-white" />,
-      color: "bg-gradient-to-br from-indigo-500 to-purple-600",
+      color: "bg-gradient-to-br from-emerald-500 to-teal-600",
       trend: undefined,
     },
   ];
@@ -150,38 +158,13 @@ const Dashboard: React.FC = () => {
       ) : error ? (
         <div className="text-red-400">{error}</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
           {stats.map((stat, idx) => (
             <StatCard key={idx} {...stat} />
           ))}
         </div>
       )}
       <hr className="border-gray-700 mt-6" />
-      <Divider />
-      <h2 className="text-2xl font-bold mb-6 flex items-center space-x-2">
-        <Award className="w-6 h-6 text-yellow-400" />
-        <span className="text-white">Tugas & Pengumuman</span>
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <TaskCard
-          title="Verifikasi Data Institusi Baru"
-          dueDate="Hari ini"
-          status="pending"
-          notes="Segera verifikasi data institusi yang baru mendaftar agar dapat menggunakan sistem."
-        />
-        <TaskCard
-          title="Review Laporan Bulanan"
-          dueDate="Minggu ini"
-          status="completed"
-          notes="Laporan bulanan sudah tersedia, silakan review dan arsipkan jika sudah sesuai."
-        />
-        <TaskCard
-          title="Update Data Mentor"
-          dueDate="2 hari lagi"
-          status="pending"
-          notes="Pastikan data mentor sudah diperbarui untuk semester baru."
-        />
-      </div>
     </div>
   );
 };
