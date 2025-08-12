@@ -149,130 +149,122 @@ const Detail: React.FC = () => {
   }
 
   return (
-    
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
-        {/* Header */}
-        <div className="mb-6 mt-0">
-          <div className="flex items-center space-x-3 mb-4">
-            <button
-              onClick={() => navigate('/guru/rekap')}
-              className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Kembali</span>
-            </button>
-          </div>
-          <div className="flex items-center space-x-3">
-            <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              Detail Rekap
-            </h1>
-          </div>
-          <p className="text-gray-400 mt-2 ml-5">Informasi lengkap rekap akademik siswa.</p>
+    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
+      {/* Header */}
+      <div className="mb-6 mt-0">
+        <div className="flex items-center space-x-3 mb-4">
+          <button
+            onClick={() => navigate('/guru/rekap')}
+            className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span>Kembali</span>
+          </button>
         </div>
+        <div className="flex items-center space-x-3">
+          <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+            Detail Rekap
+          </h1>
+        </div>
+        <p className="text-gray-400 mt-2 ml-5">Informasi lengkap rekap akademik siswa.</p>
+      </div>
 
-        <div className="space-y-6">
-          <div className="bg-gray-800 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">Detail Rekap {rekap.nama}</h2>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(rekap.rata_nilai)}`}>
-                {getStatusText(rekap.rata_nilai)}
-              </span>
+      <div className="space-y-6">
+        <div className="bg-gray-800 rounded-xl p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">Detail Rekap {rekap.nama}</h2>
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(rekap.rata_nilai)}`}>
+              {getStatusText(rekap.rata_nilai)}
+            </span>
+          </div>
+
+          <div className="space-y-6">
+            {/* General Information */}
+            <div className="bg-gray-700 rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-3 text-blue-400">Informasi Umum</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <span className="text-gray-400">Nama Siswa:</span>
+                  <p className="text-white mt-1 font-medium">{rekap.nama}</p>
+                </div>
+                <div>
+                  <span className="text-gray-400">Institusi:</span>
+                  <p className="text-white mt-1 font-medium">{rekap.institusi}</p>
+                </div>
+                <div>
+                  <span className="text-gray-400">Status Akademik:</span>
+                  <span className={`ml-2 px-2 py-1 rounded text-xs ${getStatusColor(rekap.rata_nilai)}`}>
+                    {getStatusText(rekap.rata_nilai)}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-6">
-              {/* General Information */}
-              <div className="bg-gray-700 rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-3 text-blue-400">Informasi Umum</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-gray-400">Nama Siswa:</span>
-                    <p className="text-white mt-1">{rekap.nama}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Institusi:</span>
-                    <p className="text-white mt-1">{rekap.institusi}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Status Akademik:</span>
-                    <span className={`ml-2 px-2 py-1 rounded text-xs ${getStatusColor(rekap.rata_nilai)}`}>
-                      {getStatusText(rekap.rata_nilai)}
-                    </span>
-                  </div>
+            {/* Academic Performance */}
+            <div className="bg-gray-700 rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-3 text-green-400">Performa Akademik</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <span className="text-gray-400">Total Nilai:</span>
+                  <p className="font-semibold text-lg mt-1 text-white">
+                    {rekap.total_nilai}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-gray-400">Rata-rata Nilai:</span>
+                  <p className={`font-semibold text-lg mt-1 ${getNilaiColor(rekap.rata_nilai)}`}>
+                    {rekap.rata_nilai}
+                  </p>
                 </div>
               </div>
+            </div>
 
-              {/* Academic Performance */}
-              <div className="bg-gray-700 rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-3 text-green-400">Performa Akademik</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-gray-400">Total Nilai:</span>
-                    <p className="font-semibold text-lg mt-1 text-white">
-                      {rekap.total_nilai}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Rata-rata Nilai:</span>
-                    <p className={`font-semibold text-lg mt-1 ${getNilaiColor(rekap.rata_nilai)}`}>
-                      {rekap.rata_nilai}
-                    </p>
-                  </div>
+            {/* Task Statistics */}
+            <div className="bg-gray-700 rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-3 text-yellow-400">Statistik Tugas</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <span className="text-gray-400">Total Tugas:</span>
+                  <p className="text-white mt-1 font-medium">{rekap.total_tugas}</p>
+                </div>
+                <div>
+                  <span className="text-gray-400">Tugas Selesai:</span>
+                  <p className="text-green-400 mt-1 font-medium">{rekap.tugas_selesai}</p>
+                </div>
+                <div>
+                  <span className="text-gray-400">Tugas Belum Selesai:</span>
+                  <p className="text-red-400 mt-1 font-medium">{rekap.total_tugas - rekap.tugas_selesai}</p>
+                </div>
+                <div>
+                  <span className="text-gray-400">Persentase Selesai:</span>
+                  <p className="text-blue-400 mt-1 font-medium">
+                    {rekap.total_tugas > 0 ? Math.round((rekap.tugas_selesai / rekap.total_tugas) * 100) : 0}%
+                  </p>
                 </div>
               </div>
+            </div>
 
-              {/* Task Statistics */}
-              <div className="bg-gray-700 rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-3 text-yellow-400">Statistik Tugas</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-gray-400">Total Tugas:</span>
-                    <p className="text-white mt-1">{rekap.total_tugas}</p>
+            {/* Progress Visualization */}
+            <div className="bg-gray-700 rounded-lg p-4">
+              <h3 className="text-lg font-semibold mb-4 text-purple-400">Visualisasi Progress</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-600 rounded-lg p-4 text-center">
+                  <div className="text-3xl font-bold text-blue-400 mb-2">
+                    {rekap.total_tugas > 0 ? Math.round((rekap.tugas_selesai / rekap.total_tugas) * 100) : 0}%
                   </div>
-                  <div>
-                    <span className="text-gray-400">Tugas Selesai:</span>
-                    <p className="text-green-400 mt-1">{rekap.tugas_selesai}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Tugas Belum Selesai:</span>
-                    <p className="text-red-400 mt-1">{rekap.total_tugas - rekap.tugas_selesai}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-400">Persentase Selesai:</span>
-                    <p className="text-blue-400 mt-1">
-                      {rekap.total_tugas > 0 ? Math.round((rekap.tugas_selesai / rekap.total_tugas) * 100) : 0}%
-                    </p>
+                  <div className="text-sm text-gray-300">Progress Tugas</div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    {rekap.tugas_selesai} dari {rekap.total_tugas} tugas
                   </div>
                 </div>
-              </div>
-
-              {/* Progress Visualization */}
-              <div className="bg-gray-700 rounded-lg p-4">
-                <h3 className="text-lg font-semibold mb-3 text-purple-400">Visualisasi Progress</h3>
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Progress Tugas</span>
-                      <span>{rekap.total_tugas > 0 ? Math.round((rekap.tugas_selesai / rekap.total_tugas) * 100) : 0}%</span>
-                    </div>
-                    <div className="w-full bg-gray-600 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full" 
-                        style={{width: `${rekap.total_tugas > 0 ? (rekap.tugas_selesai / rekap.total_tugas) * 100 : 0}%`}}
-                      ></div>
-                    </div>
+                <div className="bg-gray-600 rounded-lg p-4 text-center">
+                  <div className={`text-3xl font-bold mb-2 ${getNilaiColor(rekap.rata_nilai)}`}>
+                    {rekap.rata_nilai}
                   </div>
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Rata-rata Nilai</span>
-                      <span>{rekap.rata_nilai}</span>
-                    </div>
-                    <div className="w-full bg-gray-600 rounded-full h-2">
-                      <div 
-                        className="bg-green-600 h-2 rounded-full" 
-                        style={{width: `${rekap.rata_nilai}%`}}
-                      ></div>
-                    </div>
+                  <div className="text-sm text-gray-300">Rata-rata Nilai</div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    Total: {rekap.total_nilai}
                   </div>
                 </div>
               </div>
@@ -280,7 +272,7 @@ const Detail: React.FC = () => {
           </div>
         </div>
       </div>
-    
+    </div>
   );
 };
 
