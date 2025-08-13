@@ -47,6 +47,7 @@ import DetailAbsensi from './Page/Guru/Absensi/Detail/Detail';
 import DetailRekap from './Page/Guru/Rekap/Detail/Detail';
 import ChatMentor from './Page/Mentor/Chat/Chat';
 import ChatGuru from './Page/Guru/Chat/Chat';
+import LoadingRole from './Page/LoadingRole';
 
 
 import './App.css';
@@ -67,6 +68,7 @@ function App() {
         <Route path='/ReportSiswa' element={<Layout><Report /></Layout>} />
         <Route path='/ProfileSiswa' element={<Layout><Profile /></Layout>} />
         <Route path='/DashboardSuperAdmin' element={<Layout><DashboardSuperAdmin /></Layout>} />
+        <Route path='/LoadingRole' element={<Layout><LoadingRole /></Layout>} />
         
         {/* Mentor Routes with /mentor prefix */}
         <Route path='/mentor/dashboard' element={<Layout><DashboardMentor /></Layout>} />
