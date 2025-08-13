@@ -83,7 +83,7 @@ const Profile: React.FC = () => {
         throw new Error('Token tidak ditemukan. Silakan login ulang.');
       }
 
-      const response = await fetch('http://localhost:3000/api/profile', {
+      const response = await fetch('http://localhost:3000/api/auth/profile', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -128,7 +128,7 @@ const Profile: React.FC = () => {
         throw new Error('Token tidak ditemukan. Silakan login ulang.');
       }
 
-      const response = await fetch('http://localhost:3000/api/profile/picture', {
+      const response = await fetch('http://localhost:3000/api/auth/profile/picture', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -296,7 +296,7 @@ const Profile: React.FC = () => {
       const formData = new FormData();
       formData.append('foto_profile', file);
 
-      const response = await fetch('http://localhost:3000/api/profile/picture/update', {
+      const response = await fetch('http://localhost:3000/api/auth/profile/picture/update', {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -541,7 +541,7 @@ const Profile: React.FC = () => {
       formData.append('newPassword', passwordData.newPassword);
       formData.append('confirmNewPassword', passwordData.confirmNewPassword);
 
-      const response = await fetch('http://localhost:3000/api/profile/password', {
+      const response = await fetch('http://localhost:3000/api/auth/profile/password', {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
