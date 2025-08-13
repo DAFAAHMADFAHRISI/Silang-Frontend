@@ -167,7 +167,7 @@ const Login: React.FC = () => {
             </button>
             
             {/* Divider */}
-            <div className="flex items-center my-4">
+            <div className="flex items-center my-0">
               <div className="flex-1 border-t border-gray-700"></div>
               <span className="px-3 text-gray-400 text-sm">atau</span>
               <div className="flex-1 border-t border-gray-700"></div>
