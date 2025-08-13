@@ -55,7 +55,7 @@ const Attendance: React.FC = () => {
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<{url: string, type: string, name: string} | null>(null);
 
-  // Get current GPS location
+  // Get current GPS location with improved accuracy
   const getCurrentLocation = (): Promise<LocationData> => {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -63,12 +63,14 @@ const Attendance: React.FC = () => {
         return;
       }
 
+      // Improved GPS options for better accuracy
       const options = {
-        enableHighAccuracy: true,
-        timeout: 10000, // 10 seconds
-        maximumAge: 60000 // 1 minute
+        enableHighAccuracy: true, // Use GPS instead of network-based location
+        timeout: 30000, // 30 seconds - longer timeout for better accuracy
+        maximumAge: 0 // Always get fresh location, don't use cached
       };
 
+      // First attempt with high accuracy
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const locationData: LocationData = {
@@ -76,6 +78,20 @@ const Attendance: React.FC = () => {
             longitude: position.coords.longitude,
             accuracy: position.coords.accuracy
           };
+          
+          // Validate coordinates
+          if (isNaN(locationData.latitude) || isNaN(locationData.longitude)) {
+            reject(new Error('Koordinat GPS tidak valid. Silakan coba lagi.'));
+            return;
+          }
+          
+          // Check if accuracy is reasonable (less than 50 meters)
+          if (locationData.accuracy && locationData.accuracy > 50) {
+            console.warn('GPS accuracy is low:', locationData.accuracy, 'meters');
+            // Still resolve but warn user about low accuracy
+          }
+          
+          console.log('GPS Location captured with accuracy:', locationData.accuracy, 'meters');
           resolve(locationData);
         },
         (error) => {
@@ -85,10 +101,10 @@ const Attendance: React.FC = () => {
               errorMessage = 'Izin lokasi ditolak. Silakan izinkan akses lokasi di browser Anda.';
               break;
             case error.POSITION_UNAVAILABLE:
-              errorMessage = 'Informasi lokasi tidak tersedia.';
+              errorMessage = 'Informasi lokasi tidak tersedia. Pastikan GPS aktif dan tidak ada gangguan.';
               break;
             case error.TIMEOUT:
-              errorMessage = 'Waktu habis untuk mendapatkan lokasi.';
+              errorMessage = 'Waktu habis untuk mendapatkan lokasi. Pastikan GPS aktif dan tidak ada gangguan.';
               break;
             default:
               errorMessage = 'Terjadi kesalahan saat mendapatkan lokasi.';
@@ -98,6 +114,88 @@ const Attendance: React.FC = () => {
         },
         options
       );
+    });
+  };
+
+  // Alternative method using watchPosition for continuous monitoring
+  const getAccurateLocation = (): Promise<LocationData> => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('Geolocation tidak didukung oleh browser ini.'));
+        return;
+      }
+
+      let watchId: number;
+      let attempts = 0;
+      const maxAttempts = 5;
+      let bestAccuracy = Infinity;
+      let bestLocation: LocationData | null = null;
+
+      const options = {
+        enableHighAccuracy: true,
+        timeout: 30000,
+        maximumAge: 0
+      };
+
+      const onSuccess = (position: GeolocationPosition) => {
+        const accuracy = position.coords.accuracy;
+        const locationData: LocationData = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: accuracy
+        };
+
+        attempts++;
+        console.log(`GPS attempt ${attempts}: accuracy ${accuracy}m`);
+
+        // Update best location if accuracy improved
+        if (accuracy < bestAccuracy) {
+          bestAccuracy = accuracy;
+          bestLocation = locationData;
+        }
+
+        // Resolve if we have good accuracy or max attempts reached
+        if (accuracy <= 10 || attempts >= maxAttempts) {
+          navigator.geolocation.clearWatch(watchId);
+          if (bestLocation) {
+            console.log('Final GPS location with accuracy:', bestLocation.accuracy, 'meters');
+            resolve(bestLocation);
+          } else {
+            reject(new Error('Tidak dapat mendapatkan lokasi yang akurat.'));
+          }
+        }
+      };
+
+      const onError = (error: GeolocationPositionError) => {
+        navigator.geolocation.clearWatch(watchId);
+        let errorMessage = 'Gagal mendapatkan lokasi yang akurat.';
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = 'Izin lokasi ditolak. Silakan izinkan akses lokasi di browser Anda.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = 'Informasi lokasi tidak tersedia. Pastikan GPS aktif dan tidak ada gangguan.';
+            break;
+          case error.TIMEOUT:
+            errorMessage = 'Waktu habis untuk mendapatkan lokasi. Pastikan GPS aktif dan tidak ada gangguan.';
+            break;
+        }
+        reject(new Error(errorMessage));
+      };
+
+      // Start watching for position updates
+      watchId = navigator.geolocation.watchPosition(onSuccess, onError, options);
+
+      // Fallback timeout
+      setTimeout(() => {
+        navigator.geolocation.clearWatch(watchId);
+        if (bestLocation) {
+          console.log('GPS timeout - using best available location with accuracy:', bestLocation.accuracy, 'meters');
+          resolve(bestLocation);
+        } else {
+          reject(new Error('Waktu habis untuk mendapatkan lokasi yang akurat.'));
+        }
+      }, 45000); // 45 seconds total timeout
     });
   };
 
@@ -845,10 +943,30 @@ const Attendance: React.FC = () => {
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-semibold text-white">Absensi dengan Kamera</h3>
-            <div className="p-2 rounded-full bg-blue-600">
-              <Camera className="w-5 h-5 text-white" />
+            <div className="flex items-center space-x-3">
+              {/* GPS Status Indicator */}
+              <div className="flex items-center space-x-2">
+                <div className={`w-3 h-3 rounded-full ${
+                  locationData ? 
+                    (locationData.accuracy && locationData.accuracy <= 10 ? 'bg-green-500' : 
+                     locationData.accuracy && locationData.accuracy <= 25 ? 'bg-yellow-500' : 'bg-red-500') 
+                    : 'bg-gray-500'
+                }`}></div>
+                <span className="text-xs text-gray-400">
+                  {locationData ? 
+                    (locationData.accuracy && locationData.accuracy <= 10 ? 'GPS Optimal' : 
+                     locationData.accuracy && locationData.accuracy <= 25 ? 'GPS Baik' : 'GPS Kurang Akurat') 
+                    : 'GPS Belum Aktif'
+                  }
+                </span>
+              </div>
+              <div className="p-2 rounded-full bg-blue-600">
+                <Camera className="w-5 h-5 text-white" />
+              </div>
             </div>
           </div>
+
+
 
           {/* Action Buttons */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -906,18 +1024,52 @@ const Attendance: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">
-                {actionType === 'checkin' ? 'Check In' : 'Check Out'} dengan Kamera
-              </h3>
-              <button
-                onClick={() => {
-                  setShowCamera(false);
-                  setActionType(null);
-                }}
-                className="text-gray-400 hover:text-white"
-              >
-                ✕
-              </button>
+              <div>
+                <h3 className="text-lg font-semibold text-white">
+                  {actionType === 'checkin' ? 'Check In' : 'Check Out'} dengan Kamera
+                </h3>
+                {locationData && (
+                  <div className="text-xs text-gray-300 mt-1">
+                    📍 GPS: {locationData.latitude.toFixed(6)}, {locationData.longitude.toFixed(6)}
+                    {locationData.accuracy && (
+                      <span className={`ml-2 ${
+                        locationData.accuracy <= 10 ? 'text-green-400' : 
+                        locationData.accuracy <= 25 ? 'text-yellow-400' : 'text-red-400'
+                      }`}>
+                        (Akurasi: {locationData.accuracy.toFixed(1)}m)
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center space-x-2">
+                {locationData && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        setLocationData(null);
+                        const newLocation = await getAccurateLocation();
+                        setLocationData(newLocation);
+                      } catch (err) {
+                        setLocationError('Gagal mendapatkan lokasi yang akurat. Silakan coba lagi.');
+                      }
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs"
+                    title="Refresh GPS location untuk akurasi lebih baik"
+                  >
+                    🔄 GPS
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setShowCamera(false);
+                    setActionType(null);
+                  }}
+                  className="text-gray-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
             
             <div className="relative">
@@ -952,6 +1104,8 @@ const Attendance: React.FC = () => {
               <p className="text-gray-300 text-sm mb-4">
                 Posisikan wajah Anda di dalam frame dan klik "Ambil Foto"
               </p>
+              
+
               {isLoading && (
                 <div className="flex items-center justify-center space-x-2">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -961,11 +1115,30 @@ const Attendance: React.FC = () => {
               {locationData && (
                 <div className="bg-green-600 text-white px-3 py-2 rounded text-xs mb-2">
                   📍 Lokasi GPS: {locationData.latitude.toFixed(6)}, {locationData.longitude.toFixed(6)}
+                  {locationData.accuracy && (
+                    <span className="ml-2">
+                      (Akurasi: {locationData.accuracy <= 10 ? '🟢' : locationData.accuracy <= 25 ? '🟡' : '🔴'} {locationData.accuracy.toFixed(1)}m)
+                    </span>
+                  )}
                 </div>
               )}
               {locationError && (
                 <div className="bg-yellow-600 text-white px-3 py-2 rounded text-xs mb-2">
                   ⚠️ {locationError}
+                  <button 
+                    onClick={async () => {
+                      try {
+                        setLocationError(null);
+                        const newLocation = await getAccurateLocation();
+                        setLocationData(newLocation);
+                      } catch (err) {
+                        setLocationError('Gagal mendapatkan lokasi yang akurat. Silakan coba lagi.');
+                      }
+                    }}
+                    className="ml-2 bg-yellow-700 hover:bg-yellow-800 px-2 py-1 rounded text-xs"
+                  >
+                    🔄 Coba Lagi
+                  </button>
                 </div>
               )}
             </div>
