@@ -48,6 +48,7 @@ import DetailRekap from './Page/Guru/Rekap/Detail/Detail';
 import ChatMentor from './Page/Mentor/Chat/Chat';
 import ChatGuru from './Page/Guru/Chat/Chat';
 
+
 import './App.css';
 
 function App() {
@@ -81,19 +82,18 @@ function App() {
         <Route path='/guru/tugas' element={<Layout><DataTugasGuru /></Layout>} />
         <Route path='/guru/absensi' element={<Layout><DataAbsensiGuru /></Layout>} />
         <Route path='/guru/rekap' element={<Layout><DataRekapGuru /></Layout>} />
-        <Route path='/guru/chat' element={<Layout><ChatGuru /></Layout>} />
-        
-        {/* Guru Detail Routes */}
         <Route path='/guru/tugas/detail/:id' element={<Layout><DetailTugas /></Layout>} />
         <Route path='/guru/absensi/detail/:id' element={<Layout><DetailAbsensi /></Layout>} />
         <Route path='/guru/rekap/detail/:id' element={<Layout><DetailRekap /></Layout>} />
-        
-        <Route path='/UserManagement' element={<Layout><UserManagement /></Layout>} />
-        <Route path='/UserManagement/tambah' element={<Layout><TambahUser /></Layout>} />
-        <Route path='/UserManagement/edit/:id' element={<Layout><EditUser /></Layout>} />
+        <Route path='/guru/chat' element={<Layout><ChatGuru /></Layout>} />
+
+        {/* SuperAdmin Routes */}
         <Route path='/Institusi' element={<Layout><Institusi /></Layout>} />
         <Route path='/Institusi/tambah' element={<Layout><TambahInstitusi /></Layout>} />
         <Route path='/Institusi/edit/:id' element={<Layout><EditInstitusi /></Layout>} />
+        <Route path='/UserManagement' element={<Layout><UserManagement /></Layout>} />
+        <Route path='/UserManagement/tambah' element={<Layout><TambahUser /></Layout>} />
+        <Route path='/UserManagement/edit/:id' element={<Layout><EditUser /></Layout>} />
         <Route path='/DataTugas' element={<Layout><DataTugas /></Layout>} />
         <Route path='/DataJadwal' element={<Layout><DataJadwal /></Layout>} />
         <Route path='/DataJadwal/tambah' element={<Layout><TambahJadwal /></Layout>} />
@@ -107,8 +107,6 @@ function App() {
         <Route path='/DataGuruSiswa/edit/:id' element={<Layout><EditGuruSiswa /></Layout>} />
         <Route path='/DataGuruSiswa/detail/:id' element={<Layout><DetailGuruSiswa /></Layout>} />
         <Route path='/DataRekap' element={<Layout><DataRekap /></Layout>} />
-        <Route path='/DataAbsensiMentor' element={<Layout><DataAbsensiMentor /></Layout>} />
-        <Route path='/DataRekapMentor' element={<Layout><DataRekapMentor /></Layout>} />
       </Routes>
     </Router>
   );
