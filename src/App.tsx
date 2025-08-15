@@ -7,6 +7,7 @@ import DashboardSiswa from './Page/Siswa/Dashboard';
 import Todo from './Page/Siswa/Todo/Todo';
 import Detail from './Page/Siswa/Todo/Detail/Detail';
 import Edit from './Page/Siswa/Todo/Edit/Edit';
+import SubmitPage from './Page/Siswa/Todo/Tambah/Tambah';
 import Attendance from './Page/Siswa/Absensi/Attendance';
 import Chat from './Page/Siswa/Chat/Chat';
 import Report from './Page/Siswa/Report';
@@ -63,6 +64,7 @@ function App() {
         <Route path='/TodoSiswa' element={<Layout><Todo /></Layout>} />
         <Route path='/siswa/todo/detail/:id' element={<Layout><Detail /></Layout>} />
         <Route path='/siswa/todo/edit/:id' element={<Layout><Edit /></Layout>} />
+        <Route path='/siswa/todo/submit/:id' element={<Layout><SubmitPage /></Layout>} />
         <Route path='/AttendanceSiswa' element={<Layout><Attendance /></Layout>} />
         <Route path='/ChatSiswa' element={<Layout><Chat /></Layout>} />
         <Route path='/ReportSiswa' element={<Layout><Report /></Layout>} />
