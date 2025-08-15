@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, TrendingUp, CheckCircle, AlertCircle, Award, Users, Clock, Search, Filter, RefreshCw, X, FileText, Download, Eye, Plus, Upload, Send } from 'lucide-react';
-import SubmitModal from './SubmitModal/SubmitModal';
 
 const Divider = () => <div className="border-t border-gray-700/50 my-6 sm:my-8 w-full" />;
 
@@ -219,7 +218,15 @@ const TaskCard = ({ task, onTaskClick, navigate }: TaskCardProps) => {
           <span>View Details</span>
         </button>
         
-        {task.tanggal_mengumpulkan && (
+        {!task.tanggal_mengumpulkan ? (
+          <button
+            onClick={() => navigate(`/siswa/todo/submit/${task.id}`)}
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 text-sm font-medium"
+          >
+            <Send className="w-4 h-4" />
+            <span>Submit Answer</span>
+          </button>
+        ) : (
           <button
             onClick={() => navigate(`/siswa/todo/edit/${task.id}`)}
             className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 text-sm font-medium"
@@ -239,8 +246,6 @@ const Todo: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const navigate = useNavigate();
 
   // Fetch tasks from API
@@ -302,19 +307,6 @@ const Todo: React.FC = () => {
 
   const handleTaskClick = (task: Task) => {
     navigate(`/siswa/todo/detail/${task.id}`);
-  };
-
-  const handleSubmitSuccess = () => {
-    // Refresh tasks after successful submission
-    fetchTasks();
-  };
-
-  const handleOpenSubmitModal = (task: Task) => {
-    // Only allow submission for tasks that haven't been submitted yet
-    if (!task.tanggal_mengumpulkan) {
-    setSelectedTask(task);
-    setIsSubmitModalOpen(true);
-    }
   };
 
   if (loading) {
@@ -431,12 +423,7 @@ const Todo: React.FC = () => {
       {/* Removed Detail component usage */}
 
       {/* Submit Task Modal */}
-      <SubmitModal
-        isOpen={isSubmitModalOpen}
-        onClose={() => setIsSubmitModalOpen(false)}
-        onSubmitSuccess={handleSubmitSuccess}
-        selectedTask={selectedTask}
-      />
+      {/* Removed SubmitModal component usage */}
     </div>
   );
 };
