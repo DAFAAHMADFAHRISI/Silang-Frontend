@@ -226,7 +226,17 @@ const DataAbsensi: React.FC = () => {
   };
 
   const handleViewMaps = (location: string, studentName: string) => {
+    if (!location || location === 'null' || location === 'undefined') {
+      alert('Lokasi tidak tersedia');
+      return;
+    }
+    
     const [lat, lng] = location.split(', ');
+    if (!lat || !lng) {
+      alert('Format lokasi tidak valid');
+      return;
+    }
+    
     const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
     window.open(mapsUrl, '_blank');
   };
@@ -258,6 +268,9 @@ const DataAbsensi: React.FC = () => {
   };
 
   const formatTime = (timeString: string) => {
+    if (!timeString || timeString === 'null' || timeString === 'undefined') {
+      return '--:--';
+    }
     return timeString.substring(0, 5); // Remove seconds, keep HH:MM format
   };
 
@@ -270,8 +283,15 @@ const DataAbsensi: React.FC = () => {
   };
 
   const parseLocation = (location: string) => {
+    if (!location || location === 'null' || location === 'undefined') {
+      return { latitude: '0', longitude: '0' };
+    }
+    
     const [lat, lng] = location.split(', ');
-    return { latitude: lat, longitude: lng };
+    return { 
+      latitude: lat || '0', 
+      longitude: lng || '0' 
+    };
   };
 
   if (loading) {
