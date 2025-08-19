@@ -25,54 +25,155 @@ const UserManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const navigate = useNavigate();
 
-  const handleDelete = async (id?: number) => {
-    if (!id) {
-      setNotif('ID user tidak valid');
-      return;
-    }
-    if (!window.confirm('Yakin ingin menghapus user ini?')) return;
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:3000/api/users/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const json = await res.json();
-      if (res.ok) {
-        setNotif('User berhasil dihapus!');
-        // Refresh user table
-        const res2 = await fetch('http://localhost:3000/api/users', { headers: { Authorization: `Bearer ${token}` } });
-        const json2 = await res2.json();
-        setUserData(Array.isArray(json2) ? json2 : []);
-        setTimeout(() => setNotif(null), 2000);
-      } else {
-        setNotif(json.message || 'Gagal menghapus user');
-      }
-    } catch {
-      setNotif('Gagal menghapus user');
-    }
-  };
-
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:3000/api/users', {
+        
+        // Map role tab ke endpoint superadmin baru
+        const rolePath = activeTab === 'superadmin' ? 'superadmin' : activeTab; // sudah sama namanya
+        const apiUrl = `http://localhost:3000/api/superadmin/users/role/${rolePath}`;
+        
+        console.log('Fetching users from:', apiUrl);
+        
+        const res = await fetch(apiUrl, {
           headers: {
             Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
           },
         });
+        
         const json = await res.json();
+        console.log('=== API RESPONSE DEBUG ===');
+        console.log('Response status:', res.status);
+        console.log('Response URL:', apiUrl);
+        console.log('Full API response:', json);
+        console.log('Type of response:', typeof json);
+        console.log('Is array:', Array.isArray(json));
+        console.log('Length:', Array.isArray(json) ? json.length : 0);
+        
+        if (Array.isArray(json) && json.length > 0) {
+          console.log('=== FIRST USER DETAILED DEBUG ===');
+          console.log('First user:', json[0]);
+          console.log('All keys in first user:', Object.keys(json[0]));
+          console.log('All values in first user:', Object.values(json[0]));
+          console.log('First user stringified:', JSON.stringify(json[0], null, 2));
+        }
+        
         setUserData(Array.isArray(json) ? json : []);
       } catch (err) {
+        console.error('Error fetching users:', err);
         setUserData([]);
       } finally {
         setLoading(false);
       }
     };
     fetchUsers();
-  }, []);
+  }, [activeTab]);
+
+  const handleDelete = async (identifier?: number | string) => {
+    console.log('handleDelete called with identifier:', identifier);
+    console.log('Identifier type:', typeof identifier);
+    console.log('Current active tab:', activeTab);
+    
+    if (!identifier) {
+      console.log('Invalid identifier detected:', identifier);
+      setNotif('Identifier user tidak valid');
+      return;
+    }
+    
+    if (!window.confirm('Yakin ingin menghapus user ini?')) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      console.log('Token available:', !!token);
+      console.log('Token value:', token ? token.substring(0, 20) + '...' : 'No token');
+      
+      const rolePath = activeTab === 'superadmin' ? 'superadmin' : activeTab;
+
+      // Bangun URL delete sesuai spesifikasi
+      let deleteUrl = '';
+      let secondTryUrl = '';
+
+      if (typeof identifier === 'number') {
+        deleteUrl = `http://localhost:3000/api/superadmin/users/${identifier}`; // fallback by ID
+      } else {
+        const emailEncoded = encodeURIComponent(String(identifier));
+        // Path style
+        deleteUrl = `http://localhost:3000/api/superadmin/users/role/${rolePath}/delete/${emailEncoded}`;
+        // Query style (fallback)
+        secondTryUrl = `http://localhost:3000/api/superadmin/users/role/${rolePath}/delete?email=${emailEncoded}`;
+      }
+      
+      console.log('Sending DELETE request to:', deleteUrl);
+      
+      let res = await fetch(deleteUrl, {
+        method: 'DELETE',
+        mode: 'cors',
+        credentials: 'same-origin',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+      });
+
+      if (!res.ok && secondTryUrl) {
+        console.log('First delete failed with status', res.status, '- trying fallback URL:', secondTryUrl);
+        res = await fetch(secondTryUrl, {
+          method: 'DELETE',
+          mode: 'cors',
+          credentials: 'same-origin',
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+        });
+      }
+      
+      console.log('Delete response status:', res.status);
+      console.log('Delete response ok:', res.ok);
+      
+      let json: any;
+      try {
+        json = await res.json();
+        console.log('Delete response JSON:', json);
+      } catch (parseError) {
+        const text = await res.text();
+        console.log('Delete response text:', text);
+        json = { message: text };
+      }
+      
+      if (res.ok) {
+        setNotif('User berhasil dihapus!');
+        // Refresh list
+        const refreshUrl = `http://localhost:3000/api/superadmin/users/role/${rolePath}`;
+        const res2 = await fetch(refreshUrl, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+        const json2 = await res2.json();
+        setUserData(Array.isArray(json2) ? json2 : []);
+        setTimeout(() => setNotif(null), 1500);
+      } else {
+        setNotif(json.message || 'Gagal menghapus user');
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      console.error('Error details:', {
+        name: (error as Error).name,
+        message: (error as Error).message,
+        stack: (error as Error).stack
+      });
+      setNotif('Gagal menghapus user');
+    }
+  };
 
   // Filter users based on active tab
   const getFilteredUsers = () => {
@@ -151,7 +252,7 @@ const UserManagement: React.FC = () => {
                 : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
             }`}
           >
-            {tab.label} ({tab.count})
+            {tab.label}
           </button>
         ))}
       </div>
@@ -226,50 +327,72 @@ const UserManagement: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((row, idx) => (
-                <tr
-                  key={row.id ?? idx}
-                  className={
-                    `transition-colors duration-150 ${idx % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800/70'} hover:bg-blue-950/60`
-                  }
-                >
-                  <td className="px-3 py-2 whitespace-nowrap text-blue-400 font-bold text-center">{idx + 1}</td>
-                  <td className="px-3 py-2 whitespace-nowrap font-semibold text-white">{row.nama}</td>
-                  <td className="px-3 py-2 whitespace-nowrap text-gray-300">{row.email}</td>
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs rounded-full font-semibold shadow-sm ${
-                      row.kelamin === 'laki-laki' 
-                        ? 'bg-blue-500/20 text-blue-300 border border-blue-400/30' 
-                        : 'bg-pink-500/20 text-pink-300 border border-pink-400/30'
-                    }`}>
-                      {row.kelamin}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap text-gray-300">{row.no_hp}</td>
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs rounded-full font-semibold shadow-sm border ${
-                      row.role === 'superadmin' ? 'bg-red-500/20 text-red-300 border-red-400/30' :
-                      row.role === 'mentor' ? 'bg-blue-500/20 text-blue-300 border-blue-400/30' :
-                      row.role === 'guru' ? 'bg-green-500/20 text-green-300 border-green-400/30' :
-                      row.role === 'siswa' ? 'bg-gray-500/20 text-gray-300 border-gray-400/30' :
-                      'bg-gray-700/30 text-gray-300 border-gray-500/30'
-                    }`}>
-                      {row.role}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 whitespace-nowrap text-gray-300 font-medium">{row.asal_institusi}</td>
-                  {activeTab !== 'superadmin' && (
-                    <td className="px-3 py-2 whitespace-nowrap text-center">
-                      <button type="button" onClick={() => handleDelete(idx + 1)} className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs font-bold shadow-sm mr-1">
-                        Hapus
-                      </button>
-                      <button type="button" onClick={() => navigate(`/UserManagement/edit/${idx + 1}`)} className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-bold shadow-sm">
-                        Edit
-                      </button>
+              {filteredUsers.map((row, idx) => {
+                // Prioritas identifier: id → email → index
+                const userId: number | null = (row as any)?.id ?? null;
+                const identifier = userId ?? row.email ?? `index_${idx}`;
+                
+                return (
+                  <tr
+                    key={identifier}
+                    className={
+                      `transition-colors duration-150 ${idx % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800/70'} hover:bg-blue-950/60`
+                    }
+                  >
+                    <td className="px-3 py-2 whitespace-nowrap text-blue-400 font-bold text-center">{idx + 1}</td>
+                    <td className="px-3 py-2 whitespace-nowrap font-semibold text-white">{row.nama}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-gray-300">{row.email}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs rounded-full font-semibold shadow-sm ${
+                        row.kelamin === 'laki-laki' 
+                          ? 'bg-blue-500/20 text-blue-300 border border-blue-400/30' 
+                          : 'bg-pink-500/20 text-pink-300 border border-pink-400/30'
+                      }`}>
+                        {row.kelamin}
+                      </span>
                     </td>
-                  )}
-                </tr>
-              ))}
+                    <td className="px-3 py-2 whitespace-nowrap text-gray-300">{row.no_hp}</td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs rounded-full font-semibold shadow-sm border ${
+                        row.role === 'superadmin' ? 'bg-red-500/20 text-red-300 border-red-400/30' :
+                        row.role === 'mentor' ? 'bg-blue-500/20 text-blue-300 border-blue-400/30' :
+                        row.role === 'guru' ? 'bg-green-500/20 text-green-300 border-green-400/30' :
+                        row.role === 'siswa' ? 'bg-gray-500/20 text-gray-300 border-gray-400/30' :
+                        'bg-gray-700/30 text-gray-300 border-gray-500/30'
+                      }`}>
+                        {row.role}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap text-gray-300 font-medium">{row.asal_institusi}</td>
+                    {activeTab !== 'superadmin' && (
+                      <td className="px-3 py-2 whitespace-nowrap text-center">
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            handleDelete(identifier);
+                          }} 
+                          className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs font-bold shadow-sm mr-1"
+                        >
+                          Hapus
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            if (userId) {
+                              navigate(`/UserManagement/edit/${userId}`);
+                            } else {
+                              setNotif('ID user tidak tersedia untuk edit');
+                            }
+                          }} 
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-bold shadow-sm"
+                        >
+                          Edit
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
