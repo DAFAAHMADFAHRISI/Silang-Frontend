@@ -220,7 +220,9 @@ const UserManagement: React.FC = () => {
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">No HP</th>
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Role</th>
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Asal Institusi</th>
-                <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider">Aksi</th>
+                {activeTab !== 'superadmin' && (
+                  <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider">Aksi</th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -256,14 +258,16 @@ const UserManagement: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-3 py-2 whitespace-nowrap text-gray-300 font-medium">{row.asal_institusi}</td>
-                  <td className="px-3 py-2 whitespace-nowrap text-center">
-                    <button type="button" onClick={() => handleDelete(idx + 1)} className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs font-bold shadow-sm mr-1">
-                      Hapus
-                    </button>
-                    <button type="button" onClick={() => navigate(`/UserManagement/edit/${idx + 1}`)} className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-bold shadow-sm">
-                      Edit
-                    </button>
-                  </td>
+                  {activeTab !== 'superadmin' && (
+                    <td className="px-3 py-2 whitespace-nowrap text-center">
+                      <button type="button" onClick={() => handleDelete(idx + 1)} className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs font-bold shadow-sm mr-1">
+                        Hapus
+                      </button>
+                      <button type="button" onClick={() => navigate(`/UserManagement/edit/${idx + 1}`)} className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-bold shadow-sm">
+                        Edit
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
