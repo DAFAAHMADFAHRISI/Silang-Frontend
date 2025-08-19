@@ -95,26 +95,28 @@ const Edit: React.FC = () => {
       const form = e.target as HTMLFormElement;
       const formData = new FormData(form);
       
-      // Ensure role is sent as numeric value
+      // Get role value directly from form
       const roleValue = formData.get('role');
-      if (roleValue) {
-        formData.set('role', roleValue.toString());
-        console.log('Role value being sent:', roleValue.toString());
-      } else {
-        // If no role selected, use default
-        formData.set('role', '3');
-        console.log('Using default role value: 3');
+      console.log('Role value from form:', roleValue);
+      console.log('Role value type:', typeof roleValue);
+      
+      // Validate role value
+      if (!roleValue || (roleValue !== 'mentor' && roleValue !== 'guru' && roleValue !== 'siswa')) {
+        setNotif('Role tidak valid. Silakan pilih role yang benar.');
+        setSubmitting(false);
+        return;
       }
       
-      // Ensure kelamin is sent as numeric value
+      // Get kelamin value directly from form
       const kelaminValue = formData.get('kelamin');
-      if (kelaminValue) {
-        formData.set('kelamin', kelaminValue.toString());
-        console.log('Kelamin value being sent:', kelaminValue.toString());
-      } else {
-        // If no kelamin selected, use default
-        formData.set('kelamin', '1');
-        console.log('Using default kelamin value: 1');
+      console.log('Kelamin value from form:', kelaminValue);
+      console.log('Kelamin value type:', typeof kelaminValue);
+      
+      // Validate kelamin value
+      if (!kelaminValue || (kelaminValue !== 'laki-laki' && kelaminValue !== 'perempuan')) {
+        setNotif('Kelamin tidak valid. Silakan pilih kelamin yang benar.');
+        setSubmitting(false);
+        return;
       }
       
       // Ensure asal_institusi_id is set correctly
@@ -148,11 +150,26 @@ const Edit: React.FC = () => {
       // Log all form data for debugging
       console.log('All form data being sent:');
       Array.from(formData.entries()).forEach(([key, value]) => {
-        console.log(key, ':', value);
+        console.log(key, ':', value, '(', typeof value, ')');
       });
       
+      // Verify role mapping
+      const roleMapping = {
+        'mentor': 'Mentor',
+        'guru': 'Guru', 
+        'siswa': 'Siswa'
+      };
+      console.log('Role mapping verification:');
+      console.log('Form value:', roleValue, '→', roleMapping[roleValue as keyof typeof roleMapping]);
+      
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:3000/api/users/update/${editingUser.id}`, {
+      console.log('Token available:', !!token);
+      
+      // Use the correct API endpoint
+      const apiUrl = `http://localhost:3000/api/users/update/${editingUser.id}`;
+      console.log('Sending PATCH request to:', apiUrl);
+      
+      const res = await fetch(apiUrl, {
         method: 'PATCH',
         headers: { 
           'Authorization': `Bearer ${token}`
@@ -160,13 +177,19 @@ const Edit: React.FC = () => {
         body: formData, // Using FormData for file upload
       });
       
+      console.log('Response status:', res.status);
+      console.log('Response ok:', res.ok);
+      
       const json = await res.json();
+      console.log('Response JSON:', json);
+      
       if (res.ok) {
-        setNotif('User berhasil diubah!');
+        setNotif(`User berhasil diubah dengan role ${roleMapping[roleValue as keyof typeof roleMapping]}!`);
         setTimeout(() => {
           navigate('/UserManagement');
         }, 2000);
       } else {
+        console.log('Update user failed:', json);
         setNotif(json.message || 'Gagal mengubah user');
       }
     } catch (error) {
@@ -177,51 +200,12 @@ const Edit: React.FC = () => {
     }
   };
 
-  // Helper function to convert role string to number
-  const getRoleValue = (role: string) => {
-    if (!role) return '3'; // Default to mentor if no role
-    const roleLower = role.toLowerCase();
-    switch (roleLower) {
-      case 'superadmin':
-      case '1':
-        return '1';
-      case 'mentor':
-      case '3':
-        return '3';
-      case 'guru':
-      case '4':
-        return '4';
-      case 'siswa':
-      case '5':
-        return '5';
-      default:
-        return '3'; // Default to mentor
-    }
-  };
-
-  // Helper function to convert kelamin string to number
-  const getKelaminValue = (kelamin: string) => {
-    if (!kelamin) return '1'; // Default to laki-laki if no kelamin
-    const kelaminLower = kelamin.toLowerCase();
-    switch (kelaminLower) {
-      case 'laki-laki':
-      case 'laki laki':
-      case '1':
-        return '1';
-      case 'perempuan':
-      case '2':
-        return '2';
-      default:
-        return '1'; // Default to laki-laki
-    }
-  };
-
   // Debug: Log when editingUser changes
   useEffect(() => {
     if (editingUser) {
       console.log('Editing user updated:', editingUser);
-      console.log('Role value for form:', getRoleValue(editingUser.role || ''));
-      console.log('Kelamin value for form:', getKelaminValue(editingUser.kelamin || ''));
+      console.log('Role value for form:', editingUser.role);
+      console.log('Kelamin value for form:', editingUser.kelamin);
       console.log('Asal institusi for form:', editingUser.asal_institusi);
       console.log('Available institusi:', institusiList.map(i => i.nama_institusi));
       
@@ -234,8 +218,8 @@ const Edit: React.FC = () => {
   // Debug: Log the user data
   if (editingUser) {
     console.log('Editing user data:', editingUser);
-    console.log('Role value:', getRoleValue(editingUser.role || ''));
-    console.log('Kelamin value:', getKelaminValue(editingUser.kelamin || ''));
+    console.log('Role value:', editingUser.role);
+    console.log('Kelamin value:', editingUser.kelamin);
     console.log('Asal institusi:', editingUser.asal_institusi);
     console.log('Institusi list:', institusiList);
   }
@@ -320,13 +304,12 @@ const Edit: React.FC = () => {
               <select 
                 name="role" 
                 required 
-                defaultValue={getRoleValue(editingUser.role || '')} 
+                defaultValue={editingUser.role || 'mentor'} 
                 className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white"
               >
-                <option value="3">Mentor</option>
-                <option value="4">Guru</option>
-                <option value="5">Siswa</option>
-                <option value="1">Superadmin</option>
+                <option value="mentor">Mentor</option>
+                <option value="guru">Guru</option>
+                <option value="siswa">Siswa</option>
               </select>
             </div>
             <div>
@@ -334,11 +317,11 @@ const Edit: React.FC = () => {
               <select 
                 name="kelamin" 
                 required 
-                defaultValue={getKelaminValue(editingUser.kelamin || '')} 
+                defaultValue={editingUser.kelamin || 'laki-laki'} 
                 className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white"
               >
-                <option value="1">Laki-laki</option>
-                <option value="2">Perempuan</option>
+                <option value="laki-laki">Laki-laki</option>
+                <option value="perempuan">Perempuan</option>
               </select>
             </div>
             <div>
