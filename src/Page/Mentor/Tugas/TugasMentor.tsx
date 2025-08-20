@@ -157,6 +157,9 @@ const TugasMentor: React.FC = () => {
   const [loadingAction, setLoadingAction] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
   const navigate = useNavigate();
+  // State untuk input penilaian per submission
+  const [gradeInputs, setGradeInputs] = useState<Record<number, { nilai: string; catatan_guru: string }>>({});
+  const [loadingGradeId, setLoadingGradeId] = useState<number | null>(null);
 
   const fetchTasks = async () => {
     try {
@@ -288,6 +291,12 @@ const TugasMentor: React.FC = () => {
       console.log('Debug - Submissions API Response:', data);
       
       setSubmissions(data);
+      // Prefill inputs for each submission
+      const initialInputs: Record<number, { nilai: string; catatan_guru: string }> = {};
+      for (const s of data) {
+        initialInputs[s.id] = { nilai: (s.nilai ?? '').toString(), catatan_guru: s.catatan_guru ?? '' };
+      }
+      setGradeInputs(initialInputs);
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Gagal memuat data submissions.';
@@ -411,6 +420,72 @@ const TugasMentor: React.FC = () => {
   const getStudentName = (studentId: number) => {
     const student = students.find(s => s.id === studentId);
     return student ? student.nama : `Siswa ID: ${studentId}`;
+  };
+
+  // Update state saat nilai/catatan diubah
+  const handleGradeInputChange = (submissionId: number, field: 'nilai' | 'catatan_guru', value: string) => {
+    setGradeInputs(prev => ({
+      ...prev,
+      [submissionId]: {
+        nilai: field === 'nilai' ? value : (prev[submissionId]?.nilai ?? ''),
+        catatan_guru: field === 'catatan_guru' ? value : (prev[submissionId]?.catatan_guru ?? ''),
+      }
+    }));
+  };
+
+  // Kirim nilai ke API sesuai spesifikasi
+  const handleSubmitGrade = async (submissionId: number) => {
+    const input = gradeInputs[submissionId] ?? { nilai: '', catatan_guru: '' };
+    const parsedNilai = Number(input.nilai);
+
+    if (Number.isNaN(parsedNilai) || parsedNilai < 0 || parsedNilai > 100) {
+      alert('Nilai harus berupa angka antara 0 - 100');
+      return;
+    }
+
+    try {
+      setLoadingGradeId(submissionId);
+      setError(null);
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token tidak ditemukan. Silakan login ulang.');
+      }
+
+      const body = new URLSearchParams();
+      body.append('nilai', String(parsedNilai));
+      body.append('catatan_guru', input.catatan_guru ?? '');
+
+      const response = await fetch(`http://localhost:3000/api/submission/${submissionId}/grade`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: body.toString(),
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('nama');
+        localStorage.removeItem('role');
+        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
+      }
+
+      if (!response.ok) {
+        throw new Error(`Gagal menyimpan nilai (status ${response.status}).`);
+      }
+
+      // Update submission lokal atau refresh list
+      setSubmissions(prev => prev.map(s => s.id === submissionId ? { ...s, nilai: parsedNilai, catatan_guru: input.catatan_guru } as Submission : s));
+      alert('Nilai submission berhasil diupdate.');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Gagal menyimpan nilai.';
+      setError(errorMessage);
+      console.error('Error grading submission:', err);
+    } finally {
+      setLoadingGradeId(null);
+    }
   };
 
   const filteredTasks = tasks.filter(task => {
@@ -828,6 +903,44 @@ const TugasMentor: React.FC = () => {
                               <div className="md:col-span-2">
                                 <label className="text-gray-400 text-xs">Catatan Guru</label>
                                 <p className="text-white bg-gray-500 p-2 rounded">{submission.catatan_guru}</p>
+                              </div>
+                            </div>
+
+                            {/* Penilaian */}
+                            <div className="border-t border-gray-500 mt-4 pt-4">
+                              <h5 className="text-white font-semibold mb-2">Beri / Update Nilai</h5>
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div>
+                                  <label className="block text-gray-300 text-xs mb-1">Nilai (0-100)</label>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    max={100}
+                                    value={gradeInputs[submission.id]?.nilai ?? ''}
+                                    onChange={(e) => handleGradeInputChange(submission.id, 'nilai', e.target.value)}
+                                    className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-400"
+                                    placeholder="Masukkan nilai"
+                                  />
+                                </div>
+                                <div className="md:col-span-2">
+                                  <label className="block text-gray-300 text-xs mb-1">Catatan Guru</label>
+                                  <input
+                                    type="text"
+                                    value={gradeInputs[submission.id]?.catatan_guru ?? ''}
+                                    onChange={(e) => handleGradeInputChange(submission.id, 'catatan_guru', e.target.value)}
+                                    className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-400"
+                                    placeholder="Contoh: bagus"
+                                  />
+                                </div>
+                              </div>
+                              <div className="flex justify-end mt-3">
+                                <button
+                                  onClick={() => handleSubmitGrade(submission.id)}
+                                  disabled={loadingGradeId === submission.id}
+                                  className={`px-4 py-2 rounded-lg transition-colors ${loadingGradeId === submission.id ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'} text-white`}
+                                >
+                                  {loadingGradeId === submission.id ? 'Menyimpan...' : (submission.nilai > 0 ? 'Edit Nilai' : 'Simpan Nilai')}
+                                </button>
                               </div>
                             </div>
                           </div>
