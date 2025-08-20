@@ -20,6 +20,7 @@ import {
   Send, 
   ArrowLeft 
 } from 'lucide-react';
+import SubmitModal from '../SubmitModal/SubmitModal';
 
 // ============================================================================
 // INTERFACES
@@ -71,6 +72,9 @@ const Detail: React.FC = () => {
   const [fileViewerOpen, setFileViewerOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null);
   const [fileLoading, setFileLoading] = useState(false);
+
+  // Submit modal states
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
 
   // ============================================================================
   // EFFECTS
@@ -182,6 +186,15 @@ const Detail: React.FC = () => {
   // ============================================================================
   // FILE HANDLING FUNCTIONS
   // ============================================================================
+
+  const handleOpenSubmitModal = () => {
+    setIsSubmitModalOpen(true);
+  };
+
+  const handleSubmitSuccess = () => {
+    // Refresh task details after successful submission
+    fetchTaskDetails();
+  };
 
   const handleDownloadFile = async (fileName: string, fileType: 'task' | 'answer') => {
     try {
@@ -301,7 +314,7 @@ const Detail: React.FC = () => {
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <p className="text-red-400 mb-6 text-lg">{error || 'Task not found'}</p>
           <button 
-            onClick={() => navigate('/todo')}
+            onClick={() => navigate('/siswa/todo')}
             className="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg transition-colors text-base font-medium"
           >
             Back to Todo List
@@ -327,7 +340,7 @@ const Detail: React.FC = () => {
       <div className="mb-8">
         <div className="flex items-center space-x-4 mb-6">
           <button
-            onClick={() => navigate('/todo')}
+            onClick={() => navigate('/TodoSiswa')}
             className="bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white p-3 rounded-xl transition-all duration-200"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -527,7 +540,7 @@ const Detail: React.FC = () => {
             </p>
             
             <button
-              onClick={() => navigate(`/siswa/todo/edit/${task.id}`)}
+              onClick={handleOpenSubmitModal}
               className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-200 font-medium"
             >
               <Upload className="w-4 h-4" />
@@ -655,6 +668,14 @@ const Detail: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Submit Task Modal */}
+      <SubmitModal
+        isOpen={isSubmitModalOpen}
+        onClose={() => setIsSubmitModalOpen(false)}
+        onSubmitSuccess={handleSubmitSuccess}
+        selectedTask={task}
+      />
     </div>
   );
 };

@@ -156,6 +156,14 @@ const TugasMentor: React.FC = () => {
   const [loadingSubmissions, setLoadingSubmissions] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
+  
+  // State untuk modal pemberian nilai
+  const [showGradeModal, setShowGradeModal] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
+  const [gradeValue, setGradeValue] = useState<string>('');
+  const [teacherNote, setTeacherNote] = useState<string>('');
+  const [gradingLoading, setGradingLoading] = useState(false);
+  
   const navigate = useNavigate();
 
   const fetchTasks = async () => {
@@ -401,6 +409,89 @@ const TugasMentor: React.FC = () => {
     } finally {
       setLoadingAction(false);
     }
+  };
+
+  // Fungsi untuk membuka modal pemberian nilai
+  const handleOpenGradeModal = (submission: Submission) => {
+    setSelectedSubmission(submission);
+    setGradeValue(submission.nilai ? submission.nilai.toString() : '');
+    setTeacherNote(submission.catatan_guru || '');
+    setShowGradeModal(true);
+  };
+
+  // Fungsi untuk mengirim nilai ke API
+  const handleGradeSubmission = async () => {
+    if (!selectedSubmission || !gradeValue.trim()) {
+      alert('Mohon isi nilai dengan benar');
+      return;
+    }
+
+    try {
+      setGradingLoading(true);
+      setError(null);
+      
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        throw new Error('Token tidak ditemukan. Silakan login ulang.');
+      }
+      
+      // Menggunakan endpoint sesuai dengan API di gambar
+      const response = await fetch(`http://localhost:3000/api/submission/${selectedSubmission.id}/grade`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          nilai: gradeValue,
+          catatan_guru: teacherNote
+        })
+      });
+      
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('nama');
+        localStorage.removeItem('role');
+        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
+      }
+      
+      if (!response.ok) {
+        throw new Error(`Error server: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('Grade submitted successfully:', result);
+      
+      // Refresh submissions untuk memperbarui tampilan
+      if (selectedTask) {
+        await fetchSubmissions(selectedTask.id);
+      }
+      
+      // Tutup modal dan reset state
+      setShowGradeModal(false);
+      setSelectedSubmission(null);
+      setGradeValue('');
+      setTeacherNote('');
+      
+      // Tampilkan pesan sukses
+      alert('Nilai berhasil diberikan!');
+      
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Gagal memberikan nilai.';
+      setError(errorMessage);
+      console.error('Error grading submission:', err);
+    } finally {
+      setGradingLoading(false);
+    }
+  };
+
+  // Fungsi untuk menutup modal pemberian nilai
+  const handleCloseGradeModal = () => {
+    setShowGradeModal(false);
+    setSelectedSubmission(null);
+    setGradeValue('');
+    setTeacherNote('');
   };
 
   const handleCreateTask = async () => {
@@ -807,8 +898,17 @@ const TugasMentor: React.FC = () => {
                               <div className="flex items-center space-x-2">
                                 <div className="flex items-center text-yellow-400">
                                   <Star className="w-4 h-4 mr-1" />
-                                  <span className="font-semibold">{submission.nilai}</span>
+                                  <span className="font-semibold">
+                                    {submission.nilai ? submission.nilai : 'Belum dinilai'}
+                                  </span>
                                 </div>
+                                <button
+                                  onClick={() => handleOpenGradeModal(submission)}
+                                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition-colors flex items-center space-x-1"
+                                >
+                                  <Star className="w-3 h-3" />
+                                  <span>{submission.nilai ? 'Edit Nilai' : 'Beri Nilai'}</span>
+                                </button>
                               </div>
                             </div>
                             
@@ -827,7 +927,7 @@ const TugasMentor: React.FC = () => {
                               </div>
                               <div className="md:col-span-2">
                                 <label className="text-gray-400 text-xs">Catatan Guru</label>
-                                <p className="text-white bg-gray-500 p-2 rounded">{submission.catatan_guru}</p>
+                                <p className="text-white bg-gray-500 p-2 rounded">{submission.catatan_guru || 'Belum ada catatan'}</p>
                               </div>
                             </div>
                           </div>
@@ -857,9 +957,83 @@ const TugasMentor: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Modal Pemberian Nilai */}
+        {showGradeModal && selectedSubmission && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-white">Beri Nilai</h3>
+                <button
+                  onClick={handleCloseGradeModal}
+                  className="text-gray-400 hover:text-white text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="text-gray-400 text-sm">Siswa</label>
+                  <p className="text-white font-semibold">{selectedSubmission.siswa_nama}</p>
+                </div>
+                
+                <div>
+                  <label className="text-gray-400 text-sm mb-2 block">Nilai *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={gradeValue}
+                    onChange={(e) => setGradeValue(e.target.value)}
+                    placeholder="Masukkan nilai (0-100)"
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-gray-400 text-sm mb-2 block">Catatan Guru</label>
+                  <textarea
+                    value={teacherNote}
+                    onChange={(e) => setTeacherNote(e.target.value)}
+                    placeholder="Masukkan catatan untuk siswa (opsional)"
+                    rows={3}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 resize-none"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex space-x-3 mt-6">
+                <button
+                  onClick={handleGradeSubmission}
+                  disabled={gradingLoading || !gradeValue.trim()}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                >
+                  {gradingLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Menyimpan...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Star className="w-4 h-4" />
+                      <span>Simpan Nilai</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={handleCloseGradeModal}
+                  disabled={gradingLoading}
+                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  Batal
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    
-  );
+    );
 };
 
 export default TugasMentor;

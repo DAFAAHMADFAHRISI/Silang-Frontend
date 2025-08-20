@@ -64,7 +64,7 @@ const SubmitModal: React.FC<SubmitModalProps> = ({ isOpen, onClose, onSubmitSucc
       formData.append('catatan_siswa', catatanSiswa);
 
       const response = await fetch(`http://localhost:3000/api/tugas-siswa/${task.id}/submit`, {
-        method: 'PATCH',
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
         },

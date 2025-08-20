@@ -26,9 +26,10 @@ interface TaskCardProps {
   task: Task;
   onTaskClick: (task: Task) => void;
   navigate: (path: string) => void;
+  onOpenSubmitModal: (task: Task) => void;
 }
 
-const TaskCard = ({ task, onTaskClick, navigate }: TaskCardProps) => {
+const TaskCard = ({ task, onTaskClick, navigate, onOpenSubmitModal }: TaskCardProps) => {
   const statusConfig: Record<string, { bg: string; icon: React.ReactElement; statusText: string; color: string }> = {
     'In Progress': {
       bg: 'bg-gradient-to-br from-orange-500 to-red-500',
@@ -219,7 +220,15 @@ const TaskCard = ({ task, onTaskClick, navigate }: TaskCardProps) => {
           <span>View Details</span>
         </button>
         
-        {task.tanggal_mengumpulkan && (
+        {!task.tanggal_mengumpulkan ? (
+          <button
+            onClick={() => onOpenSubmitModal(task)}
+            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 text-sm font-medium"
+          >
+            <Upload className="w-4 h-4" />
+            <span>Submit Answer</span>
+          </button>
+        ) : (
           <button
             onClick={() => navigate(`/siswa/todo/edit/${task.id}`)}
             className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 text-sm font-medium"
@@ -409,6 +418,7 @@ const Todo: React.FC = () => {
               task={task} 
               onTaskClick={handleTaskClick} 
               navigate={navigate}
+              onOpenSubmitModal={handleOpenSubmitModal}
             />
           ))
         ) : (
