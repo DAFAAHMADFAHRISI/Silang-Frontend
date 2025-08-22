@@ -389,13 +389,7 @@ const Todo: React.FC = () => {
               </select>
             </div>
             
-            <button 
-              onClick={fetchTasks}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-200 font-medium"
-            >
-              <RefreshCw className="w-4 h-4" />
-              <span>Refresh</span>
-            </button>
+
           </div>
         </div>
       </div>

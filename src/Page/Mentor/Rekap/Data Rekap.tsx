@@ -134,15 +134,7 @@ const DataRekapMentor: React.FC = () => {
                 Data Rekap Mentor
               </h1>
             </div>
-            <div className="flex space-x-3">
-              <button
-                onClick={fetchRekapData}
-                className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-              >
-                <RefreshCw className="w-4 h-4" />
-                <span>Refresh</span>
-              </button>
-            </div>
+
           </div>
           <p className="text-gray-400 mt-2 ml-5">Analisis dan ringkasan performa mentor.</p>
         </div>
