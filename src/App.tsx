@@ -41,6 +41,7 @@ import DataRekapGuru from './Page/Guru/Rekap/Data Rekap';
 import TugasMentor from './Page/Mentor/Tugas/TugasMentor';
 import TambahTugas from './Page/Mentor/Tugas/Tambah/Tambah';
 import EditTugas from './Page/Mentor/Tugas/Edit/Edit';
+import DetailTugasMentor from './Page/Mentor/Tugas/Detail/Detail';
 import DataAbsensiMentor from './Page/Mentor/Absensi/Data Absensi';
 import DataRekapMentor from './Page/Mentor/Rekap/Data Rekap';
 import DetailTugas from './Page/Guru/Tugas/Detail/Detail';
@@ -77,6 +78,7 @@ function App() {
         <Route path='/mentor/tugas' element={<Layout><TugasMentor /></Layout>} />
         <Route path='/mentor/tugas/tambah' element={<Layout><TambahTugas /></Layout>} />
         <Route path='/mentor/tugas/edit/:id' element={<Layout><EditTugas /></Layout>} />
+        <Route path='/mentor/tugas/detail/:id' element={<Layout><DetailTugasMentor /></Layout>} />
         <Route path='/mentor/absensi' element={<Layout><DataAbsensiMentor /></Layout>} />
         <Route path='/mentor/rekap' element={<Layout><DataRekapMentor /></Layout>} />
         <Route path='/mentor/chat' element={<Layout><ChatMentor /></Layout>} />
