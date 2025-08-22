@@ -54,11 +54,14 @@ const PriorityBadge = ({ priority }: { priority: string }) => {
   );
 };
 
-const TaskCard = ({ task, onView, onEdit, onDelete }: { 
+const TaskCard = ({ task, onView, onEdit, onDelete, onViewFile, onDownloadFile, fileLoading }: { 
   task: Tugas; 
   onView: (task: Tugas) => void;
   onEdit: (task: Tugas) => void;
   onDelete: (task: Tugas) => void;
+  onViewFile: (fileName: string, taskId: number) => void;
+  onDownloadFile: (fileName: string, taskId: number) => void;
+  fileLoading: boolean;
 }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
@@ -106,7 +109,23 @@ const TaskCard = ({ task, onView, onEdit, onDelete }: {
         </div>
         <div className="flex items-center text-gray-400 text-sm">
           <FileText className="w-4 h-4 mr-2" />
-          <span>File: {task.file_tugas}</span>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => onViewFile(task.file_tugas, task.id)}
+              className="text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+              title="Lihat file"
+            >
+              {task.file_tugas}
+            </button>
+            <button
+              onClick={() => onDownloadFile(task.file_tugas, task.id)}
+              className="text-green-400 hover:text-green-300 transition-colors ml-2"
+              title="Download file"
+              disabled={fileLoading}
+            >
+              <Download className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -160,6 +179,85 @@ const TugasMentor: React.FC = () => {
   // State untuk input penilaian per submission
   const [gradeInputs, setGradeInputs] = useState<Record<number, { nilai: string; catatan_guru: string }>>({});
   const [loadingGradeId, setLoadingGradeId] = useState<number | null>(null);
+  // State untuk file handling
+  const [fileLoading, setFileLoading] = useState(false);
+
+  // ============================================================================
+  // FILE HANDLING FUNCTIONS
+  // ============================================================================
+
+  const handleDownloadFile = async (fileName: string, taskId: number) => {
+    try {
+      setFileLoading(true);
+      
+      const token = localStorage.getItem('token');
+      const fileUrl = `http://localhost:3000/api/tugas-mentor/${taskId}/download-task`;
+
+      const response = await fetch(fileUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to download file: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      console.log(`File ${fileName} downloaded successfully`);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      alert('Failed to download file. Please try again.');
+    } finally {
+      setFileLoading(false);
+    }
+  };
+
+  const handleViewFile = async (fileName: string, taskId: number) => {
+    try {
+      setFileLoading(true);
+      
+      const token = localStorage.getItem('token');
+      const fileUrl = `http://localhost:3000/api/tugas-mentor/${taskId}/view-task`;
+
+      const response = await fetch(fileUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to view file: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      // For PDF files, open in new tab
+      if (fileName.toLowerCase().endsWith('.pdf')) {
+        window.open(url, '_blank');
+      } else {
+        // For other file types, show in modal or download
+        window.open(url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error viewing file:', error);
+      alert('Failed to view file. Please try again.');
+    } finally {
+      setFileLoading(false);
+    }
+  };
 
   const fetchTasks = async () => {
     try {
@@ -704,6 +802,9 @@ const TugasMentor: React.FC = () => {
                       onView={handleViewTask}
                       onEdit={handleEditTask}
                       onDelete={handleDeleteTask}
+                      onViewFile={handleViewFile}
+                      onDownloadFile={handleDownloadFile}
+                      fileLoading={fileLoading}
                     />
                   ))}
                 </div>
@@ -762,7 +863,23 @@ const TugasMentor: React.FC = () => {
                       </div>
                       <div>
                         <label className="text-gray-400 text-sm">File Tugas</label>
-                        <p className="text-white text-sm">{selectedTaskDetail.file_tugas}</p>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <button
+                            onClick={() => handleViewFile(selectedTaskDetail.file_tugas, selectedTaskDetail.id)}
+                            className="text-blue-400 hover:text-blue-300 transition-colors cursor-pointer text-sm"
+                            title="Lihat file"
+                          >
+                            {selectedTaskDetail.file_tugas}
+                          </button>
+                          <button
+                            onClick={() => handleDownloadFile(selectedTaskDetail.file_tugas, selectedTaskDetail.id)}
+                            className="text-green-400 hover:text-green-300 transition-colors"
+                            title="Download file"
+                            disabled={fileLoading}
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                       <div>
                         <label className="text-gray-400 text-sm">Mentor ID</label>
