@@ -54,11 +54,14 @@ const PriorityBadge = ({ priority }: { priority: string }) => {
   );
 };
 
-const TaskCard = ({ task, onView, onEdit, onDelete }: { 
+const TaskCard = ({ task, onView, onEdit, onDelete, onViewFile, onDownloadFile, fileLoading }: { 
   task: Tugas; 
   onView: (task: Tugas) => void;
   onEdit: (task: Tugas) => void;
   onDelete: (task: Tugas) => void;
+  onViewFile: (fileName: string, taskId: number) => void;
+  onDownloadFile: (fileName: string, taskId: number) => void;
+  fileLoading: boolean;
 }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {
@@ -106,7 +109,23 @@ const TaskCard = ({ task, onView, onEdit, onDelete }: {
         </div>
         <div className="flex items-center text-gray-400 text-sm">
           <FileText className="w-4 h-4 mr-2" />
-          <span>File: {task.file_tugas}</span>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => onViewFile(task.file_tugas, task.id)}
+              className="text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+              title="Lihat file"
+            >
+              {task.file_tugas}
+            </button>
+            <button
+              onClick={() => onDownloadFile(task.file_tugas, task.id)}
+              className="text-green-400 hover:text-green-300 transition-colors ml-2"
+              title="Download file"
+              disabled={fileLoading}
+            >
+              <Download className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -150,6 +169,161 @@ const TugasMentor: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const navigate = useNavigate();
+  // State untuk input penilaian per submission
+  const [gradeInputs, setGradeInputs] = useState<Record<number, { nilai: string; catatan_guru: string }>>({});
+  const [loadingGradeId, setLoadingGradeId] = useState<number | null>(null);
+  // State untuk file handling
+  const [fileLoading, setFileLoading] = useState(false);
+
+  // ============================================================================
+  // FILE HANDLING FUNCTIONS
+  // ============================================================================
+
+  const handleDownloadFile = async (fileName: string, taskId: number) => {
+    try {
+      setFileLoading(true);
+      
+      const token = localStorage.getItem('token');
+      const fileUrl = `http://localhost:3000/api/tugas-mentor/${taskId}/download-task`;
+
+      const response = await fetch(fileUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to download file: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      console.log(`File ${fileName} downloaded successfully`);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      alert('Failed to download file. Please try again.');
+    } finally {
+      setFileLoading(false);
+    }
+  };
+
+  const handleViewFile = async (fileName: string, taskId: number) => {
+    try {
+      setFileLoading(true);
+      
+      const token = localStorage.getItem('token');
+      const fileUrl = `http://localhost:3000/api/tugas-mentor/${taskId}/view-task`;
+
+      const response = await fetch(fileUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to view file: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      // For PDF files, open in new tab
+      if (fileName.toLowerCase().endsWith('.pdf')) {
+        window.open(url, '_blank');
+      } else {
+        // For other file types, show in modal or download
+        window.open(url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error viewing file:', error);
+      alert('Failed to view file. Please try again.');
+    } finally {
+      setFileLoading(false);
+    }
+  };
+
+  const handleDownloadAnswerFile = async (fileName: string, submissionId: number) => {
+    try {
+      setFileLoading(true);
+      
+      const token = localStorage.getItem('token');
+      const fileUrl = `http://localhost:3000/api/submission/${submissionId}/download-answer`;
+
+      const response = await fetch(fileUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to download answer file: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      console.log(`Answer file ${fileName} downloaded successfully`);
+    } catch (error) {
+      console.error('Error downloading answer file:', error);
+      alert('Failed to download answer file. Please try again.');
+    } finally {
+      setFileLoading(false);
+    }
+  };
+
+  const handleViewAnswerFile = async (fileName: string, submissionId: number) => {
+    try {
+      setFileLoading(true);
+      
+      const token = localStorage.getItem('token');
+      const fileUrl = `http://localhost:3000/api/submission/${submissionId}/view-answer`;
+
+      const response = await fetch(fileUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to view answer file: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      // For PDF files, open in new tab
+      if (fileName.toLowerCase().endsWith('.pdf')) {
+        window.open(url, '_blank');
+      } else {
+        // For other file types, show in modal or download
+        window.open(url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error viewing answer file:', error);
+      alert('Failed to view answer file. Please try again.');
+    } finally {
+      setFileLoading(false);
+    }
+  };
 
   const fetchTasks = async () => {
     try {
@@ -269,6 +443,72 @@ const TugasMentor: React.FC = () => {
   const getStudentName = (studentId: number) => {
     // This function is no longer needed as students are fetched in detail page
     return `Siswa ID: ${studentId}`;
+  };
+
+  // Update state saat nilai/catatan diubah
+  const handleGradeInputChange = (submissionId: number, field: 'nilai' | 'catatan_guru', value: string) => {
+    setGradeInputs(prev => ({
+      ...prev,
+      [submissionId]: {
+        nilai: field === 'nilai' ? value : (prev[submissionId]?.nilai ?? ''),
+        catatan_guru: field === 'catatan_guru' ? value : (prev[submissionId]?.catatan_guru ?? ''),
+      }
+    }));
+  };
+
+  // Kirim nilai ke API sesuai spesifikasi
+  const handleSubmitGrade = async (submissionId: number) => {
+    const input = gradeInputs[submissionId] ?? { nilai: '', catatan_guru: '' };
+    const parsedNilai = Number(input.nilai);
+
+    if (Number.isNaN(parsedNilai) || parsedNilai < 0 || parsedNilai > 100) {
+      alert('Nilai harus berupa angka antara 0 - 100');
+      return;
+    }
+
+    try {
+      setLoadingGradeId(submissionId);
+      setError(null);
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token tidak ditemukan. Silakan login ulang.');
+      }
+
+      const body = new URLSearchParams();
+      body.append('nilai', String(parsedNilai));
+      body.append('catatan_guru', input.catatan_guru ?? '');
+
+      const response = await fetch(`http://localhost:3000/api/submission/${submissionId}/grade`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: body.toString(),
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('nama');
+        localStorage.removeItem('role');
+        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
+      }
+
+      if (!response.ok) {
+        throw new Error(`Gagal menyimpan nilai (status ${response.status}).`);
+      }
+
+      // Update submission lokal atau refresh list
+      setSubmissions(prev => prev.map(s => s.id === submissionId ? { ...s, nilai: parsedNilai, catatan_guru: input.catatan_guru } as Submission : s));
+      alert('Nilai submission berhasil diupdate.');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Gagal menyimpan nilai.';
+      setError(errorMessage);
+      console.error('Error grading submission:', err);
+    } finally {
+      setLoadingGradeId(null);
+    }
   };
 
   const filteredTasks = tasks.filter(task => {
@@ -487,6 +727,9 @@ const TugasMentor: React.FC = () => {
                       onView={handleViewTask}
                       onEdit={handleEditTask}
                       onDelete={handleDeleteTask}
+                      onViewFile={handleViewFile}
+                      onDownloadFile={handleDownloadFile}
+                      fileLoading={fileLoading}
                     />
                   ))}
                 </div>
@@ -502,7 +745,7 @@ const TugasMentor: React.FC = () => {
         {/* This modal is now handled by navigation */}
 
         {/* Task Detail Modal */}
-        {/* This modal is now handled by navigation */}
+
       </div>
     
   );

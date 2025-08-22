@@ -18,8 +18,7 @@ import {
   Plus, 
   Upload, 
   Send, 
-  ArrowLeft,
-  Save
+  ArrowLeft 
 } from 'lucide-react';
 
 // ============================================================================
@@ -302,7 +301,7 @@ const Detail: React.FC = () => {
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <p className="text-red-400 mb-6 text-lg">{error || 'Task not found'}</p>
           <button 
-            onClick={() => navigate('/Todo')}
+            onClick={() => navigate('/todo')}
             className="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg transition-colors text-base font-medium"
           >
             Back to Todo List
@@ -328,7 +327,7 @@ const Detail: React.FC = () => {
       <div className="mb-8">
         <div className="flex items-center space-x-4 mb-6">
           <button
-            onClick={() => navigate('/TodoSiswa')}
+            onClick={() => navigate('/todo')}
             className="bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white p-3 rounded-xl transition-all duration-200"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -410,22 +409,13 @@ const Detail: React.FC = () => {
         <div className="bg-gray-800/50 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-white">Files</h3>
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => navigate(`/siswa/todo/edit/${task.id}`)}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 font-medium text-sm"
-              >
-                <Save className="w-4 h-4" />
-                <span>Edit Task</span>
-              </button>
-              <button
-                onClick={() => navigate(`/siswa/todo/submit/${task.id}`)}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 font-medium text-sm"
-              >
-                <Send className="w-4 h-4" />
-                <span>Submit Answer</span>
-              </button>
-            </div>
+            <button
+              onClick={() => navigate(`/siswa/todo/edit/${task.id}`)}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 font-medium text-sm"
+            >
+              <Send className="w-4 h-4" />
+              <span>Edit Task</span>
+            </button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
@@ -537,7 +527,7 @@ const Detail: React.FC = () => {
             </p>
             
             <button
-              onClick={() => navigate(`/siswa/todo/submit/${task.id}`)}
+              onClick={() => navigate(`/siswa/todo/edit/${task.id}`)}
               className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-200 font-medium"
             >
               <Upload className="w-4 h-4" />
