@@ -259,6 +259,79 @@ const TugasMentor: React.FC = () => {
     }
   };
 
+  const handleDownloadAnswerFile = async (fileName: string, submissionId: number) => {
+    try {
+      setFileLoading(true);
+      
+      const token = localStorage.getItem('token');
+      const fileUrl = `http://localhost:3000/api/submission/${submissionId}/download-answer`;
+
+      const response = await fetch(fileUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to download answer file: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      console.log(`Answer file ${fileName} downloaded successfully`);
+    } catch (error) {
+      console.error('Error downloading answer file:', error);
+      alert('Failed to download answer file. Please try again.');
+    } finally {
+      setFileLoading(false);
+    }
+  };
+
+  const handleViewAnswerFile = async (fileName: string, submissionId: number) => {
+    try {
+      setFileLoading(true);
+      
+      const token = localStorage.getItem('token');
+      const fileUrl = `http://localhost:3000/api/submission/${submissionId}/view-answer`;
+
+      const response = await fetch(fileUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to view answer file: ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      // For PDF files, open in new tab
+      if (fileName.toLowerCase().endsWith('.pdf')) {
+        window.open(url, '_blank');
+      } else {
+        // For other file types, show in modal or download
+        window.open(url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error viewing answer file:', error);
+      alert('Failed to view answer file. Please try again.');
+    } finally {
+      setFileLoading(false);
+    }
+  };
+
   const fetchTasks = async () => {
     try {
       setLoading(true);
@@ -1007,7 +1080,23 @@ const TugasMentor: React.FC = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                               <div>
                                 <label className="text-gray-400 text-xs">File Jawaban</label>
-                                <p className="text-white">{submission.file_jawaban}</p>
+                                <div className="flex items-center space-x-2">
+                                  <button
+                                    onClick={() => handleViewAnswerFile(submission.file_jawaban, submission.id)}
+                                    className="text-blue-400 hover:text-blue-300 transition-colors cursor-pointer text-sm"
+                                    title="Lihat file jawaban"
+                                  >
+                                    {submission.file_jawaban}
+                                  </button>
+                                  <button
+                                    onClick={() => handleDownloadAnswerFile(submission.file_jawaban, submission.id)}
+                                    className="text-green-400 hover:text-green-300 transition-colors"
+                                    title="Download file jawaban"
+                                    disabled={fileLoading}
+                                  >
+                                    <Download className="w-4 h-4" />
+                                  </button>
+                                </div>
                               </div>
                               <div>
                                 <label className="text-gray-400 text-xs">Tanggal Submit</label>
