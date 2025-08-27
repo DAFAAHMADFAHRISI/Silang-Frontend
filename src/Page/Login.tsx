@@ -21,6 +21,8 @@ const Login: React.FC = () => {
         setError('Login Google gagal. Silakan coba lagi.');
       } else if (errorParam === 'callback_failed') {
         setError('Terjadi kesalahan saat memproses login Google.');
+      } else if (errorParam === 'account_not_found') {
+        setError('Akun belum terdaftar. Silakan register terlebih dahulu.');
       } else {
         setError('Terjadi kesalahan saat login.');
       }
@@ -32,8 +34,9 @@ const Login: React.FC = () => {
   };
 
   const handleGoogleLogin = () => {
-    // Redirect user ke Google OAuth sesuai dokumentasi
-    window.location.href = 'http://localhost:3000/API/auth/google';
+    // Redirect ke Google OAuth dengan callback URL yang mengarah ke frontend
+    const callbackUrl = encodeURIComponent('http://localhost:3333/google-callback');
+    window.location.href = `http://localhost:3000/API/auth/google?callback=${callbackUrl}`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,8 +68,6 @@ const Login: React.FC = () => {
           console.log('Stored user_id:', data.id.toString());
         }
         if (data.mentor_id) localStorage.setItem('mentor_id', data.mentor_id.toString());
-        // Hapus baris ini karena backend tidak mengirim user_id
-        // if (data.user_id) localStorage.setItem('user_id', data.user_id.toString());
         
         // Store complete user data for debugging
         localStorage.setItem('user_data', JSON.stringify(data));
@@ -120,6 +121,7 @@ const Login: React.FC = () => {
             Register
           </button>
         </div>
+        
         {/* Login Form */}
         {activeTab === 'login' && (
           <form className="flex flex-col gap-3 lg:gap-4" onSubmit={handleSubmit}>
@@ -131,6 +133,7 @@ const Login: React.FC = () => {
               onChange={handleChange}
               className="bg-transparent border border-gray-700 rounded-md px-3 py-2 lg:px-4 lg:py-3 text-gray-200 focus:outline-none focus:border-blue-400 placeholder-gray-400 text-sm lg:text-base"
             />
+            
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
@@ -157,7 +160,22 @@ const Login: React.FC = () => {
                 )}
               </button>
             </div>
-            {error && <div className="text-red-400 text-xs lg:text-sm">{error}</div>}
+            
+            {error && (
+              <div className="space-y-2">
+                <div className="text-red-400 text-xs lg:text-sm">{error}</div>
+                {error.includes('Akun belum terdaftar') && (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/register')}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 lg:py-3 rounded-md transition-colors duration-200 text-sm lg:text-base"
+                  >
+                    Daftar Sekarang
+                  </button>
+                )}
+              </div>
+            )}
+            
             <button
               type="submit"
               className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 lg:py-3 rounded-md transition-colors duration-200 text-sm lg:text-base"
@@ -177,7 +195,8 @@ const Login: React.FC = () => {
             <button
               type="button"
               onClick={handleGoogleLogin}
-              className="flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 lg:py-3 px-4 rounded-md transition-colors duration-200 text-sm lg:text-base border border-gray-300"
+              disabled={loading}
+              className="flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 lg:py-3 px-4 rounded-md transition-colors duration-200 text-sm lg:text-base border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -185,10 +204,11 @@ const Login: React.FC = () => {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              Login dengan Google
+              {loading ? 'Memproses...' : 'Login dengan Google'}
             </button>
           </form>
         )}
+        
         {/* Register Form Placeholder */}
         {activeTab === 'register' && (
           <div className="text-gray-400 text-center py-8 text-sm lg:text-base">Register form goes here.</div>

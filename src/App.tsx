@@ -35,22 +35,23 @@ import TambahGuruSiswa from './Page/SuperAdmin/Data Guru Siswa/Tambah/Tambah';
 import EditGuruSiswa from './Page/SuperAdmin/Data Guru Siswa/Edit/Edit';
 import DetailGuruSiswa from './Page/SuperAdmin/Data Guru Siswa/Detail/Detail';
 import DataRekap from './Page/SuperAdmin/Data Rekap/Data Rekap';
-import DataTugasGuru from './Page/Guru/Tugas/Data Tugas';
-import DataAbsensiGuru from './Page/Guru/Absensi/Data Absensi';
-import DataRekapGuru from './Page/Guru/Rekap/Data Rekap';
 import TugasMentor from './Page/Mentor/Tugas/TugasMentor';
 import TambahTugas from './Page/Mentor/Tugas/Tambah/Tambah';
 import EditTugas from './Page/Mentor/Tugas/Edit/Edit';
 import DetailTugasMentor from './Page/Mentor/Tugas/Detail/Detail';
 import DataAbsensiMentor from './Page/Mentor/Absensi/Data Absensi';
 import DataRekapMentor from './Page/Mentor/Rekap/Data Rekap';
+import ChatMentor from './Page/Mentor/Chat/Chat';
+import DataTugasGuru from './Page/Guru/Tugas/Data Tugas';
+import DataAbsensiGuru from './Page/Guru/Absensi/Data Absensi';
+import DataRekapGuru from './Page/Guru/Rekap/Data Rekap';
 import DetailTugas from './Page/Guru/Tugas/Detail/Detail';
 import DetailAbsensi from './Page/Guru/Absensi/Detail/Detail';
 import DetailRekap from './Page/Guru/Rekap/Detail/Detail';
-import ChatMentor from './Page/Mentor/Chat/Chat';
 import ChatGuru from './Page/Guru/Chat/Chat';
 import LoadingRole from './Page/LoadingRole';
-
+import GoogleCallback from './Page/GoogleCallback';
+import AuthError from './Page/AuthError';
 
 import './App.css';
 
@@ -61,6 +62,9 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/" element={<Dashboard />} />
         <Route path='/Login' element={<Login />} />
+        <Route path='/google-callback' element={<GoogleCallback />} />
+        <Route path='/auth-error' element={<AuthError />} />
+        <Route path='/auth-error.html' element={<AuthError />} />
         <Route path='/DashboardSiswa' element={<Layout><DashboardSiswa /></Layout>} />
         <Route path='/TodoSiswa' element={<Layout><Todo /></Layout>} />
         <Route path='/siswa/todo/detail/:id' element={<Layout><Detail /></Layout>} />
