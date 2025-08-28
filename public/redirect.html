@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting to Frontend...</title>
+    
+    <!-- Meta refresh untuk redirect otomatis -->
+    <meta http-equiv="refresh" content="0;url=http://localhost:3333/auth-error">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .redirect-container {
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .spinner {
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #2563eb;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h1 {
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        p {
+            color: #6b7280;
+            margin-bottom: 1rem;
+        }
+        .redirect-link {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .redirect-link:hover {
+            text-decoration: underline;
+        }
+        .countdown {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2563eb;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="redirect-container">
+        <div class="spinner"></div>
+        <h1>Mengalihkan ke Frontend...</h1>
+        <p>Halaman ini akan otomatis dialihkan ke tampilan yang lebih baik.</p>
+        <div class="countdown" id="countdown">0</div>
+        <p>Jika tidak otomatis dialihkan, <a href="http://localhost:3333/auth-error" class="redirect-link">klik di sini</a></p>
+    </div>
+
+    <script>
+        // Get current URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const frontendUrl = `http://localhost:3333/auth-error${window.location.search}`;
+        
+        // Update meta refresh dengan URL yang benar
+        const metaRefresh = document.querySelector('meta[http-equiv="refresh"]');
+        if (metaRefresh) {
+            metaRefresh.setAttribute('content', `0;url=${frontendUrl}`);
+        }
+        
+        // Update manual link
+        const manualLink = document.querySelector('.redirect-link');
+        if (manualLink) {
+            manualLink.href = frontendUrl;
+        }
+        
+        // Countdown timer
+        let countdown = 3;
+        const countdownElement = document.getElementById('countdown');
+        
+        const timer = setInterval(() => {
+            countdown--;
+            if (countdownElement) {
+                countdownElement.textContent = countdown;
+            }
+            
+            if (countdown <= 0) {
+                clearInterval(timer);
+                window.location.href = frontendUrl;
+            }
+        }, 1000);
+        
+        // Immediate redirect jika di backend
+        if (window.location.hostname === 'localhost' && window.location.port === '3000') {
+            window.location.href = frontendUrl;
+        }
+        
+        // Fallback redirect setelah 3 detik
+        setTimeout(() => {
+            if (window.location.href !== frontendUrl) {
+                window.location.href = frontendUrl;
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
