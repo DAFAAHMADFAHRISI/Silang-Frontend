@@ -63,6 +63,40 @@ const UserManagement: React.FC = () => {
         }
         
         setUserData(Array.isArray(json) ? json : []);
+        
+        // Debug: Log all users and their roles
+        if (Array.isArray(json)) {
+          console.log('=== ALL USERS DEBUG ===');
+          json.forEach((user, index) => {
+            console.log(`User ${index + 1}:`, {
+              nama: user.nama,
+              email: user.email,
+              role: user.role,
+              roleType: typeof user.role,
+              roleNull: user.role === null,
+              roleUndefined: user.role === undefined,
+              roleEmpty: user.role === '',
+              roleStringNull: user.role === 'null',
+              roleStringNULL: user.role === 'NULL'
+            });
+          });
+          
+          // Check for unverified users
+          const unverifiedUsers = json.filter(user => {
+            const role = user.role;
+            return !role || 
+                   role === '' || 
+                   role === 'null' || 
+                   role === 'NULL' || 
+                   role === 'undefined' || 
+                   role === 'Undefined' ||
+                   role === null ||
+                   role === undefined ||
+                   (typeof role === 'string' && role.trim() === '');
+          });
+          console.log('=== UNVERIFIED USERS COUNT ===', unverifiedUsers.length);
+          console.log('Unverified users:', unverifiedUsers);
+        }
       } catch (err) {
         console.error('Error fetching users:', err);
         setUserData([]);
@@ -180,16 +214,31 @@ const UserManagement: React.FC = () => {
     let filteredByRole;
     switch (activeTab) {
       case 'superadmin':
-        filteredByRole = userData.filter(user => user.role.toLowerCase() === 'superadmin' || user.role === '1');
+        filteredByRole = userData.filter(user => user.role && (user.role.toLowerCase() === 'superadmin' || user.role === '1'));
         break;
       case 'mentor':
-        filteredByRole = userData.filter(user => user.role.toLowerCase() === 'mentor' || user.role === '3');
+        filteredByRole = userData.filter(user => user.role && (user.role.toLowerCase() === 'mentor' || user.role === '3'));
         break;
       case 'guru':
-        filteredByRole = userData.filter(user => user.role.toLowerCase() === 'guru' || user.role === '4');
+        filteredByRole = userData.filter(user => user.role && (user.role.toLowerCase() === 'guru' || user.role === '4'));
         break;
       case 'siswa':
-        filteredByRole = userData.filter(user => user.role.toLowerCase() === 'siswa' || user.role === '5');
+        filteredByRole = userData.filter(user => user.role && (user.role.toLowerCase() === 'siswa' || user.role === '5'));
+        break;
+      case 'belum_diverifikasi':
+        // More comprehensive filtering for unverified users
+        filteredByRole = userData.filter(user => {
+          const role = user.role;
+          return !role || 
+                 role === '' || 
+                 role === 'null' || 
+                 role === 'NULL' || 
+                 role === 'undefined' || 
+                 role === 'Undefined' ||
+                 role === null ||
+                 role === undefined ||
+                 (typeof role === 'string' && role.trim() === '');
+        });
         break;
       default:
         filteredByRole = userData;
@@ -202,22 +251,34 @@ const UserManagement: React.FC = () => {
 
     const searchLower = searchTerm.toLowerCase();
     return filteredByRole.filter(user => 
-      user.nama.toLowerCase().includes(searchLower) ||
-      user.email.toLowerCase().includes(searchLower) ||
-      user.no_hp.toLowerCase().includes(searchLower) ||
-      user.asal_institusi.toLowerCase().includes(searchLower) ||
-      user.role.toLowerCase().includes(searchLower) ||
-      user.kelamin.toLowerCase().includes(searchLower)
+      (user.nama && user.nama.toLowerCase().includes(searchLower)) ||
+      (user.email && user.email.toLowerCase().includes(searchLower)) ||
+      (user.no_hp && user.no_hp.toLowerCase().includes(searchLower)) ||
+      (user.asal_institusi && user.asal_institusi.toLowerCase().includes(searchLower)) ||
+      (user.role && user.role.toLowerCase().includes(searchLower)) ||
+      (user.kelamin && user.kelamin.toLowerCase().includes(searchLower))
     );
   };
 
   const filteredUsers = getFilteredUsers();
 
   const tabs = [
-    { id: 'superadmin', label: 'Superadmin', count: userData.filter(u => u.role.toLowerCase() === 'superadmin' || u.role === '1').length },
-    { id: 'mentor', label: 'Mentor', count: userData.filter(u => u.role.toLowerCase() === 'mentor' || u.role === '3').length },
-    { id: 'guru', label: 'Guru', count: userData.filter(u => u.role.toLowerCase() === 'guru' || u.role === '4').length },
-    { id: 'siswa', label: 'Siswa', count: userData.filter(u => u.role.toLowerCase() === 'siswa' || u.role === '5').length },
+    { id: 'superadmin', label: 'Superadmin', count: userData.filter(u => u.role && u.role.toLowerCase() === 'superadmin' || u.role === '1').length },
+    { id: 'mentor', label: 'Mentor', count: userData.filter(u => u.role && u.role.toLowerCase() === 'mentor' || u.role === '3').length },
+    { id: 'guru', label: 'Guru', count: userData.filter(u => u.role && u.role.toLowerCase() === 'guru' || u.role === '4').length },
+    { id: 'siswa', label: 'Siswa', count: userData.filter(u => u.role && u.role.toLowerCase() === 'siswa' || u.role === '5').length },
+    { id: 'belum_diverifikasi', label: 'Belum Diverifikasi', count: userData.filter(u => {
+      const role = u.role;
+      return !role || 
+             role === '' || 
+             role === 'null' || 
+             role === 'NULL' || 
+             role === 'undefined' || 
+             role === 'Undefined' ||
+             role === null ||
+             role === undefined ||
+             (typeof role === 'string' && role.trim() === '');
+    }).length },
   ];
 
   // Clear search when changing tabs
@@ -248,7 +309,9 @@ const UserManagement: React.FC = () => {
             onClick={() => handleTabChange(tab.id)}
             className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-200 ${
               activeTab === tab.id
-                ? 'bg-blue-600 text-white shadow-lg'
+                ? tab.id === 'belum_diverifikasi' 
+                  ? 'bg-yellow-600 text-white shadow-lg'
+                  : 'bg-blue-600 text-white shadow-lg'
                 : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
             }`}
           >
@@ -354,13 +417,15 @@ const UserManagement: React.FC = () => {
                     <td className="px-3 py-2 whitespace-nowrap text-gray-300">{row.no_hp}</td>
                     <td className="px-3 py-2 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs rounded-full font-semibold shadow-sm border ${
+                        !row.role || row.role === '' || row.role === 'null' || row.role === 'NULL' || row.role === 'undefined' || row.role === 'Undefined' || row.role === null || row.role === undefined || (typeof row.role === 'string' && row.role.trim() === '')
+                          ? 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30' :
                         row.role === 'superadmin' ? 'bg-red-500/20 text-red-300 border-red-400/30' :
                         row.role === 'mentor' ? 'bg-blue-500/20 text-blue-300 border-blue-400/30' :
                         row.role === 'guru' ? 'bg-green-500/20 text-green-300 border-green-400/30' :
                         row.role === 'siswa' ? 'bg-gray-500/20 text-gray-300 border-gray-400/30' :
                         'bg-gray-700/30 text-gray-300 border-gray-500/30'
                       }`}>
-                        {row.role}
+                        {!row.role || row.role === '' || row.role === 'null' || row.role === 'NULL' || row.role === 'undefined' || row.role === 'Undefined' || row.role === null || row.role === undefined || (typeof row.role === 'string' && row.role.trim() === '') ? 'Belum Diverifikasi' : row.role}
                       </span>
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap text-gray-300 font-medium">{row.asal_institusi}</td>

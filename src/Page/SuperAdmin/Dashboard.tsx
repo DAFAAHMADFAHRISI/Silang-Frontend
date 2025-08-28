@@ -2,16 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Users, UserCheck, Clock, CheckCircle, TrendingUp, Calendar, Award, AlertCircle } from "lucide-react";
 
 // StatCard diambil dari Dashboard siswa agar identik
-const StatCard = ({ title, value, icon, color, trend }: { title: string; value: string | number; icon: React.ReactNode; color: string; trend?: string }) => (
+const StatCard = ({ title, value, icon, color }: { title: string; value: string | number; icon: React.ReactNode; color: string }) => (
   <div className={`${color} rounded-xl p-6 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl`}>
     <div className="flex items-center justify-between mb-4">
       <div className="p-3 bg-white/20 rounded-lg backdrop-blur-sm">{icon}</div>
-      {trend && (
-        <div className="flex items-center text-sm font-medium">
-          <TrendingUp className="w-4 h-4 mr-1" />
-          {trend}
-        </div>
-      )}
     </div>
     <div className="space-y-1">
       <p className="text-white/80 text-sm font-medium">{title}</p>
@@ -98,46 +92,34 @@ const Dashboard: React.FC = () => {
 
   const stats = [
     {
-      title: "Hadir Hari Ini",
-      value: statsData.total_siswa_hadir,
-      icon: <UserCheck className="w-6 h-6 text-white" />,
-      color: "bg-gradient-to-br from-green-500 to-emerald-600",
-      trend: undefined,
-    },
-    {
-      title: "Telat Hari Ini",
-      value: statsData.total_siswa_telat,
-      icon: <Clock className="w-6 h-6 text-white" />,
-      color: "bg-gradient-to-br from-yellow-500 to-orange-500",
-      trend: undefined,
-    },
-    {
-      title: "Tepat Waktu",
-      value: statsData.total_siswa_tepat_waktu,
-      icon: <CheckCircle className="w-6 h-6 text-white" />,
-      color: "bg-gradient-to-br from-blue-500 to-cyan-600",
-      trend: undefined,
-    },
-    {
-      title: "Jumlah Guru",
-      value: statsData.total_guru,
-      icon: <Users className="w-6 h-6 text-white" />,
-      color: "bg-gradient-to-br from-purple-500 to-pink-600",
-      trend: undefined,
-    },
-    {
-      title: "Jumlah Mentor",
-      value: statsData.total_mentor,
-      icon: <Users className="w-6 h-6 text-white" />,
-      color: "bg-gradient-to-br from-indigo-500 to-purple-600",
-      trend: undefined,
-    },
-    {
-      title: "Jumlah Siswa",
+      title: "Total Siswa",
       value: statsData.total_siswa,
       icon: <Users className="w-6 h-6 text-white" />,
-      color: "bg-gradient-to-br from-emerald-500 to-teal-600",
-      trend: undefined,
+      color: "bg-gradient-to-br from-green-500 to-emerald-600",
+    },
+    {
+      title: "Total Mentor",
+      value: statsData.total_mentor,
+      icon: <UserCheck className="w-6 h-6 text-white" />,
+      color: "bg-gradient-to-br from-blue-500 to-cyan-600",
+    },
+    {
+      title: "Siswa Hadir",
+      value: statsData.total_siswa_hadir,
+      icon: <Clock className="w-6 h-6 text-white" />,
+      color: "bg-gradient-to-br from-yellow-500 to-orange-500",
+    },
+    {
+      title: "Siswa Telat",
+      value: statsData.total_siswa_telat,
+      icon: <AlertCircle className="w-6 h-6 text-white" />,
+      color: "bg-gradient-to-br from-red-500 to-pink-600",
+    },
+    {
+      title: "Siswa Tepat Waktu",
+      value: statsData.total_siswa_tepat_waktu,
+      icon: <CheckCircle className="w-6 h-6 text-white" />,
+      color: "bg-gradient-to-br from-purple-500 to-indigo-600",
     },
   ];
 
@@ -158,7 +140,7 @@ const Dashboard: React.FC = () => {
       ) : error ? (
         <div className="text-red-400">{error}</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           {stats.map((stat, idx) => (
             <StatCard key={idx} {...stat} />
           ))}

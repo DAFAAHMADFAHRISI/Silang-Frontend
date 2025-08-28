@@ -499,8 +499,8 @@ const TugasMentor: React.FC = () => {
         throw new Error(`Gagal menyimpan nilai (status ${response.status}).`);
       }
 
-      // Update submission lokal atau refresh list
-      setSubmissions(prev => prev.map(s => s.id === submissionId ? { ...s, nilai: parsedNilai, catatan_guru: input.catatan_guru } as Submission : s));
+      // Refresh the tasks list to get updated submission counts
+      fetchTasks();
       alert('Nilai submission berhasil diupdate.');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Gagal menyimpan nilai.';
