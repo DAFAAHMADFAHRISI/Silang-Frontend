@@ -1,8 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Register from './Page/Register';
+import Register from './Page/Auth/Register';
 import Dashboard from './Page/Dashboard';
-import Login from './Page/Login';
+import Login from './Page/Auth/Login';
 import DashboardSiswa from './Page/Siswa/Dashboard';
 import Todo from './Page/Siswa/Todo/Todo';
 import Detail from './Page/Siswa/Todo/Detail/Detail';
@@ -52,13 +52,18 @@ import ChatGuru from './Page/Guru/Chat/Chat';
 import LoadingRole from './Page/LoadingRole';
 import GoogleCallback from './Page/GoogleCallback';
 import AuthError from './Page/AuthError';
+import ErrorBoundary from './components/ErrorBoundary';
+import ToastManager from './components/ToastManager';
+import ErrorHandler from './components/ErrorHandler';
 
 import './App.css';
 
 function App() {
   return (
-    <Router>
-      <Routes>
+    <ErrorBoundary>
+      <ToastManager>
+        <Router>
+          <Routes>
         <Route path="/register" element={<Register />} />
         <Route path="/" element={<Dashboard />} />
         <Route path='/Login' element={<Login />} />
@@ -117,8 +122,13 @@ function App() {
         <Route path='/DataGuruSiswa/edit/:id' element={<Layout><EditGuruSiswa /></Layout>} />
         <Route path='/DataGuruSiswa/detail/:id' element={<Layout><DetailGuruSiswa /></Layout>} />
         <Route path='/DataRekap' element={<Layout><DataRekap /></Layout>} />
-      </Routes>
-    </Router>
+        
+        {/* 404 Route - Must be last */}
+        <Route path="*" element={<ErrorHandler />} />
+        </Routes>
+        </Router>
+      </ToastManager>
+    </ErrorBoundary>
   );
 }
 
