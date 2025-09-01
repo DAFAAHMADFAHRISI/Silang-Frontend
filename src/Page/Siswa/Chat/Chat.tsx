@@ -49,6 +49,7 @@ interface MessagesResponse {
 interface User {
   id: number;
   name: string;
+  nama?: string;
   role: string;
   photo?: string;
 }
@@ -66,7 +67,6 @@ const Chat: React.FC = () => {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchUsersQuery, setSearchUsersQuery] = useState('');
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [searchingUsers, setSearchingUsers] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -78,6 +78,7 @@ const Chat: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showContacts, setShowContacts] = useState(false);
+  const [newChatSearchQuery, setNewChatSearchQuery] = useState('');
 
   const API_BASE_URL = 'http://localhost:3000/API';
   const token = localStorage.getItem('token');
@@ -402,19 +403,27 @@ const Chat: React.FC = () => {
     fetchChatRooms();
   };
 
-  // Debounced search for users
+
+
+  // Debounced search for users in new chat modal
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (searchUsersQuery.trim()) {
-        searchUsers(searchUsersQuery);
+      if (newChatSearchQuery.trim()) {
+        // Search in available users instead of calling API
+        const filtered = availableUsers.filter((user: any) => 
+          (user.nama?.toLowerCase().includes(newChatSearchQuery.toLowerCase()) || user.name?.toLowerCase().includes(newChatSearchQuery.toLowerCase())) ||
+          user.role?.toLowerCase().includes(newChatSearchQuery.toLowerCase())
+        );
+        setSearchResults(filtered);
+        setShowSearchResults(true);
       } else {
         setSearchResults([]);
         setShowSearchResults(false);
       }
-    }, 500); // 500ms delay
+    }, 300); // 300ms delay
 
     return () => clearTimeout(timeoutId);
-  }, [searchUsersQuery]);
+  }, [newChatSearchQuery, availableUsers]);
 
   useEffect(() => {
     fetchChatRooms();
@@ -479,9 +488,15 @@ const Chat: React.FC = () => {
     }
   };
 
-  const filteredRooms = chatRooms.filter(room =>
-    room.other_user_name.toLowerCase().includes(searchUsersQuery.toLowerCase())
-  );
+  const filteredRooms = chatRooms.filter(room => {
+    if (!room || !room.other_user_name) return false;
+    
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return true;
+    
+    return room.other_user_name.toLowerCase().includes(query) ||
+           (room.last_message && room.last_message.toLowerCase().includes(query));
+  });
 
   const getRoleLabel = (role: string) => {
     switch (role) {
@@ -493,7 +508,7 @@ const Chat: React.FC = () => {
     }
   };
 
-  // Search users for new chat
+  // Search users for new chat - now using local search instead of API call
   const searchUsers = async (query: string) => {
     if (!query.trim()) {
       setSearchResults([]);
@@ -505,35 +520,16 @@ const Chat: React.FC = () => {
       setSearchingUsers(true);
       console.log('Searching users with query:', query);
       
-      const response = await fetch(`${API_BASE_URL}/chat/search-users?q=${encodeURIComponent(query)}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      console.log('Search users response status:', response.status);
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          setError('Sesi Anda telah berakhir. Silakan login kembali.');
-          return;
-        }
-        throw new Error(`Gagal mencari user: ${response.status} ${response.statusText}`);
-      }
-
-      const result: ApiResponse<SearchUsersResponse> = await response.json();
-      console.log('Search users response:', result);
+      // Search in available users instead of calling API
+      const filtered = availableUsers.filter((user: any) => 
+        (user.nama?.toLowerCase().includes(query.toLowerCase()) || user.name?.toLowerCase().includes(query.toLowerCase())) ||
+        user.role?.toLowerCase().includes(query.toLowerCase())
+      );
       
-      if (result.success) {
-        setSearchResults(result.data.users);
-        setShowSearchResults(true);
-        console.log('Users found:', result.data.users.length);
-      } else {
-        console.error('API Error:', result.message);
-        setSearchResults([]);
-      }
+      setSearchResults(filtered);
+      setShowSearchResults(true);
+      console.log('Users found:', filtered.length);
+      
     } catch (error) {
       console.error('Error searching users:', error);
       setSearchResults([]);
@@ -588,7 +584,7 @@ const Chat: React.FC = () => {
         setChatRooms(prev => [newRoom, ...prev]);
         setSelectedRoom(newRoom);
         setShowNewChatModal(false);
-        setSearchUsersQuery('');
+        setNewChatSearchQuery('');
         setSearchResults([]);
         // Fetch messages for the new room immediately
         fetchMessages(newRoom.room_id);
@@ -640,9 +636,13 @@ const Chat: React.FC = () => {
       }
       // Log user ids for debugging
       console.log('User list for new chat:', users.map((u: any) => u.id));
-      // Filter out users that already have chat rooms
+      // Filter out current user and users that already have chat rooms
+      const currentUserId = localStorage.getItem('user_id');
       const existingUserIds = chatRooms.map(room => room.other_user_id);
-      const newUsers = users.filter((user: any) => !existingUserIds.includes(user.id));
+      const newUsers = users.filter((user: any) => 
+        user.id.toString() !== currentUserId && 
+        !existingUserIds.includes(user.id)
+      );
       // Jika hasil filter kosong, tampilkan semua user untuk debugging
       if (newUsers.length === 0 && users.length > 0) {
         console.warn('Semua user sudah di-chat, tampilkan semua user untuk debugging');
@@ -671,6 +671,8 @@ const Chat: React.FC = () => {
   // Handle new chat button click
   const handleNewChatClick = () => {
     setShowNewChatModal(true);
+    setNewChatSearchQuery('');
+    setSearchResults([]);
     fetchAvailableUsers();
   };
 
@@ -725,44 +727,17 @@ const Chat: React.FC = () => {
             </div>
           )}
         </div>
-        <div className="flex items-center space-x-2">
-          <button 
-            onClick={handleNewChatClick}
-            className="text-gray-400 hover:text-white p-2"
-            title="Mulai Chat Baru"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-          </button>
-          <button 
-            onClick={() => {
-              console.log('🔍 Debug Info:', {
-                currentUserId: currentUserId,
-                localStorage: {
-                  user_id: localStorage.getItem('user_id'),
-                  nama: localStorage.getItem('nama'),
-                  user_data: localStorage.getItem('user_data')
-                },
-                selectedRoom: selectedRoom,
-                messagesCount: messages.length,
-                messages: messages.map(msg => ({
-                  id: msg.id,
-                  sender_id: msg.sender_id,
-                  sender_name: msg.sender_name,
-                  message: msg.message,
-                  isFromCurrentUser: msg.sender_id === currentUserId
-                }))
-              });
-            }}
-            className="text-gray-400 hover:text-white p-2"
-            title="Debug Info"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-          </button>
-        </div>
+                 <div className="flex items-center space-x-2">
+           <button 
+             onClick={handleNewChatClick}
+             className="text-gray-400 hover:text-white p-2"
+             title="Mulai Chat Baru"
+           >
+             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+             </svg>
+           </button>
+         </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden flex-row-reverse">
@@ -771,70 +746,33 @@ const Chat: React.FC = () => {
           ${showContacts ? 'block' : 'hidden'} lg:block
           w-full lg:w-80 bg-gray-800 border-l border-gray-700 flex flex-col
         `}>
-          <div className="p-4 border-b border-gray-700">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Cari kontak atau user baru..."
-                value={searchUsersQuery}
-                onChange={(e) => setSearchUsersQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
+                     <div className="p-4 border-b border-gray-700">
+             <div className="flex items-center justify-between">
+               <h3 className="text-white font-medium">Kontak</h3>
+               <div className="relative">
+                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                 <input
+                   type="text"
+                   placeholder="Cari chat..."
+                   value={searchQuery}
+                   onChange={(e) => setSearchQuery(e.target.value)}
+                   className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                 />
+               </div>
+             </div>
+           </div>
           
-          <div className="flex-1 overflow-y-auto">
-            {/* Search Results */}
-            {showSearchResults && (
-              <div className="border-b border-gray-700">
-                <div className="p-3 bg-gray-700/50">
-                  <h3 className="text-white font-medium text-sm mb-2">Hasil Pencarian</h3>
-                  {searchingUsers ? (
-                    <div className="flex items-center space-x-2 text-gray-400">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span className="text-sm">Mencari...</span>
-                    </div>
-                  ) : searchResults.length > 0 ? (
-                    <div className="space-y-2">
-                      {searchResults.map((user) => (
-                        <div
-                          key={user.id}
-                          onClick={() => createChatRoom(user.id, user.name)}
-                          className="flex items-center p-2 hover:bg-gray-600 rounded-lg cursor-pointer transition-colors"
-                        >
-                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
-                            <span className="text-white text-sm font-medium">
-                              {user.name.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="text-white font-medium text-sm">{user.name}</h4>
-                            <p className="text-gray-400 text-xs">{getRoleLabel(user.role)}</p>
-                          </div>
-                          <button className="text-blue-400 hover:text-blue-300 text-xs">
-                            Mulai Chat
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-gray-400 text-sm">Tidak ada user ditemukan</p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Existing Chat Rooms */}
+                     <div className="flex-1 overflow-y-auto">
+             {/* Existing Chat Rooms */}
             <div className="p-3 bg-gray-700/50 border-b border-gray-700">
               <h3 className="text-white font-medium text-sm">Chat Terbaru</h3>
             </div>
             
-            {filteredRooms.length === 0 ? (
-              <div className="p-4 text-center text-gray-400">
-                {searchUsersQuery ? 'Tidak ada kontak yang ditemukan' : 'Belum ada chat room'}
-              </div>
-            ) : (
+                         {filteredRooms.length === 0 ? (
+               <div className="p-4 text-center text-gray-400">
+                 {searchQuery ? 'Tidak ada chat yang ditemukan' : 'Belum ada chat room'}
+               </div>
+             ) : (
               filteredRooms.map((room) => (
                 <div
                   key={room.room_id}
@@ -1018,9 +956,9 @@ const Chat: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Cari user..."
-                  value={searchUsersQuery}
-                  onChange={(e) => setSearchUsersQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  value={newChatSearchQuery}
+                  onChange={(e) => setNewChatSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               
@@ -1032,27 +970,27 @@ const Chat: React.FC = () => {
                       <span>Memuat daftar user...</span>
                     </div>
                   </div>
-                ) : searchUsersQuery ? (
+                ) : newChatSearchQuery ? (
                   // Show search results
                   searchResults.length > 0 ? (
                     <div className="space-y-2">
-                      {searchResults.map((user) => (
+                      {searchResults.map((user: any) => (
                         <div
                           key={user.id}
-                          onClick={() => {
-                            createChatRoom(user.id, user.name);
-                            setShowNewChatModal(false);
-                            setSearchUsersQuery('');
-                          }}
+                                                      onClick={() => {
+                              createChatRoom(user.id, user.nama || user.name || 'Tanpa Nama');
+                              setShowNewChatModal(false);
+                              setNewChatSearchQuery('');
+                            }}
                           className="flex items-center p-3 hover:bg-gray-700 rounded-lg cursor-pointer transition-colors"
                         >
                           <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-3">
                             <span className="text-white font-medium">
-                              {user.name.charAt(0).toUpperCase()}
+                              {user.nama?.charAt(0).toUpperCase() || '?'}
                             </span>
                           </div>
                           <div className="flex-1">
-                            <h4 className="text-white font-medium">{user.name}</h4>
+                            <h4 className="text-white font-medium">{user.nama || 'Tanpa Nama'}</h4>
                             <p className="text-gray-400 text-sm">{getRoleLabel(user.role)}</p>
                           </div>
                         </div>
@@ -1079,19 +1017,17 @@ const Chat: React.FC = () => {
                               }}
                               className="flex items-center p-3 hover:bg-gray-700 rounded-lg cursor-pointer transition-colors"
                             >
-                              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-3">
-                                <span className="text-white font-medium">
-                                  {typeof user.nama === 'string' && user.nama.length > 0
-                                    ? user.nama.charAt(0).toUpperCase()
-                                    : '?'}
-                                </span>
-                              </div>
-                              <div className="flex-1">
-                                <h4 className="text-white font-medium">
-                                  {user.nama || 'Tanpa Nama'}
-                                </h4>
-                                <p className="text-gray-400 text-sm">{getRoleLabel(user.role)}</p>
-                              </div>
+                                                           <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                               <span className="text-white font-medium">
+                                 {user.nama?.charAt(0).toUpperCase() || user.name?.charAt(0).toUpperCase() || '?'}
+                               </span>
+                             </div>
+                             <div className="flex-1">
+                               <h4 className="text-white font-medium">
+                                 {user.nama || user.name || 'Tanpa Nama'}
+                               </h4>
+                               <p className="text-gray-400 text-sm">{getRoleLabel(user.role)}</p>
+                             </div>
                             </div>
                           ))}
                         </div>
