@@ -531,7 +531,7 @@ const Detail: React.FC = () => {
               className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl flex items-center space-x-2 transition-all duration-200 font-medium"
             >
               <Upload className="w-4 h-4" />
-              <span>Submit Answer</span>
+              <span>Submit Jawaban</span>
             </button>
           </div>
         )}
