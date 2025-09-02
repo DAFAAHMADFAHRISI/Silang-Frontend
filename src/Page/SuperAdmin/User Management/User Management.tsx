@@ -118,7 +118,7 @@ const UserManagement: React.FC = () => {
       return;
     }
     
-    if (!window.confirm('Yakin ingin menghapus user ini?')) return;
+    if (!window.confirm('apakah anda ingin menghapus akun ini?')) return;
     
     try {
       const token = localStorage.getItem('token');
@@ -206,6 +206,102 @@ const UserManagement: React.FC = () => {
         stack: (error as Error).stack
       });
       setNotif('Gagal menghapus user');
+    }
+  };
+
+  // Delete by role + email (body)
+  const deleteByRoleEmailBody = async (email: string) => {
+    if (!email) { setNotif('Email tidak valid'); return; }
+    if (!window.confirm('apakah anda ingin menghapus akun ini?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      const rolePath = activeTab === 'superadmin' ? 'superadmin' : activeTab;
+      const url = `http://localhost:3000/api/users/role/${rolePath}/delete`;
+      const res = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json().catch(async () => ({ message: await res.text() }));
+      if (res.ok) {
+        setNotif('User berhasil dihapus (body)');
+        const listUrl = `http://localhost:3000/api/superadmin/users/role/${rolePath}`;
+        const r = await fetch(listUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' } });
+        const j = await r.json();
+        setUserData(Array.isArray(j) ? j : []);
+        setTimeout(() => setNotif(null), 1500);
+      } else {
+        setNotif(data?.message || 'Gagal menghapus user (body)');
+      }
+    } catch (e) {
+      setNotif('Gagal menghapus user (body)');
+    }
+  };
+
+  // Delete by role + email (path)
+  const deleteByRoleEmailPath = async (email: string) => {
+    if (!email) { setNotif('Email tidak valid'); return; }
+    if (!window.confirm('Hapus user berdasarkan role + email (path)?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      const rolePath = activeTab === 'superadmin' ? 'superadmin' : activeTab;
+      const emailEncoded = encodeURIComponent(email);
+      const url = `http://localhost:3000/api/users/role/${rolePath}/delete/${emailEncoded}`;
+      const res = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+      const data = await res.json().catch(async () => ({ message: await res.text() }));
+      if (res.ok) {
+        setNotif('User berhasil dihapus (path)');
+        const listUrl = `http://localhost:3000/api/superadmin/users/role/${rolePath}`;
+        const r = await fetch(listUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' } });
+        const j = await r.json();
+        setUserData(Array.isArray(j) ? j : []);
+        setTimeout(() => setNotif(null), 1500);
+      } else {
+        setNotif(data?.message || 'Gagal menghapus user (path)');
+      }
+    } catch (e) {
+      setNotif('Gagal menghapus user (path)');
+    }
+  };
+
+  // Delete by ID
+  const deleteById = async (id?: number | null) => {
+    if (!id) { setNotif('ID user tidak valid'); return; }
+    if (!window.confirm('Hapus user berdasarkan ID?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      const url = `http://localhost:3000/api/users/${id}`;
+      const res = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+      const data = await res.json().catch(async () => ({ message: await res.text() }));
+      if (res.ok) {
+        setNotif('User berhasil dihapus (ID)');
+        const rolePath = activeTab === 'superadmin' ? 'superadmin' : activeTab;
+        const listUrl = `http://localhost:3000/api/superadmin/users/role/${rolePath}`;
+        const r = await fetch(listUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' } });
+        const j = await r.json();
+        setUserData(Array.isArray(j) ? j : []);
+        setTimeout(() => setNotif(null), 1500);
+      } else {
+        setNotif(data?.message || 'Gagal menghapus user (ID)');
+      }
+    } catch (e) {
+      setNotif('Gagal menghapus user (ID)');
     }
   };
 
@@ -431,28 +527,29 @@ const UserManagement: React.FC = () => {
                     <td className="px-3 py-2 whitespace-nowrap text-gray-300 font-medium">{row.asal_institusi}</td>
                     {activeTab !== 'superadmin' && (
                       <td className="px-3 py-2 whitespace-nowrap text-center">
-                        <button 
-                          type="button" 
-                          onClick={() => {
-                            handleDelete(identifier);
-                          }} 
-                          className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs font-bold shadow-sm mr-1"
-                        >
-                          Hapus
-                        </button>
-                        <button 
-                          type="button" 
-                          onClick={() => {
-                            if (userId) {
-                              navigate(`/UserManagement/edit/${userId}`);
-                            } else {
-                              setNotif('ID user tidak tersedia untuk edit');
-                            }
-                          }} 
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs font-bold shadow-sm"
-                        >
-                          Edit
-                        </button>
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => deleteByRoleEmailBody(row.email)}
+                            className="bg-red-700 hover:bg-red-800 text-white px-2 py-1 rounded text-[10px] font-bold shadow-sm"
+                            title="Hapus user berdasarkan role + email (body)"
+                          >
+                            Hapus
+                          </button>
+                          <button 
+                            type="button" 
+                            onClick={() => {
+                              if (userId) {
+                                navigate(`/UserManagement/edit/${userId}`);
+                              } else {
+                                setNotif('ID user tidak tersedia untuk edit');
+                              }
+                            }} 
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-[10px] font-bold shadow-sm"
+                          >
+                            Edit
+                          </button>
+                        </div>
                       </td>
                     )}
                   </tr>
