@@ -28,7 +28,7 @@ const ErrorHandler: React.FC = () => {
       // Check if this is a valid route by looking at the current routes
       const validRoutes = [
         '/', '/Login', '/register', '/google-callback', '/auth-error', '/test-auth-error',
-        '/DashboardSiswa', '/TodoSiswa', '/AttendanceSiswa', '/ChatSiswa', '/ReportSiswa', '/ProfileSiswa',
+        '/DashboardSiswa', '/TodoSiswa', '/AttendanceSiswa', '/ChatSiswa', '/ReportSiswa', '/ProfileSiswa', '/ResetPassword',
         '/mentor/dashboard', '/mentor/tugas', '/mentor/absensi', '/mentor/rekap', '/mentor/chat',
         '/guru/dashboard', '/guru/tugas', '/guru/absensi', '/guru/rekap', '/guru/chat',
         '/DashboardSuperAdmin', '/LoadingRole', '/Institusi', '/UserManagement', '/DataTugas', '/DataJadwal', '/DataAbsensi',
