@@ -16,7 +16,7 @@ const api: AxiosInstance = axios.create({
 api.interceptors.request.use(
   (config) => {
     // Add auth token if available
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -39,7 +39,10 @@ api.interceptors.response.use(
       switch (error.response.status) {
         case 401:
           // Unauthorized - redirect to login
-          localStorage.removeItem('authToken');
+          localStorage.removeItem('token');
+          localStorage.removeItem('nama');
+          localStorage.removeItem('role');
+          localStorage.removeItem('user_id');
           window.location.href = '/Login';
           break;
         case 403:
@@ -102,7 +105,7 @@ export const authAPI = {
   // Login
   login: async (credentials: { email: string; password: string }) => {
     try {
-      const response = await api.post('/auth/login', credentials);
+      const response = await api.post('/api/auth/login', credentials);
       return response.data;
     } catch (error) {
       console.error('Login failed:', error);
@@ -118,7 +121,7 @@ export const authAPI = {
     role: string;
   }) => {
     try {
-      const response = await api.post('/auth/register', userData);
+      const response = await api.post('/api/auth/register', userData);
       return response.data;
     } catch (error) {
       console.error('Registration failed:', error);
@@ -129,13 +132,19 @@ export const authAPI = {
   // Logout
   logout: async () => {
     try {
-      const response = await api.post('/auth/logout');
-      localStorage.removeItem('authToken');
+      const response = await api.post('/api/auth/logout');
+      localStorage.removeItem('token');
+      localStorage.removeItem('nama');
+      localStorage.removeItem('role');
+      localStorage.removeItem('user_id');
       return response.data;
     } catch (error) {
       console.error('Logout failed:', error);
       // Still remove token even if API call fails
-      localStorage.removeItem('authToken');
+      localStorage.removeItem('token');
+      localStorage.removeItem('nama');
+      localStorage.removeItem('role');
+      localStorage.removeItem('user_id');
       throw error;
     }
   },
@@ -143,10 +152,35 @@ export const authAPI = {
   // Get current user
   getCurrentUser: async () => {
     try {
-      const response = await api.get('/auth/me');
+      const response = await api.get('/api/auth/me');
       return response.data;
     } catch (error) {
       console.error('Failed to get current user:', error);
+      throw error;
+    }
+  },
+
+  // Forgot password
+  forgotPassword: async (email: string) => {
+    try {
+      const response = await api.post('/api/auth/forgot-password', { email });
+      return response.data;
+    } catch (error) {
+      console.error('Forgot password failed:', error);
+      throw error;
+    }
+  },
+
+  // Reset password
+  resetPassword: async (token: string, newPassword: string) => {
+    try {
+      const response = await api.post('/api/auth/reset-password', { 
+        token, 
+        newPassword: newPassword 
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Reset password failed:', error);
       throw error;
     }
   },
@@ -168,17 +202,20 @@ export const rootAPI = {
 
 // Utility functions
 export const setAuthToken = (token: string) => {
-  localStorage.setItem('authToken', token);
+  localStorage.setItem('token', token);
   api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 };
 
 export const removeAuthToken = () => {
-  localStorage.removeItem('authToken');
+  localStorage.removeItem('token');
+  localStorage.removeItem('nama');
+  localStorage.removeItem('role');
+  localStorage.removeItem('user_id');
   delete api.defaults.headers.common['Authorization'];
 };
 
 export const isAuthenticated = (): boolean => {
-  return !!localStorage.getItem('authToken');
+  return !!localStorage.getItem('token');
 };
 
 export default api;

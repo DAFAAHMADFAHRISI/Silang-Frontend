@@ -4,6 +4,7 @@ import Webcam from 'react-webcam';
 import axios from 'axios';
 import moment from 'moment';
 import Swal from 'sweetalert2';
+import { authAPI } from '../../services/api';
 
 interface ProfileData {
   id: number;
@@ -42,6 +43,7 @@ const Profile: React.FC = () => {
     newPassword: false,
     confirmNewPassword: false
   });
+
   const webcamRef = useRef<Webcam>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -592,6 +594,10 @@ const Profile: React.FC = () => {
     }
   };
 
+  const goToResetPassword = () => {
+    navigate('/ResetPassword');
+  };
+
   if (loading) {
     return (
       <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6 min-h-screen flex items-center justify-center">
@@ -898,6 +904,25 @@ const Profile: React.FC = () => {
           {passwordLoading ? 'Updating...' : 'Update Password'}
         </button>
       </form>
+      
+      {/* Reset Password Section */}
+      <hr className="my-8 border-gray-700" />
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-xl font-semibold text-white mb-2">Reset Password</h3>
+          <p className="text-gray-400 text-sm mb-4">
+            Jika Anda lupa password, Anda dapat mereset password melalui email.
+          </p>
+          <button 
+            onClick={goToResetPassword}
+            className="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2 rounded font-semibold transition-colors"
+          >
+            🔄 Reset Password
+          </button>
+        </div>
+      </div>
+
+
     </div>
   );
 };
