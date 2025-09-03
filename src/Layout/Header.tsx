@@ -83,6 +83,22 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                   Profile
                 </button>
               )}
+              {role === 'guru' && (
+                <button
+                  className="w-full text-left px-4 lg:px-6 py-1 text-white hover:bg-gray-700 text-sm lg:text-base rounded font-semibold"
+                  onClick={() => { setOpen(false); navigate('/Guru/Profile'); }}
+                >
+                  Profile
+                </button>
+              )}
+              {role === 'mentor' && (
+                <button
+                  className="w-full text-left px-4 lg:px-6 py-1 text-white hover:bg-gray-700 text-sm lg:text-base rounded font-semibold"
+                  onClick={() => { setOpen(false); navigate('/Mentor/Profile'); }}
+                >
+                  Profile
+                </button>
+              )}
               <button
                 className="w-full text-left px-4 lg:px-6 py-1 text-white hover:bg-gray-700 text-sm lg:text-base rounded font-semibold"
                 onClick={() => {

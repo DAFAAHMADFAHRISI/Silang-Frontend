@@ -50,6 +50,10 @@ import DetailTugas from './Page/Guru/Tugas/Detail/Detail';
 import DetailAbsensi from './Page/Guru/Absensi/Detail/Detail';
 import DetailRekap from './Page/Guru/Rekap/Detail/Detail';
 import ChatGuru from './Page/Guru/Chat/Chat';
+import ProfileGuru from './Page/Guru/Profile';
+import ResetPasswordGuru from './Page/Guru/ResetPassword';
+import ProfileMentor from './Page/Mentor/Profile';
+import ResetPasswordMentor from './Page/Mentor/ResetPassword';
 import LoadingRole from './Page/LoadingRole';
 import GoogleCallback from './Page/GoogleCallback';
 import AuthError from './Page/AuthError';
@@ -94,6 +98,9 @@ function App() {
         <Route path='/mentor/absensi' element={<Layout><DataAbsensiMentor /></Layout>} />
         <Route path='/mentor/rekap' element={<Layout><DataRekapMentor /></Layout>} />
         <Route path='/mentor/chat' element={<Layout><ChatMentor /></Layout>} />
+        <Route path='/Mentor/Profile' element={<Layout><ProfileMentor /></Layout>} />
+        <Route path='/Mentor/ResetPassword' element={<Layout><ResetPasswordMentor /></Layout>} />
+        <Route path='/Mentor/ResetPassword/Token' element={<Layout><ResetPasswordMentor /></Layout>} />
 
         {/* Guru Routes with /guru prefix */}
         <Route path='/guru/dashboard' element={<Layout><DashboardGuru /></Layout>} />
@@ -104,6 +111,9 @@ function App() {
         <Route path='/guru/absensi/detail/:id' element={<Layout><DetailAbsensi /></Layout>} />
         <Route path='/guru/rekap/detail/:id' element={<Layout><DetailRekap /></Layout>} />
         <Route path='/guru/chat' element={<Layout><ChatGuru /></Layout>} />
+        <Route path='/Guru/Profile' element={<Layout><ProfileGuru /></Layout>} />
+        <Route path='/Guru/ResetPassword' element={<Layout><ResetPasswordGuru /></Layout>} />
+        <Route path='/Guru/ResetPassword/Token' element={<Layout><ResetPasswordGuru /></Layout>} />
 
         {/* SuperAdmin Routes */}
         <Route path='/Institusi' element={<Layout><Institusi /></Layout>} />
