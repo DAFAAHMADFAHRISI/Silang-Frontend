@@ -9,6 +9,7 @@ interface UserRow {
   no_hp?: string;
   role?: string;
   asal_institusi?: string;
+  asal_institusi_id?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -72,11 +73,11 @@ const Edit: React.FC = () => {
         console.log('Fetched institusi list:', json);
         setInstitusiList(Array.isArray(json) ? json : []);
         
-        // After setting institusi list, check if we can match with current user
-        if (editingUser && Array.isArray(json)) {
-          const currentInstitusi = json.find(i => i.nama_institusi === editingUser.asal_institusi);
-          console.log('After loading institusi, current user institusi match:', currentInstitusi);
-        }
+                 // After setting institusi list, check if we can match with current user
+         if (editingUser && Array.isArray(json)) {
+           const currentInstitusi = json.find(i => i.id === editingUser.asal_institusi_id);
+           console.log('After loading institusi, current user institusi match:', currentInstitusi);
+         }
       } catch (error) {
         console.error('Error fetching institusi:', error);
       }
@@ -119,33 +120,27 @@ const Edit: React.FC = () => {
         return;
       }
       
-      // Ensure asal_institusi_id is set correctly
+      // Handle institusi - only update if user actually selected a different one
       const asalInstitusiValue = formData.get('asal_institusi_id');
       console.log('Form asal_institusi_id value:', asalInstitusiValue);
       
-      if (!asalInstitusiValue) {
-        // If not set, try to find the institusi ID from the current user data
-        const currentInstitusi = institusiList.find(i => i.nama_institusi === (editingUser.asal_institusi || ''));
-        console.log('Looking for institusi:', editingUser.asal_institusi);
-        console.log('Found institusi:', currentInstitusi);
-        
-        if (currentInstitusi) {
-          formData.set('asal_institusi_id', currentInstitusi.id.toString());
-          console.log('Setting asal_institusi_id to:', currentInstitusi.id.toString());
-        } else {
-          // If no match found, use the first available institusi
-          if (institusiList.length > 0) {
-            formData.set('asal_institusi_id', institusiList[0].id.toString());
-            console.log('Using first available institusi:', institusiList[0].id.toString());
-          } else {
-            setNotif('Tidak ada institusi tersedia');
-            setSubmitting(false);
-            return;
-          }
-        }
-      } else {
-        console.log('Asal institusi value being sent:', asalInstitusiValue.toString());
-      }
+             if (!asalInstitusiValue) {
+         // If no institution selected, remove it from form data so it won't be updated
+         formData.delete('asal_institusi_id');
+         console.log('No institution selected, removing from update data');
+       } else {
+         // Check if the selected institution is different from current one
+         const currentInstitusiId = editingUser.asal_institusi_id;
+         const selectedInstitusiId = Number(asalInstitusiValue);
+         
+         if (currentInstitusiId && selectedInstitusiId === currentInstitusiId) {
+           // Same institution, remove from form data so it won't be updated
+           formData.delete('asal_institusi_id');
+           console.log('Same institution selected, removing from update data');
+         } else {
+           console.log('Different institution selected, will update to:', asalInstitusiValue.toString());
+         }
+       }
       
       // Log all form data for debugging
       console.log('All form data being sent:');
@@ -204,14 +199,15 @@ const Edit: React.FC = () => {
   useEffect(() => {
     if (editingUser) {
       console.log('Editing user updated:', editingUser);
-      console.log('Role value for form:', editingUser.role);
-      console.log('Kelamin value for form:', editingUser.kelamin);
-      console.log('Asal institusi for form:', editingUser.asal_institusi);
-      console.log('Available institusi:', institusiList.map(i => i.nama_institusi));
+           console.log('Role value for form:', editingUser.role);
+     console.log('Kelamin value for form:', editingUser.kelamin);
+     console.log('Asal institusi for form:', editingUser.asal_institusi);
+     console.log('Asal institusi ID for form:', editingUser.asal_institusi_id);
+     console.log('Available institusi:', institusiList.map(i => i.nama_institusi));
       
-      // Check if current institusi exists in the list
-      const currentInstitusi = institusiList.find(i => i.nama_institusi === editingUser.asal_institusi);
-      console.log('Current institusi found:', currentInstitusi);
+             // Check if current institusi exists in the list
+       const currentInstitusi = institusiList.find(i => i.id === editingUser.asal_institusi_id);
+       console.log('Current institusi found:', currentInstitusi);
     }
   }, [editingUser, institusiList]);
 
@@ -329,30 +325,29 @@ const Edit: React.FC = () => {
               <input name="foto_profile" type="file" accept="image/*" className="w-full text-gray-300" />
               <p className="text-xs text-gray-500 mt-1">Biarkan kosong jika tidak ingin mengubah foto</p>
             </div>
-            <div className="sm:col-span-2">
-              <label className="block text-sm text-gray-300 mb-1">Asal Institusi</label>
-              <select 
-                key={`institusi-${institusiList.length}-${editingUser.asal_institusi}`}
-                name="asal_institusi_id" 
-                required 
-                className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white"
-              >
-                <option value="">Pilih Institusi</option>
-                {institusiList.map(i => {
-                  const isSelected = i.nama_institusi === editingUser.asal_institusi;
-                  console.log(`Institusi ${i.nama_institusi}: ${isSelected ? 'SELECTED' : 'not selected'}`);
-                  return (
-                    <option 
-                      key={i.id} 
-                      value={i.id}
-                      selected={isSelected}
-                    >
-                      {i.nama_institusi}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
+                         <div className="sm:col-span-2">
+               <label className="block text-sm text-gray-300 mb-1">Asal Institusi</label>
+               <select 
+                 key={`institusi-${institusiList.length}-${editingUser.asal_institusi}`}
+                 name="asal_institusi_id" 
+                 className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white"
+               >
+                                                                       <option value="">Pilih Institusi</option>
+                   {institusiList.map(i => {
+                     const isSelected = i.id === editingUser.asal_institusi_id;
+                     console.log(`Institusi ${i.nama_institusi}: ${isSelected ? 'SELECTED' : 'not selected'}`);
+                     return (
+                       <option 
+                         key={i.id} 
+                         value={i.id}
+                         selected={isSelected}
+                       >
+                         {i.nama_institusi}
+                       </option>
+                     );
+                   })}
+                </select>
+             </div>
           </div>
           <div className="flex gap-2">
             <button 
