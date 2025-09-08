@@ -36,7 +36,7 @@ const ReserPassword: React.FC = () => {
 
     // Determine step based on URL hint
     if (location.pathname.toLowerCase().includes('/resetpassword/token') ||
-        location.pathname.toLowerCase().includes('/reserpassword/token')) {
+        location.pathname.toLowerCase().includes('/resetpassword/token')) {
       setResetPasswordStep('reset');
     } else {
       setResetPasswordStep('email');
@@ -62,7 +62,29 @@ const ReserPassword: React.FC = () => {
 
     try {
       setResetPasswordLoading(true);
-      await authAPI.forgotPassword(email);
+      const result = await authAPI.forgotPassword(email);
+
+      // Robust client-side validation of backend response content
+      const lowered = (typeof result === 'string' ? result : JSON.stringify(result || {})).toLowerCase();
+      const isNegativeResponse =
+        result?.code === 404 ||
+        result?.status === false ||
+        result?.success === false ||
+        result?.sent === false ||
+        lowered.includes('not found') ||
+        lowered.includes('tidak ditemukan') ||
+        lowered.includes('akun tidak') ||
+        lowered.includes('email tidak');
+
+      if (isNegativeResponse) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal mengirim email!',
+          text: 'Akun Anda tidak tersedia pada sistem. Tidak dapat mengirim reset password.'
+        });
+        return;
+      }
+
       Swal.fire({
         icon: 'success',
         title: 'Email reset password terkirim!',
@@ -73,13 +95,28 @@ const ReserPassword: React.FC = () => {
       });
     } catch (err: any) {
       let errorMessage = 'Gagal mengirim email reset password.';
-      if (err?.response?.status === 404) {
+      const status = err?.response?.status;
+      const apiMessage: string = err?.response?.data?.message || err?.message || '';
+      const normalized = (apiMessage || '').toLowerCase();
+
+      // Detect account-not-found variants from API
+      const isAccountMissing =
+        status === 404 ||
+        normalized.includes('not found') ||
+        normalized.includes('tidak ditemukan') ||
+        normalized.includes('akun tidak tersedia') ||
+        normalized.includes('akun tidak terdaftar') ||
+        normalized.includes('user not') ||
+        normalized.includes('email not');
+
+      if (isAccountMissing) {
+        errorMessage = 'Akun Anda tidak tersedia pada sistem. Tidak dapat mengirim reset password.';
+      } else if (status === 404) {
         errorMessage = 'Endpoint reset password belum tersedia di server. Silakan hubungi administrator.';
-      } else if (err?.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      } else if (err?.message) {
-        errorMessage = err.message;
+      } else if (apiMessage) {
+        errorMessage = apiMessage;
       }
+
       Swal.fire({ icon: 'error', title: 'Gagal mengirim email!', text: errorMessage });
     } finally {
       setResetPasswordLoading(false);
