@@ -594,9 +594,7 @@ const Profile: React.FC = () => {
     }
   };
 
-  const goToResetPassword = () => {
-    navigate('/ResetPassword');
-  };
+  
 
   if (loading) {
     return (
@@ -905,22 +903,7 @@ const Profile: React.FC = () => {
         </button>
       </form>
       
-      {/* Reset Password Section */}
-      <hr className="my-8 border-gray-700" />
-      <div className="space-y-4">
-        <div>
-          <h3 className="text-xl font-semibold text-white mb-2">Reset Password</h3>
-          <p className="text-gray-400 text-sm mb-4">
-            Jika Anda lupa password, Anda dapat mereset password melalui email.
-          </p>
-          <button 
-            onClick={goToResetPassword}
-            className="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2 rounded font-semibold transition-colors"
-          >
-            🔄 Reset Password
-          </button>
-        </div>
-      </div>
+      
 
 
     </div>

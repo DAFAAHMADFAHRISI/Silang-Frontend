@@ -14,6 +14,7 @@ import Report from './Page/Siswa/Report';
 import Layout from './Layout/Layout';
 import Profile from './Page/Siswa/Profile';
 import ResetPassword from './Page/Siswa/ResetPassword';
+import ReserPassword from './Page/ReserPassword';
 import DashboardSuperAdmin from './Page/SuperAdmin/Dashboard';
 import DashboardMentor from './Page/Mentor/Dashboard';
 import DashboardGuru from './Page/Guru/Dashboard';
@@ -86,6 +87,8 @@ function App() {
         <Route path='/ProfileSiswa' element={<Layout><Profile /></Layout>} />
         <Route path='/ResetPassword' element={<Layout><ResetPassword /></Layout>} />
         <Route path='/ResetPassword/Token' element={<Layout><ResetPassword /></Layout>} />
+        <Route path='/ReserPassword' element={<ReserPassword />} />
+        <Route path='/ReserPassword/Token' element={<ReserPassword />} />
         <Route path='/DashboardSuperAdmin' element={<Layout><DashboardSuperAdmin /></Layout>} />
         <Route path='/LoadingRole' element={<Layout><LoadingRole /></Layout>} />
         
