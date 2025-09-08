@@ -39,6 +39,12 @@ const Login: React.FC = () => {
     window.location.href = `http://localhost:3000/API/auth/google?callback=${callbackUrl}`;
   };
 
+  const handleForgotPassword = () => {
+    const trimmedEmail = form.email.trim();
+    const state = trimmedEmail ? { email: trimmedEmail } : undefined;
+    navigate('/ReserPassword', { state });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -85,7 +91,18 @@ const Login: React.FC = () => {
           navigate('/');
         }
       } else {
-        setError(data.message || 'Login gagal.');
+        const message: string = data?.message || '';
+        const normalized = message.toLowerCase();
+        if (
+          data?.code === 404 ||
+          normalized.includes('not found') ||
+          normalized.includes('tidak ditemukan') ||
+          normalized.includes('akun tidak tersedia')
+        ) {
+          setError('akun anda tidak tersedia pada sistem');
+        } else {
+          setError(message || 'Login gagal.');
+        }
       }
     } catch (err) {
       setError('Network error.');
@@ -161,6 +178,17 @@ const Login: React.FC = () => {
               </button>
             </div>
             
+            {/* Forgot Password Link */}
+            <div className="flex justify-end -mt-1 mb-1">
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                className="text-blue-400 hover:text-blue-300 text-xs lg:text-sm focus:outline-none"
+              >
+                Lupa password?
+              </button>
+            </div>
+
             {error && (
               <div className="space-y-2">
                 <div className="text-red-400 text-xs lg:text-sm">{error}</div>
