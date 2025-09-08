@@ -14,7 +14,7 @@ import Report from './Page/Siswa/Report';
 import Layout from './Layout/Layout';
 import Profile from './Page/Siswa/Profile';
 import ResetPassword from './Page/Siswa/ResetPassword';
-import ReserPassword from './Page/ReserPassword';
+import ReserPassword from './Page/ResetPassword';
 import DashboardSuperAdmin from './Page/SuperAdmin/Dashboard';
 import DashboardMentor from './Page/Mentor/Dashboard';
 import DashboardGuru from './Page/Guru/Dashboard';
