@@ -13,8 +13,8 @@ import Chat from './Page/Siswa/Chat/Chat';
 import Report from './Page/Siswa/Report';
 import Layout from './Layout/Layout';
 import Profile from './Page/Siswa/Profile';
-import ResetPassword from './Page/Siswa/ResetPassword';
-import ReserPassword from './Page/ResetPassword';
+import ReserPassword from './Page/Siswa/ResetPassword';
+import ResetPassword from './Page/ResetPassword';
 import DashboardSuperAdmin from './Page/SuperAdmin/Dashboard';
 import DashboardMentor from './Page/Mentor/Dashboard';
 import DashboardGuru from './Page/Guru/Dashboard';
@@ -85,10 +85,10 @@ function App() {
         <Route path='/ChatSiswa' element={<Layout><Chat /></Layout>} />
         <Route path='/ReportSiswa' element={<Layout><Report /></Layout>} />
         <Route path='/ProfileSiswa' element={<Layout><Profile /></Layout>} />
-        <Route path='/ResetPassword' element={<Layout><ResetPassword /></Layout>} />
-        <Route path='/ResetPassword/Token' element={<Layout><ResetPassword /></Layout>} />
-        <Route path='/ReserPassword' element={<ReserPassword />} />
-        <Route path='/ReserPassword/Token' element={<ReserPassword />} />
+        <Route path='/ReserPassword' element={<Layout><ReserPassword /></Layout>} />
+        <Route path='/ReserPassword/Token' element={<Layout><ReserPassword /></Layout>} />
+        <Route path='/ResetPassword' element={<ResetPassword />} />
+        <Route path='/ResetPassword/Token' element={<ResetPassword />} />
         <Route path='/DashboardSuperAdmin' element={<Layout><DashboardSuperAdmin /></Layout>} />
         <Route path='/LoadingRole' element={<Layout><LoadingRole /></Layout>} />
         

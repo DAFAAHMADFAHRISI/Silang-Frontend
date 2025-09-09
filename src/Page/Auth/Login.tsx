@@ -42,7 +42,7 @@ const Login: React.FC = () => {
   const handleForgotPassword = () => {
     const trimmedEmail = form.email.trim();
     const state = trimmedEmail ? { email: trimmedEmail } : undefined;
-    navigate('/ReserPassword', { state });
+    navigate('/ResetPassword', { state });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

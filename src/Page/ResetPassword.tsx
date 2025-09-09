@@ -10,17 +10,20 @@ interface ResetPasswordData {
   token: string;
 }
 
-const ReserPassword: React.FC = () => {
+const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Ambil token dari query string jika ada
+  const searchParams = new URLSearchParams(location.search);
+  const urlToken = searchParams.get('token') || '';
 
   const [resetPasswordData, setResetPasswordData] = useState<ResetPasswordData>({
     email: '',
     newPassword: '',
     confirmNewPassword: '',
-    token: ''
+    token: urlToken
   });
-  const [resetPasswordStep, setResetPasswordStep] = useState<'email' | 'reset'>('email');
   const [resetPasswordLoading, setResetPasswordLoading] = useState(false);
   const [showPasswords, setShowPasswords] = useState({
     newPassword: false,
@@ -33,21 +36,18 @@ const ReserPassword: React.FC = () => {
     if (stateEmail) {
       setResetPasswordData(prev => ({ ...prev, email: stateEmail }));
     }
-
-    // Determine step based on URL hint
-    if (location.pathname.toLowerCase().includes('/resetpassword/token') ||
-        location.pathname.toLowerCase().includes('/resetpassword/token')) {
-      setResetPasswordStep('reset');
-    } else {
-      setResetPasswordStep('email');
+    // Prefill token from URL if available
+    if (urlToken) {
+      setResetPasswordData(prev => ({ ...prev, token: urlToken }));
     }
-  }, [location.pathname, location.state]);
+  }, [location.state, urlToken]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setResetPasswordData(prev => ({ ...prev, [name]: value }));
   };
 
+  // Email submit handler
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     const email = resetPasswordData.email.trim();
@@ -59,7 +59,6 @@ const ReserPassword: React.FC = () => {
       });
       return;
     }
-
     try {
       setResetPasswordLoading(true);
       const result = await authAPI.forgotPassword(email);
@@ -88,10 +87,10 @@ const ReserPassword: React.FC = () => {
       Swal.fire({
         icon: 'success',
         title: 'Email reset password terkirim!',
-        text: `Email reset password telah dikirim ke ${email}. Silakan periksa email Anda untuk mendapatkan token reset password.`,
+        text: `Email reset password telah dikirim ke ${email}. Silakan periksa email Anda untuk mendapatkan link reset password.`,
         confirmButtonText: 'OK'
       }).then(() => {
-        setResetPasswordStep('reset');
+        navigate('/Login');
       });
     } catch (err: any) {
       let errorMessage = 'Gagal mengirim email reset password.';
@@ -123,6 +122,7 @@ const ReserPassword: React.FC = () => {
     }
   };
 
+  // Reset password submit handler
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -139,7 +139,7 @@ const ReserPassword: React.FC = () => {
       Swal.fire({
         icon: 'error',
         title: 'Token diperlukan!',
-        text: 'Silakan masukkan token yang dikirim ke email Anda.'
+        text: 'Token tidak ditemukan. Silakan gunakan link dari email reset password.'
       });
       return;
     }
@@ -174,6 +174,7 @@ const ReserPassword: React.FC = () => {
     navigate('/Login');
   };
 
+  // Render logic: if token in URL, show reset form, else show email form
   return (
     <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6 min-h-screen">
       <div className="max-w-md mx-auto">
@@ -193,62 +194,9 @@ const ReserPassword: React.FC = () => {
           <p className="text-gray-400 ml-9">Reset password akun Anda melalui email</p>
         </div>
 
-        {/* Progress Indicator */}
-        <div className="mb-8">
-          <div className="flex items-center justify-center space-x-4">
-            <div className={`flex items-center space-x-2 ${resetPasswordStep === 'email' ? 'text-blue-500' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${resetPasswordStep === 'email' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-300'}`}>
-                1
-              </div>
-              <span className="text-sm">Kirim Email</span>
-            </div>
-            <div className={`w-8 h-0.5 ${resetPasswordStep === 'reset' ? 'bg-blue-600' : 'bg-gray-600'}`}></div>
-            <div className={`flex items-center space-x-2 ${resetPasswordStep === 'reset' ? 'text-blue-500' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${resetPasswordStep === 'reset' ? 'bg-blue-600 text-white' : 'bg-gray-600 text-gray-300'}`}>
-                2
-              </div>
-              <span className="text-sm">Reset Password</span>
-            </div>
-          </div>
-        </div>
-
         {/* Form */}
         <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          {resetPasswordStep === 'email' ? (
-            <form onSubmit={handleForgotPassword} className="space-y-6">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <h2 className="text-xl font-semibold text-white mb-2">Kirim Email Reset</h2>
-                <p className="text-gray-400 text-sm">Masukkan email untuk menerima token reset</p>
-              </div>
-
-              <div>
-                <label className="block text-white mb-2 font-semibold">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={resetPasswordData.email}
-                  onChange={handleChange}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500"
-                  placeholder="Masukkan email Anda"
-                  disabled={resetPasswordLoading}
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={resetPasswordLoading}
-                className={`w-full px-4 py-3 rounded-lg font-semibold transition-colors ${resetPasswordLoading ? 'bg-gray-500 cursor-not-allowed text-gray-300' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-              >
-                {resetPasswordLoading ? 'Mengirim...' : 'Kirim Email Reset'}
-              </button>
-            </form>
-          ) : (
+          {urlToken ? (
             <form onSubmit={handleResetPassword} className="space-y-6">
               <div className="text-center mb-6">
                 <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -256,8 +204,8 @@ const ReserPassword: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                   </svg>
                 </div>
-                <h2 className="text-xl font-semibold text-white mb-2">Masukkan Token & Password Baru</h2>
-                <p className="text-gray-400 text-sm">Masukkan token yang dikirim ke email dan password baru Anda</p>
+                <h2 className="text-xl font-semibold text-white mb-2">Masukkan Password Baru</h2>
+                <p className="text-gray-400 text-sm">Masukkan password baru Anda untuk akun ini</p>
               </div>
 
               <div>
@@ -268,8 +216,8 @@ const ReserPassword: React.FC = () => {
                   value={resetPasswordData.token}
                   onChange={handleChange}
                   className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500"
-                  placeholder="Masukkan token dari email"
-                  disabled={resetPasswordLoading}
+                  placeholder="Token dari link email"
+                  disabled
                   required
                 />
               </div>
@@ -336,22 +284,47 @@ const ReserPassword: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setResetPasswordStep('email')}
-                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 rounded-lg font-semibold transition-colors"
-                >
-                  Kembali
-                </button>
-                <button
-                  type="submit"
-                  disabled={resetPasswordLoading}
-                  className={`flex-1 px-4 py-3 rounded-lg font-semibold transition-colors ${resetPasswordLoading ? 'bg-gray-500 cursor-not-allowed text-gray-300' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-                >
-                  {resetPasswordLoading ? 'Mereset...' : 'Reset Password'}
-                </button>
+              <button
+                type="submit"
+                disabled={resetPasswordLoading}
+                className={`w-full px-4 py-3 rounded-lg font-semibold transition-colors ${resetPasswordLoading ? 'bg-gray-500 cursor-not-allowed text-gray-300' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+              >
+                {resetPasswordLoading ? 'Mereset...' : 'Reset Password'}
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleForgotPassword} className="space-y-6">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-semibold text-white mb-2">Kirim Email Reset</h2>
+                <p className="text-gray-400 text-sm">Masukkan email untuk menerima link reset password</p>
               </div>
+
+              <div>
+                <label className="block text-white mb-2 font-semibold">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={resetPasswordData.email}
+                  onChange={handleChange}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500"
+                  placeholder="Masukkan email Anda"
+                  disabled={resetPasswordLoading}
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={resetPasswordLoading}
+                className={`w-full px-4 py-3 rounded-lg font-semibold transition-colors ${resetPasswordLoading ? 'bg-gray-500 cursor-not-allowed text-gray-300' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+              >
+                {resetPasswordLoading ? 'Mengirim...' : 'Kirim Email Reset'}
+              </button>
             </form>
           )}
         </div>
@@ -368,6 +341,6 @@ const ReserPassword: React.FC = () => {
   );
 };
 
-export default ReserPassword;
+export default ResetPassword;
 
 
