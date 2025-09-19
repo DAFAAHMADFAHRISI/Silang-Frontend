@@ -61,6 +61,8 @@ import AuthError from './Page/AuthError';
 import ErrorBoundary from './components/ErrorBoundary';
 import ToastManager from './components/ToastManager';
 import ErrorHandler from './components/ErrorHandler';
+import ProtectedRoute from './components/ProtectedRoute';
+
 
 import './App.css';
 
@@ -76,68 +78,285 @@ function App() {
         <Route path='/google-callback' element={<GoogleCallback />} />
         <Route path='/auth-error' element={<AuthError />} />
         <Route path='/auth-error.html' element={<AuthError />} />
-        <Route path='/DashboardSiswa' element={<Layout><DashboardSiswa /></Layout>} />
-        <Route path='/TodoSiswa' element={<Layout><Todo /></Layout>} />
-        <Route path='/siswa/todo/detail/:id' element={<Layout><Detail /></Layout>} />
-        <Route path='/siswa/todo/edit/:id' element={<Layout><Edit /></Layout>} />
-        <Route path='/siswa/todo/submit/:id' element={<Layout><SubmitPage /></Layout>} />
-        <Route path='/AttendanceSiswa' element={<Layout><Attendance /></Layout>} />
-        <Route path='/ChatSiswa' element={<Layout><Chat /></Layout>} />
-        <Route path='/ReportSiswa' element={<Layout><Report /></Layout>} />
-        <Route path='/ProfileSiswa' element={<Layout><Profile /></Layout>} />
-        <Route path='/ReserPassword' element={<Layout><ReserPassword /></Layout>} />
-        <Route path='/ReserPassword/Token' element={<Layout><ReserPassword /></Layout>} />
-        <Route path='/ResetPassword' element={<ResetPassword />} />
-        <Route path='/ResetPassword/Token' element={<ResetPassword />} />
-        <Route path='/DashboardSuperAdmin' element={<Layout><DashboardSuperAdmin /></Layout>} />
         <Route path='/LoadingRole' element={<Layout><LoadingRole /></Layout>} />
         
-        {/* Mentor Routes with /mentor prefix */}
-        <Route path='/mentor/dashboard' element={<Layout><DashboardMentor /></Layout>} />
-        <Route path='/mentor/tugas' element={<Layout><TugasMentor /></Layout>} />
-        <Route path='/mentor/tugas/tambah' element={<Layout><TambahTugas /></Layout>} />
-        <Route path='/mentor/tugas/edit/:id' element={<Layout><EditTugas /></Layout>} />
-        <Route path='/mentor/tugas/detail/:id' element={<Layout><DetailTugasMentor /></Layout>} />
-        <Route path='/mentor/absensi' element={<Layout><DataAbsensiMentor /></Layout>} />
-        <Route path='/mentor/rekap' element={<Layout><DataRekapMentor /></Layout>} />
-        <Route path='/mentor/chat' element={<Layout><ChatMentor /></Layout>} />
-        <Route path='/Mentor/Profile' element={<Layout><ProfileMentor /></Layout>} />
-        <Route path='/Mentor/ResetPassword' element={<Layout><ResetPasswordMentor /></Layout>} />
-        <Route path='/Mentor/ResetPassword/Token' element={<Layout><ResetPasswordMentor /></Layout>} />
-
-        {/* Guru Routes with /guru prefix */}
-        <Route path='/guru/dashboard' element={<Layout><DashboardGuru /></Layout>} />
-        <Route path='/guru/tugas' element={<Layout><DataTugasGuru /></Layout>} />
-        <Route path='/guru/absensi' element={<Layout><DataAbsensiGuru /></Layout>} />
-        <Route path='/guru/rekap' element={<Layout><DataRekapGuru /></Layout>} />
-        <Route path='/guru/tugas/detail/:id' element={<Layout><DetailTugas /></Layout>} />
-        <Route path='/guru/absensi/detail/:id' element={<Layout><DetailAbsensi /></Layout>} />
-        <Route path='/guru/rekap/detail/:id' element={<Layout><DetailRekap /></Layout>} />
-        <Route path='/guru/chat' element={<Layout><ChatGuru /></Layout>} />
-        <Route path='/Guru/Profile' element={<Layout><ProfileGuru /></Layout>} />
-        <Route path='/Guru/ResetPassword' element={<Layout><ResetPasswordGuru /></Layout>} />
-        <Route path='/Guru/ResetPassword/Token' element={<Layout><ResetPasswordGuru /></Layout>} />
+        {/* Siswa Routes */}
+        <Route path='/DashboardSiswa' element={
+          <ProtectedRoute allowedRoles={['siswa']}>
+            <Layout><DashboardSiswa /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/TodoSiswa' element={
+          <ProtectedRoute allowedRoles={['siswa']}>
+            <Layout><Todo /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/siswa/todo/detail/:id' element={
+          <ProtectedRoute allowedRoles={['siswa']}>
+            <Layout><Detail /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/siswa/todo/edit/:id' element={
+          <ProtectedRoute allowedRoles={['siswa']}>
+            <Layout><Edit /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/siswa/todo/submit/:id' element={
+          <ProtectedRoute allowedRoles={['siswa']}>
+            <Layout><SubmitPage /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/AttendanceSiswa' element={
+          <ProtectedRoute allowedRoles={['siswa']}>
+            <Layout><Attendance /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/ChatSiswa' element={
+          <ProtectedRoute allowedRoles={['siswa']}>
+            <Layout><Chat /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/ReportSiswa' element={
+          <ProtectedRoute allowedRoles={['siswa']}>
+            <Layout><Report /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/ProfileSiswa' element={
+          <ProtectedRoute allowedRoles={['siswa']}>
+            <Layout><Profile /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/ReserPassword' element={
+          <ProtectedRoute allowedRoles={['siswa']}>
+            <Layout><ReserPassword /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/ReserPassword/Token' element={
+          <ProtectedRoute allowedRoles={['siswa']}>
+            <Layout><ReserPassword /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/ResetPassword' element={<ResetPassword />} />
+        <Route path='/ResetPassword/Token' element={<ResetPassword />} />
 
         {/* SuperAdmin Routes */}
-        <Route path='/Institusi' element={<Layout><Institusi /></Layout>} />
-        <Route path='/Institusi/tambah' element={<Layout><TambahInstitusi /></Layout>} />
-        <Route path='/Institusi/edit/:id' element={<Layout><EditInstitusi /></Layout>} />
-        <Route path='/UserManagement' element={<Layout><UserManagement /></Layout>} />
-        <Route path='/UserManagement/tambah' element={<Layout><TambahUser /></Layout>} />
-        <Route path='/UserManagement/edit/:id' element={<Layout><EditUser /></Layout>} />
-        <Route path='/DataTugas' element={<Layout><DataTugas /></Layout>} />
-        <Route path='/DataJadwal' element={<Layout><DataJadwal /></Layout>} />
-        <Route path='/DataJadwal/tambah' element={<Layout><TambahJadwal /></Layout>} />
-        <Route path='/DataJadwal/edit/:id' element={<Layout><EditJadwal /></Layout>} />
-        <Route path='/DataAbsensi' element={<Layout><DataAbsensi /></Layout>} />
-        <Route path='/DataMentorSiswa' element={<Layout><DataMentorSiswa /></Layout>} />
-        <Route path='/DataMentorSiswa/tambah' element={<Layout><TambahMentorSiswa /></Layout>} />
-        <Route path='/DataMentorSiswa/edit/:id' element={<Layout><EditMentorSiswa /></Layout>} />
-        <Route path='/DataGuruSiswa' element={<Layout><DataGuruSiswa /></Layout>} />
-        <Route path='/DataGuruSiswa/tambah' element={<Layout><TambahGuruSiswa /></Layout>} />
-        <Route path='/DataGuruSiswa/edit/:id' element={<Layout><EditGuruSiswa /></Layout>} />
-        <Route path='/DataGuruSiswa/detail/:id' element={<Layout><DetailGuruSiswa /></Layout>} />
-        <Route path='/DataRekap' element={<Layout><DataRekap /></Layout>} />
+        <Route path='/DashboardSuperAdmin' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><DashboardSuperAdmin /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/Institusi' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><Institusi /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/Institusi/tambah' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><TambahInstitusi /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/Institusi/edit/:id' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><EditInstitusi /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/UserManagement' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><UserManagement /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/UserManagement/tambah' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><TambahUser /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/UserManagement/edit/:id' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><EditUser /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/DataTugas' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><DataTugas /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/DataJadwal' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><DataJadwal /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/DataJadwal/tambah' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><TambahJadwal /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/DataJadwal/edit/:id' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><EditJadwal /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/DataAbsensi' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><DataAbsensi /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/DataMentorSiswa' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><DataMentorSiswa /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/DataMentorSiswa/tambah' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><TambahMentorSiswa /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/DataMentorSiswa/edit/:id' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><EditMentorSiswa /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/DataGuruSiswa' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><DataGuruSiswa /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/DataGuruSiswa/tambah' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><TambahGuruSiswa /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/DataGuruSiswa/edit/:id' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><EditGuruSiswa /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/DataGuruSiswa/detail/:id' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><DetailGuruSiswa /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/DataRekap' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><DataRekap /></Layout>
+          </ProtectedRoute>
+        } />
+        
+        {/* Mentor Routes */}
+        <Route path='/mentor/dashboard' element={
+          <ProtectedRoute allowedRoles={['mentor']}>
+            <Layout><DashboardMentor /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/mentor/tugas' element={
+          <ProtectedRoute allowedRoles={['mentor']}>
+            <Layout><TugasMentor /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/mentor/tugas/tambah' element={
+          <ProtectedRoute allowedRoles={['mentor']}>
+            <Layout><TambahTugas /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/mentor/tugas/edit/:id' element={
+          <ProtectedRoute allowedRoles={['mentor']}>
+            <Layout><EditTugas /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/mentor/tugas/detail/:id' element={
+          <ProtectedRoute allowedRoles={['mentor']}>
+            <Layout><DetailTugasMentor /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/mentor/absensi' element={
+          <ProtectedRoute allowedRoles={['mentor']}>
+            <Layout><DataAbsensiMentor /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/mentor/rekap' element={
+          <ProtectedRoute allowedRoles={['mentor']}>
+            <Layout><DataRekapMentor /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/mentor/chat' element={
+          <ProtectedRoute allowedRoles={['mentor']}>
+            <Layout><ChatMentor /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/Mentor/Profile' element={
+          <ProtectedRoute allowedRoles={['mentor']}>
+            <Layout><ProfileMentor /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/Mentor/ResetPassword' element={
+          <ProtectedRoute allowedRoles={['mentor']}>
+            <Layout><ResetPasswordMentor /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/Mentor/ResetPassword/Token' element={
+          <ProtectedRoute allowedRoles={['mentor']}>
+            <Layout><ResetPasswordMentor /></Layout>
+          </ProtectedRoute>
+        } />
+
+        {/* Guru Routes */}
+        <Route path='/guru/dashboard' element={
+          <ProtectedRoute allowedRoles={['guru']}>
+            <Layout><DashboardGuru /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/guru/tugas' element={
+          <ProtectedRoute allowedRoles={['guru']}>
+            <Layout><DataTugasGuru /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/guru/absensi' element={
+          <ProtectedRoute allowedRoles={['guru']}>
+            <Layout><DataAbsensiGuru /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/guru/rekap' element={
+          <ProtectedRoute allowedRoles={['guru']}>
+            <Layout><DataRekapGuru /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/guru/tugas/detail/:id' element={
+          <ProtectedRoute allowedRoles={['guru']}>
+            <Layout><DetailTugas /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/guru/absensi/detail/:id' element={
+          <ProtectedRoute allowedRoles={['guru']}>
+            <Layout><DetailAbsensi /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/guru/rekap/detail/:id' element={
+          <ProtectedRoute allowedRoles={['guru']}>
+            <Layout><DetailRekap /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/guru/chat' element={
+          <ProtectedRoute allowedRoles={['guru']}>
+            <Layout><ChatGuru /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/Guru/Profile' element={
+          <ProtectedRoute allowedRoles={['guru']}>
+            <Layout><ProfileGuru /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/Guru/ResetPassword' element={
+          <ProtectedRoute allowedRoles={['guru']}>
+            <Layout><ResetPasswordGuru /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/Guru/ResetPassword/Token' element={
+          <ProtectedRoute allowedRoles={['guru']}>
+            <Layout><ResetPasswordGuru /></Layout>
+          </ProtectedRoute>
+        } />
+        
+
+
         
         {/* 404 Route - Must be last */}
         <Route path="*" element={<ErrorHandler />} />
