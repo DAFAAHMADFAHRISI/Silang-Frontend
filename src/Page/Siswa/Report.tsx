@@ -11,6 +11,9 @@ interface ReportData {
   completed_tasks: number;
   total_value: number;
   average_value: number;
+  total_attendance: number;
+  present_days: number;
+  absent_days: number;
 }
 
 const ReportCard = ({ data }: { data: ReportData }) => (
@@ -27,23 +30,38 @@ const ReportCard = ({ data }: { data: ReportData }) => (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
       <div className="flex items-center space-x-2">
         <Award className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400" />
-        <span className="text-gray-400">Total Tasks:</span>
+        <span className="text-gray-400">Total Tugas:</span>
         <span className="text-white font-medium">{data.total_tasks}</span>
       </div>
       <div className="flex items-center space-x-2">
         <Award className="w-3 h-3 sm:w-4 sm:h-4 text-blue-400" />
-        <span className="text-gray-400">Completed:</span>
+        <span className="text-gray-400">Selesai:</span>
         <span className="text-white font-medium">{data.completed_tasks}</span>
       </div>
       <div className="flex items-center space-x-2">
         <Award className="w-3 h-3 sm:w-4 sm:h-4 text-green-400" />
-        <span className="text-gray-400">Total Value:</span>
+        <span className="text-gray-400">Total Nilai:</span>
         <span className="text-white font-medium">{data.total_value}</span>
       </div>
       <div className="flex items-center space-x-2">
         <Award className="w-3 h-3 sm:w-4 sm:h-4 text-purple-400" />
-        <span className="text-gray-400">Average:</span>
+        <span className="text-gray-400">Rata-rata:</span>
         <span className="text-white font-medium">{data.average_value.toFixed(2)}</span>
+      </div>
+      <div className="flex items-center space-x-2">
+        <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-orange-400" />
+        <span className="text-gray-400">Total Absensi:</span>
+        <span className="text-white font-medium">{data.total_attendance}</span>
+      </div>
+      <div className="flex items-center space-x-2">
+        <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-400" />
+        <span className="text-gray-400">Hadir:</span>
+        <span className="text-white font-medium">{data.present_days}</span>
+      </div>
+      <div className="flex items-center space-x-2">
+        <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-red-400" />
+        <span className="text-gray-400">Tidak Hadir:</span>
+        <span className="text-white font-medium">{data.absent_days}</span>
       </div>
     </div>
   </div>
@@ -60,7 +78,7 @@ const Report: React.FC = () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) {
-        setError('Please login to access report data');
+        setError('Silakan login untuk mengakses data laporan');
         setLoading(false);
         return;
       }
@@ -75,18 +93,29 @@ const Report: React.FC = () => {
 
       if (!response.ok) {
         if (response.status === 403) {
-          throw new Error('Unauthorized access. Please login again.');
+          throw new Error('Akses tidak diizinkan. Silakan login kembali.');
         }
-        throw new Error(`Failed to fetch report data: ${response.status}`);
+        throw new Error(`Gagal mengambil data laporan: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('API Response data:', data); // Debug log
+      
       // Handle both single object and array responses
       const reportArray = Array.isArray(data) ? data : [data];
-      setReportData(reportArray);
+      
+      // Add fallback values for attendance data if not provided by API
+      const processedData = reportArray.map(item => ({
+        ...item,
+        total_attendance: item.total_attendance || 0,
+        present_days: item.present_days || 0,
+        absent_days: item.absent_days || 0
+      }));
+      
+      setReportData(processedData);
     } catch (err) {
       console.error('Error fetching report data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load report data');
+      setError(err instanceof Error ? err.message : 'Gagal memuat data laporan');
     } finally {
       setLoading(false);
     }
@@ -108,7 +137,7 @@ const Report: React.FC = () => {
       <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6 min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-400 text-sm sm:text-base">Loading report data...</p>
+          <p className="text-gray-400 text-sm sm:text-base">Memuat data laporan...</p>
         </div>
       </div>
     );
@@ -124,7 +153,7 @@ const Report: React.FC = () => {
             onClick={fetchReportData}
             className="bg-blue-500 hover:bg-blue-600 px-3 py-2 sm:px-4 sm:py-2 rounded-lg transition-colors text-xs sm:text-sm"
           >
-            Try Again
+            Coba Lagi
           </button>
         </div>
       </div>
@@ -150,7 +179,7 @@ const Report: React.FC = () => {
       <div className="mb-4 sm:mb-6">
         <input
           type="text"
-          placeholder="Search by name or institution..."
+          placeholder="Cari berdasarkan nama atau institusi..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-full bg-gray-800 text-white px-3 py-2 sm:px-4 sm:py-2 rounded focus:outline-none border border-gray-700 text-sm sm:text-base"
@@ -169,7 +198,7 @@ const Report: React.FC = () => {
           <div className="col-span-1 lg:col-span-2 bg-gray-800/50 rounded-xl p-4 sm:p-6 text-center">
             <AlertCircle className="w-8 h-8 sm:w-12 sm:h-12 text-gray-500 mx-auto mb-3 sm:mb-4" />
             <p className="text-gray-400 text-sm sm:text-base">
-              {searchTerm ? 'No results found for your search.' : 'No report data available.'}
+              {searchTerm ? 'Tidak ada hasil yang ditemukan untuk pencarian Anda.' : 'Tidak ada data laporan yang tersedia.'}
             </p>
           </div>
         )}
