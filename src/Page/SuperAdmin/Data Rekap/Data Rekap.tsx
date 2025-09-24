@@ -11,6 +11,9 @@ interface SiswaData {
   tugas_selesai: number;
   total_nilai: number;
   rata_rata_nilai: number;
+  total_attendance: number;
+  present_days: number;
+  absent_days: number;
 }
 
 interface RekapData {
@@ -126,7 +129,7 @@ const DataRekap: React.FC = () => {
       
       // Validate siswa array
       const validatedSiswa = guru.siswa.map((siswa: any, siswaIndex: number) => {
-        const requiredFields = ['id', 'nama_siswa', 'institusi', 'total_tugas', 'tugas_selesai', 'total_nilai', 'rata_rata_nilai'];
+        const requiredFields = ['id', 'nama_siswa', 'institusi', 'total_tugas', 'tugas_selesai', 'total_nilai', 'rata_rata_nilai', 'total_attendance', 'present_days', 'absent_days'];
         const missingFields = requiredFields.filter(field => !(field in siswa));
         
         if (missingFields.length > 0) {
@@ -136,7 +139,8 @@ const DataRekap: React.FC = () => {
         if (typeof siswa.id !== 'number' || typeof siswa.nama_siswa !== 'string' || 
             typeof siswa.institusi !== 'string' || typeof siswa.total_tugas !== 'number' || 
             typeof siswa.tugas_selesai !== 'number' || typeof siswa.total_nilai !== 'number' || 
-            typeof siswa.rata_rata_nilai !== 'number') {
+            typeof siswa.rata_rata_nilai !== 'number' || typeof siswa.total_attendance !== 'number' || 
+            typeof siswa.present_days !== 'number' || typeof siswa.absent_days !== 'number') {
           throw new Error(`Data siswa ke-${siswaIndex + 1} pada guru ${guru.nama_guru}: tipe data tidak valid.`);
         }
         
@@ -147,7 +151,10 @@ const DataRekap: React.FC = () => {
           total_tugas: siswa.total_tugas,
           tugas_selesai: siswa.tugas_selesai,
           total_nilai: siswa.total_nilai,
-          rata_rata_nilai: siswa.rata_rata_nilai
+          rata_rata_nilai: siswa.rata_rata_nilai,
+          total_attendance: siswa.total_attendance || 0,
+          present_days: siswa.present_days || 0,
+          absent_days: siswa.absent_days || 0
         };
       });
       
@@ -282,6 +289,15 @@ const DataRekap: React.FC = () => {
   const totalNilai = rekapData.reduce((sum, guru) => 
     sum + guru.siswa.reduce((siswaSum, siswa) => siswaSum + siswa.total_nilai, 0), 0
   );
+  const totalAbsensi = rekapData.reduce((sum, guru) => 
+    sum + guru.siswa.reduce((siswaSum, siswa) => siswaSum + siswa.total_attendance, 0), 0
+  );
+  const totalHadir = rekapData.reduce((sum, guru) => 
+    sum + guru.siswa.reduce((siswaSum, siswa) => siswaSum + siswa.present_days, 0), 0
+  );
+  const totalTidakHadir = rekapData.reduce((sum, guru) => 
+    sum + guru.siswa.reduce((siswaSum, siswa) => siswaSum + siswa.absent_days, 0), 0
+  );
 
   return (
     
@@ -309,6 +325,9 @@ const DataRekap: React.FC = () => {
             const totalTugasSelesaiGuru = guru.siswa.reduce((sum, siswa) => sum + siswa.tugas_selesai, 0);
             const totalNilaiGuru = guru.siswa.reduce((sum, siswa) => sum + siswa.total_nilai, 0);
             const rataRataNilaiGuru = totalSiswaGuru > 0 ? Math.round(totalNilaiGuru / totalSiswaGuru) : 0;
+            const totalAbsensiGuru = guru.siswa.reduce((sum, siswa) => sum + siswa.total_attendance, 0);
+            const totalHadirGuru = guru.siswa.reduce((sum, siswa) => sum + siswa.present_days, 0);
+            const totalTidakHadirGuru = guru.siswa.reduce((sum, siswa) => sum + siswa.absent_days, 0);
             const isExpanded = expandedCards.has(guru.guru_id);
 
             return (
@@ -344,6 +363,14 @@ const DataRekap: React.FC = () => {
                       <div className="flex items-center space-x-2">
                         <Award className="w-4 h-4" />
                         <span>Nilai: {rataRataNilaiGuru}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <TrendingUp className="w-4 h-4" />
+                        <span>Absensi: {totalAbsensiGuru}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Calendar className="w-4 h-4" />
+                        <span>Hadir: {totalHadirGuru}</span>
                       </div>
                     </div>
                   </div>
@@ -395,6 +422,16 @@ const DataRekap: React.FC = () => {
                                   Rata-rata: {siswa.rata_rata_nilai}
                                 </span>
                               </div>
+                              <div className="flex justify-between">
+                                <span>Total Absensi: {siswa.total_attendance}</span>
+                                <span>Hadir: {siswa.present_days}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Tidak Hadir: {siswa.absent_days}</span>
+                                <span className="text-orange-400">
+                                  Kehadiran: {siswa.total_attendance > 0 ? Math.round((siswa.present_days / siswa.total_attendance) * 100) : 0}%
+                                </span>
+                              </div>
                               
                               {/* Individual Progress Bar */}
                               <div className="w-full bg-white/20 rounded-full h-1 mt-1">
@@ -440,7 +477,7 @@ const DataRekap: React.FC = () => {
               <TrendingUp className="w-5 h-5 text-blue-400" />
               <span>Statistik Keseluruhan</span>
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg p-4 text-white">
                 <div className="flex items-center space-x-2">
                   <Target className="w-6 h-6" />
@@ -463,6 +500,18 @@ const DataRekap: React.FC = () => {
                 </p>
                 <p className="text-sm opacity-90 mt-1">
                   dari {totalSiswa} siswa
+                </p>
+              </div>
+              <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-lg p-4 text-white">
+                <div className="flex items-center space-x-2">
+                  <TrendingUp className="w-6 h-6" />
+                  <span className="font-semibold">Kehadiran</span>
+                </div>
+                <p className="text-2xl font-bold mt-2">
+                  {totalAbsensi > 0 ? Math.round((totalHadir / totalAbsensi) * 100) : 0}%
+                </p>
+                <p className="text-sm opacity-90 mt-1">
+                  {totalHadir} dari {totalAbsensi} hari
                 </p>
               </div>
               <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg p-4 text-white">
