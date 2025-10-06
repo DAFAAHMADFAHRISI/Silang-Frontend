@@ -186,6 +186,53 @@ export const authAPI = {
   },
 };
 
+// Landing Page API endpoints
+export const landingPageAPI = {
+  // Get institusi data
+  getInstitusi: async () => {
+    try {
+      const response = await api.get('/api/landingpage/institusi');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch institusi data:', error);
+      throw error;
+    }
+  },
+
+  // Get siswa aktif data
+  getSiswaAktif: async () => {
+    try {
+      const response = await api.get('/api/landingpage/siswa-aktif');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch siswa aktif data:', error);
+      throw error;
+    }
+  },
+
+  // Get siswa tidak aktif data
+  getSiswaTidakAktif: async () => {
+    try {
+      const response = await api.get('/api/landingpage/siswa-tidak-aktif');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch siswa tidak aktif data:', error);
+      throw error;
+    }
+  },
+
+  // Get guru data
+  getGuru: async () => {
+    try {
+      const response = await api.get('/api/landingpage/guru');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch guru data:', error);
+      throw error;
+    }
+  },
+};
+
 // Root API endpoint
 export const rootAPI = {
   // Get root endpoint data

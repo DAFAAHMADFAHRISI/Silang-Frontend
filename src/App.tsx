@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Register from './Page/Auth/Register';
-import Dashboard from './Page/Dashboard';
+import Dashboard from './Page/landingpages';
 import Login from './Page/Auth/Login';
 import DashboardSiswa from './Page/Siswa/Dashboard';
 import Todo from './Page/Siswa/Todo/Todo';
