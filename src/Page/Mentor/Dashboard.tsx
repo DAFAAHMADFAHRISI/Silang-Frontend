@@ -110,21 +110,28 @@ const Dashboard: React.FC = () => {
         trend: undefined,
       },
       {
-        title: "Siswa Hadir",
+        title: "Hadir Hari Ini",
         value: dashboardData.total_siswa_hadir,
         icon: <UserCheck className="w-6 h-6 text-white" />,
         color: "bg-gradient-to-br from-blue-500 to-cyan-600",
         trend: undefined,
       },
       {
-        title: "Siswa Telat",
+        title: "Tidak Masuk Hari Ini",
+        value: dashboardData.total_siswa - dashboardData.total_siswa_hadir,
+        icon: <AlertCircle className="w-6 h-6 text-white" />,
+        color: "bg-gradient-to-br from-red-500 to-pink-600",
+        trend: undefined,
+      },
+      {
+        title: "Telat Hari Ini",
         value: dashboardData.total_siswa_telat,
         icon: <Clock className="w-6 h-6 text-white" />,
         color: "bg-gradient-to-br from-yellow-500 to-orange-500",
         trend: undefined,
       },
       {
-        title: "Siswa Tepat Waktu",
+        title: "Tepat Waktu Hari Ini",
         value: dashboardData.total_siswa_tepat_waktu,
         icon: <CheckCircle className="w-6 h-6 text-white" />,
         color: "bg-gradient-to-br from-indigo-500 to-purple-600",
@@ -207,7 +214,7 @@ const Dashboard: React.FC = () => {
             <TrendingUp className="w-6 h-6 text-blue-400" />
             <span>Statistik</span>
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
             {stats.map((stat, index) => (
               <StatCard key={index} {...stat} />
             ))}

@@ -136,28 +136,35 @@ const Dashboard: React.FC = () => {
           trend: undefined,
         },
         {
-          title: "Total Mentor",
-          value: data.total_mentor || 0,
+          title: "Total Guru",
+          value: data.total_guru || 0,
           icon: <UserCheck className="w-6 h-6 text-white" />,
           color: "bg-gradient-to-br from-blue-500 to-cyan-600",
           trend: undefined,
         },
         {
-          title: "Siswa Hadir",
+          title: "Hadir Hari Ini",
           value: data.total_siswa_hadir || 0,
           icon: <Clock className="w-6 h-6 text-white" />,
           color: "bg-gradient-to-br from-yellow-500 to-orange-500",
           trend: undefined,
         },
         {
-          title: "Siswa Telat",
-          value: data.total_siswa_telat || 0,
+          title: "Tidak Masuk Hari Ini",
+          value: (data.total_siswa || 0) - (data.total_siswa_hadir || 0),
           icon: <AlertCircle className="w-6 h-6 text-white" />,
           color: "bg-gradient-to-br from-red-500 to-pink-600",
           trend: undefined,
         },
         {
-          title: "Siswa Tepat Waktu",
+          title: "Telat Hari Ini",
+          value: data.total_siswa_telat || 0,
+          icon: <AlertCircle className="w-6 h-6 text-white" />,
+          color: "bg-gradient-to-br from-orange-500 to-red-500",
+          trend: undefined,
+        },
+        {
+          title: "Tepat Waktu Hari Ini",
           value: data.total_siswa_tepat_waktu || 0,
           icon: <CheckCircle className="w-6 h-6 text-white" />,
           color: "bg-gradient-to-br from-indigo-500 to-purple-600",
@@ -241,7 +248,7 @@ const Dashboard: React.FC = () => {
           <TrendingUp className="w-6 h-6 text-blue-400" />
           <span>Statistik</span>
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
           {stats.map((stat, index) => (
             <StatCard key={index} {...stat} />
           ))}
