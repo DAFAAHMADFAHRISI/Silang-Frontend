@@ -1,10 +1,10 @@
 import type React from "react"
-import { Users, UserCheck, Clock, CheckCircle, AlertCircle, Calendar, Mail, Award, TrendingUp } from "lucide-react"
+import { Users, UserCheck, Clock, CheckCircle, AlertCircle, Calendar, Mail, Award, TrendingUp, Building } from "lucide-react"
 import { useState, useEffect } from "react"
 
 interface StatCardProps {
   title: string
-  value: string | number
+  value: string | number | React.ReactNode
   icon: React.ReactNode
   color: string
   trend?: string
@@ -34,6 +34,16 @@ interface DashboardStats {
   total_tepat_waktu: number
   jumlah_mentor: number
   jumlah_siswa: number
+  jumlah_guru: number
+}
+
+interface InstitusiData {
+  total_siswa: number
+  nama_institusi: string
+}
+
+interface AllSiswaData {
+  total_all_siswa: number
 }
 
 interface AttendanceData {
@@ -66,25 +76,29 @@ interface TaskData {
 
 const Divider: React.FC = () => <div className="border-t border-gray-700/50 my-8 w-full" />
 
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, trend }) => (
-  <div
-    className={`${color} rounded-xl p-4 sm:p-6 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl`}
-  >
-    <div className="flex items-center justify-between mb-3 sm:mb-4">
-      <div className="p-2 sm:p-3 bg-white/20 rounded-lg backdrop-blur-sm">{icon}</div>
-      {trend && (
-        <div className="flex items-center text-xs sm:text-sm font-medium">
-          <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-          {trend}
+const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, trend }) => {
+  return (
+    <div
+      className={`${color} rounded-xl p-4 sm:p-6 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl`}
+    >
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <div className="p-2 sm:p-3 bg-white/20 rounded-lg backdrop-blur-sm">{icon}</div>
+        {trend && (
+          <div className="flex items-center text-xs sm:text-sm font-medium">
+            <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+            {trend}
+          </div>
+        )}
+      </div>
+      <div className="space-y-1">
+        <p className="text-white/80 text-xs sm:text-sm font-medium">{title}</p>
+        <div className="text-white font-bold">
+          {value}
         </div>
-      )}
+      </div>
     </div>
-    <div className="space-y-1">
-      <p className="text-white/80 text-xs sm:text-sm font-medium">{title}</p>
-      <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">{value}</p>
-    </div>
-  </div>
-)
+  );
+}
 
 const TaskCard: React.FC<TaskCardProps> = ({ title, dueDate, status, score, completedTime, notes }) => {
   const statusConfig = {
@@ -187,7 +201,15 @@ const Dashboard: React.FC = () => {
     total_telat: 0,
     total_tepat_waktu: 0,
     jumlah_mentor: 0,
-    jumlah_siswa: 0
+    jumlah_siswa: 0,
+    jumlah_guru: 0
+  });
+  const [institusiData, setInstitusiData] = useState<InstitusiData>({
+    total_siswa: 0,
+    nama_institusi: ""
+  });
+  const [allSiswaData, setAllSiswaData] = useState<AllSiswaData>({
+    total_all_siswa: 0
   });
   const [attendance, setAttendance] = useState<AttendanceData[]>([]);
   const [tasks, setTasks] = useState<TaskData[]>([]);
@@ -269,6 +291,56 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // Fetch institusi data
+  const fetchInstitusiData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:3000/api/dashboard-siswa-by-institusi', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error('Unauthorized access. Please login again.');
+        }
+        throw new Error(`Failed to fetch institusi data: ${response.status}`);
+      }
+      const data = await response.json();
+      setInstitusiData(data);
+    } catch (err) {
+      console.error('Error fetching institusi data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load institusi data');
+    }
+  };
+
+  // Fetch all siswa data
+  const fetchAllSiswaData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:3000/api/dashboard-all-siswa', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) {
+        if (response.status === 403) {
+          throw new Error('Unauthorized access. Please login again.');
+        }
+        throw new Error(`Failed to fetch all siswa data: ${response.status}`);
+      }
+      const data = await response.json();
+      setAllSiswaData(data);
+    } catch (err) {
+      console.error('Error fetching all siswa data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load all siswa data');
+    }
+  };
+
   // Load all data on component mount
   useEffect(() => {
     const loadAllData = async () => {
@@ -287,7 +359,9 @@ const Dashboard: React.FC = () => {
         await Promise.all([
           fetchDashboardStats(),
           fetchAttendanceData(),
-          fetchTasksData()
+          fetchTasksData(),
+          fetchInstitusiData(),
+          fetchAllSiswaData()
         ]);
       } catch (err) {
         console.error('Error loading data:', err);
@@ -369,40 +443,67 @@ const Dashboard: React.FC = () => {
 
   // Transform API data to component props
   const statsCards = [
+    // {
+    //   title: "Hadir Hari Ini",
+    //   value: stats.total_hadir || 0,
+    //   icon: <UserCheck className="w-6 h-6 text-white" />,
+    //   color: "bg-gradient-to-br from-green-500 to-emerald-600",
+    //   trend: "+5%",
+    // },
+    // {
+    //   title: "Tidak Masuk Hari Ini",
+    //   value: (stats.jumlah_siswa || 0) - (stats.total_hadir || 0),
+    //   icon: <AlertCircle className="w-6 h-6 text-white" />,
+    //   color: "bg-gradient-to-br from-red-500 to-pink-600",
+    //   trend: "-2%",
+    // },
+    // {
+    //   title: "Telat Hari Ini",
+    //   value: stats.total_telat || 0,
+    //   icon: <Clock className="w-6 h-6 text-white" />,
+    //   color: "bg-gradient-to-br from-yellow-500 to-orange-500",
+    //   trend: "-2%",
+    // },
+    // {
+    //   title: "Tepat Waktu Hari Ini",
+    //   value: stats.total_tepat_waktu || 0,
+    //   icon: <CheckCircle className="w-6 h-6 text-white" />,
+    //   color: "bg-gradient-to-br from-blue-500 to-cyan-600",
+    //   trend: "+8%",
+    // },
     {
-      title: "Hadir Hari Ini",
-      value: stats.total_hadir || 0,
-      icon: <UserCheck className="w-6 h-6 text-white" />,
-      color: "bg-gradient-to-br from-green-500 to-emerald-600",
-      trend: "+5%",
-    },
-    {
-      title: "Telat Hari Ini",
-      value: stats.total_telat || 0,
-      icon: <Clock className="w-6 h-6 text-white" />,
-      color: "bg-gradient-to-br from-yellow-500 to-orange-500",
-      trend: "-2%",
-    },
-    {
-      title: "Tepat Waktu",
-      value: stats.total_tepat_waktu || 0,
-      icon: <CheckCircle className="w-6 h-6 text-white" />,
-      color: "bg-gradient-to-br from-blue-500 to-cyan-600",
-      trend: "+8%",
+      title: "Jumlah Guru",
+      value: stats.jumlah_guru || 0,
+      icon: <Award className="w-6 h-6 text-white" />,
+      color: "bg-gradient-to-br from-purple-500 to-pink-600",
+      trend: "+1",
     },
     {
       title: "Jumlah Mentor",
       value: stats.jumlah_mentor || 0,
       icon: <Users className="w-6 h-6 text-white" />,
-      color: "bg-gradient-to-br from-purple-500 to-pink-600",
-      trend: "+1",
-    },
-    {
-      title: "Jumlah Siswa",
-      value: stats.jumlah_siswa || 0,
-      icon: <Users className="w-6 h-6 text-white" />,
       color: "bg-gradient-to-br from-indigo-500 to-purple-600",
       trend: "+3",
+    },
+    {
+      title: institusiData.nama_institusi || "Institusi",
+      value: (
+        <div className="space-y-1">
+          <p className="text-xs sm:text-sm text-white/80">
+             {institusiData.total_siswa || 0}
+          </p>
+        </div>
+      ),
+      icon: <Building className="w-6 h-6 text-white" />,
+      color: "bg-gradient-to-br from-teal-500 to-cyan-600",
+      trend: "+2",
+    },
+    {
+      title: "Total Siswa",
+      value: allSiswaData.total_all_siswa || 0,
+      icon: <Users className="w-6 h-6 text-white" />,
+      color: "bg-gradient-to-br from-emerald-500 to-green-600",
+      trend: "+5",
     },
   ];
 
@@ -476,7 +577,7 @@ const Dashboard: React.FC = () => {
           <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
           <span>Statistik</span>
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {statsCards.map((stat, index) => (
             <StatCard key={index} {...stat} />
           ))}

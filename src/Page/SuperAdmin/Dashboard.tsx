@@ -98,28 +98,40 @@ const Dashboard: React.FC = () => {
       color: "bg-gradient-to-br from-green-500 to-emerald-600",
     },
     {
-      title: "Total Mentor",
-      value: statsData.total_mentor,
-      icon: <UserCheck className="w-6 h-6 text-white" />,
+      title: "Total Guru",
+      value: statsData.total_guru,
+      icon: <Award className="w-6 h-6 text-white" />,
       color: "bg-gradient-to-br from-blue-500 to-cyan-600",
     },
     {
-      title: "Siswa Hadir",
+      title: "Total Mentor",
+      value: statsData.total_mentor,
+      icon: <UserCheck className="w-6 h-6 text-white" />,
+      color: "bg-gradient-to-br from-purple-500 to-pink-600",
+    },
+    {
+      title: "Hadir Hari Ini",
       value: statsData.total_siswa_hadir,
       icon: <Clock className="w-6 h-6 text-white" />,
       color: "bg-gradient-to-br from-yellow-500 to-orange-500",
     },
     {
-      title: "Siswa Telat",
-      value: statsData.total_siswa_telat,
+      title: "Tidak Masuk Hari Ini",
+      value: statsData.total_siswa - statsData.total_siswa_hadir,
       icon: <AlertCircle className="w-6 h-6 text-white" />,
       color: "bg-gradient-to-br from-red-500 to-pink-600",
     },
     {
-      title: "Siswa Tepat Waktu",
+      title: "Telat Hari Ini",
+      value: statsData.total_siswa_telat,
+      icon: <AlertCircle className="w-6 h-6 text-white" />,
+      color: "bg-gradient-to-br from-orange-500 to-red-500",
+    },
+    {
+      title: "Tepat Waktu Hari Ini",
       value: statsData.total_siswa_tepat_waktu,
       icon: <CheckCircle className="w-6 h-6 text-white" />,
-      color: "bg-gradient-to-br from-purple-500 to-indigo-600",
+      color: "bg-gradient-to-br from-indigo-500 to-purple-600",
     },
   ];
 
@@ -140,7 +152,7 @@ const Dashboard: React.FC = () => {
       ) : error ? (
         <div className="text-red-400">{error}</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-6">
           {stats.map((stat, idx) => (
             <StatCard key={idx} {...stat} />
           ))}
