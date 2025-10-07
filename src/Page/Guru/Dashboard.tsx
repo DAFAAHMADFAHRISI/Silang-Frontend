@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Users, UserCheck, Clock, CheckCircle, AlertCircle, TrendingUp } from "lucide-react";
+import { Users, UserCheck, Clock, CheckCircle, AlertCircle, TrendingUp, Calendar, ChevronDown, ChevronUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { landingPageAPI } from "../../services/api";
 
 const Divider: React.FC = () => <div className="border-t border-gray-700/50 my-8 w-full" />;
 
@@ -21,6 +22,16 @@ const StatCard = ({ title, value, icon, color, trend }: { title: string; value: 
     </div>
   </div>
 );
+
+interface MagangDatesData {
+  id: number;
+  nama: string;
+  email: string;
+  tanggal_mulai_magang: string;
+  tanggal_selesai_magang: string;
+  status_magang: string;
+  nama_institusi: string;
+}
 
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState([
@@ -61,6 +72,8 @@ const Dashboard: React.FC = () => {
     },
   ]);
 
+  const [magangDates, setMagangDates] = useState<MagangDatesData[]>([]);
+  const [expandedMagang, setExpandedMagang] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -86,6 +99,7 @@ const Dashboard: React.FC = () => {
     }
 
     fetchDashboardData();
+    fetchMagangDates();
   }, []);
 
   const fetchDashboardData = async () => {
@@ -182,6 +196,47 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const fetchMagangDates = async () => {
+    try {
+      const response = await landingPageAPI.getMagangDates();
+      // Handle the API response structure
+      if (response.success && response.data) {
+        setMagangDates(response.data);
+      } else {
+        setMagangDates([]);
+      }
+    } catch (err) {
+      console.error('Error fetching magang dates:', err);
+      setMagangDates([]);
+    }
+  };
+
+  // Calculate magang progress
+  const calculateMagangProgress = (magangData: MagangDatesData) => {
+    if (!magangData.tanggal_mulai_magang || !magangData.tanggal_selesai_magang) {
+      return { totalDays: 0, remainingDays: 0, progressPercentage: 0 };
+    }
+
+    try {
+      const startDate = new Date(magangData.tanggal_mulai_magang);
+      const endDate = new Date(magangData.tanggal_selesai_magang);
+      const now = new Date();
+
+      const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const remainingDays = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      const elapsedDays = totalDays - remainingDays;
+      const progressPercentage = Math.max(0, Math.min(100, Math.round((elapsedDays / totalDays) * 100)));
+
+      return { totalDays, remainingDays: Math.max(0, remainingDays), progressPercentage };
+    } catch (error) {
+      return { totalDays: 0, remainingDays: 0, progressPercentage: 0 };
+    }
+  };
+
+  const toggleMagangExpansion = (id: number) => {
+    setExpandedMagang(expandedMagang === id ? null : id);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('nama');
@@ -254,6 +309,139 @@ const Dashboard: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Magang Dates Section */}
+      {magangDates.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-6 flex items-center space-x-2">
+            <Calendar className="w-6 h-6 text-blue-400" />
+            <span>Informasi Magang</span>
+          </h2>
+          <div className="space-y-4">
+            {magangDates.map((magangData, index) => {
+              const isExpanded = expandedMagang === magangData.id;
+              const progress = calculateMagangProgress(magangData);
+              
+              return (
+                <div key={magangData.id || index} className="bg-gray-800/50 rounded-xl border border-gray-700/50 overflow-hidden">
+                  {/* Compact Header - Always Visible */}
+                  <div 
+                    className="p-4 cursor-pointer hover:bg-gray-700/30 transition-colors"
+                    onClick={() => toggleMagangExpansion(magangData.id)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold text-lg">
+                            {magangData.nama.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-semibold text-white">{magangData.nama}</h3>
+                          <p className="text-gray-400 text-sm">{magangData.nama_institusi}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <div className="text-right">
+                          <p className="text-sm text-gray-400">Status</p>
+                          <p className={`text-sm font-medium ${
+                            magangData.status_magang === 'Selesai' ? 'text-green-400' : 
+                            magangData.status_magang === 'Belum Ditentukan' ? 'text-yellow-400' : 
+                            'text-blue-400'
+                          }`}>
+                            {magangData.status_magang}
+                          </p>
+                        </div>
+                        <div className="text-gray-400">
+                          {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Expanded Details - Only when clicked */}
+                  {isExpanded && (
+                    <div className="border-t border-gray-700/50 p-6 bg-gray-900/30">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg p-4">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <Calendar className="w-5 h-5 text-white" />
+                            <p className="text-white/80 text-sm font-medium">Tanggal Mulai</p>
+                          </div>
+                          <p className="text-white font-bold">
+                            {magangData.tanggal_mulai_magang ? 
+                              new Date(magangData.tanggal_mulai_magang).toLocaleDateString('id-ID') : 
+                              'Belum Ditentukan'
+                            }
+                          </p>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg p-4">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <CheckCircle className="w-5 h-5 text-white" />
+                            <p className="text-white/80 text-sm font-medium">Tanggal Selesai</p>
+                          </div>
+                          <p className="text-white font-bold">
+                            {magangData.tanggal_selesai_magang ? 
+                              new Date(magangData.tanggal_selesai_magang).toLocaleDateString('id-ID') : 
+                              'Belum Ditentukan'
+                            }
+                          </p>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg p-4">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <Clock className="w-5 h-5 text-white" />
+                            <p className="text-white/80 text-sm font-medium">Total Hari</p>
+                          </div>
+                          <p className="text-white font-bold">
+                            {magangData.tanggal_mulai_magang && magangData.tanggal_selesai_magang ? 
+                              `${progress.totalDays} hari` : 
+                              'Belum Ditentukan'
+                            }
+                          </p>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-lg p-4">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <TrendingUp className="w-5 h-5 text-white" />
+                            <p className="text-white/80 text-sm font-medium">Sisa Hari</p>
+                          </div>
+                          <p className="text-white font-bold">
+                            {magangData.tanggal_mulai_magang && magangData.tanggal_selesai_magang ? 
+                              `${progress.remainingDays} hari` : 
+                              'Belum Ditentukan'
+                            }
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar - Only show if dates are available */}
+                      {magangData.tanggal_mulai_magang && magangData.tanggal_selesai_magang && (
+                        <div className="bg-gray-800/50 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-lg font-semibold text-white">Progress Magang</h4>
+                            <span className="text-blue-400 font-bold">
+                              {progress.progressPercentage}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-700 rounded-full h-3">
+                            <div 
+                              className="bg-gradient-to-r from-blue-500 to-cyan-500 h-3 rounded-full transition-all duration-500"
+                              style={{ width: `${progress.progressPercentage}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <Divider />
     </div>
   );

@@ -1,6 +1,7 @@
 import type React from "react"
 import { Users, UserCheck, Clock, CheckCircle, AlertCircle, Calendar, Mail, Award, TrendingUp, Building } from "lucide-react"
 import { useState, useEffect } from "react"
+import { landingPageAPI } from "../../services/api"
 
 interface StatCardProps {
   title: string
@@ -72,6 +73,16 @@ interface TaskData {
   catatan_guru: string
   mentor_nama: string
   status_tugas: string
+}
+
+interface MagangDatesData {
+  id: number
+  nama: string
+  email: string
+  tanggal_mulai_magang: string
+  tanggal_selesai_magang: string
+  status_magang: string
+  nama_institusi: string
 }
 
 const Divider: React.FC = () => <div className="border-t border-gray-700/50 my-8 w-full" />
@@ -213,6 +224,7 @@ const Dashboard: React.FC = () => {
   });
   const [attendance, setAttendance] = useState<AttendanceData[]>([]);
   const [tasks, setTasks] = useState<TaskData[]>([]);
+  const [magangDates, setMagangDates] = useState<MagangDatesData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -341,6 +353,22 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // Fetch magang dates data
+  const fetchMagangDates = async () => {
+    try {
+      const response = await landingPageAPI.getMagangDates();
+      // Handle the API response structure
+      if (response.success && response.data) {
+        setMagangDates(response.data);
+      } else {
+        setMagangDates([]);
+      }
+    } catch (err) {
+      console.error('Error fetching magang dates:', err);
+      setMagangDates([]);
+    }
+  };
+
   // Load all data on component mount
   useEffect(() => {
     const loadAllData = async () => {
@@ -361,7 +389,8 @@ const Dashboard: React.FC = () => {
           fetchAttendanceData(),
           fetchTasksData(),
           fetchInstitusiData(),
-          fetchAllSiswaData()
+          fetchAllSiswaData(),
+          fetchMagangDates()
         ]);
       } catch (err) {
         console.error('Error loading data:', err);
@@ -438,6 +467,28 @@ const Dashboard: React.FC = () => {
       }
     } catch (error) {
       return "Error menghitung deadline";
+    }
+  };
+
+  // Calculate magang progress
+  const calculateMagangProgress = (magangData: MagangDatesData) => {
+    if (!magangData.tanggal_mulai_magang || !magangData.tanggal_selesai_magang) {
+      return { totalDays: 0, remainingDays: 0, progressPercentage: 0 };
+    }
+
+    try {
+      const startDate = new Date(magangData.tanggal_mulai_magang);
+      const endDate = new Date(magangData.tanggal_selesai_magang);
+      const now = new Date();
+
+      const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const remainingDays = Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      const elapsedDays = totalDays - remainingDays;
+      const progressPercentage = Math.max(0, Math.min(100, Math.round((elapsedDays / totalDays) * 100)));
+
+      return { totalDays, remainingDays: Math.max(0, remainingDays), progressPercentage };
+    } catch (error) {
+      return { totalDays: 0, remainingDays: 0, progressPercentage: 0 };
     }
   };
 
@@ -586,54 +637,154 @@ const Dashboard: React.FC = () => {
 
       <Divider />
 
-      {/* Today's Attendance Section */}
+      {/* Today's Activities Section - Side by Side */}
       <div className="mb-6 sm:mb-8">
-        <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center space-x-2">
-          <UserCheck className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" />
-          <span>Absensi Hari Ini</span>
-        </h2>
-        <div className="max-w-2xl">
-          {attendance.length > 0 ? (
-            attendance.map((att, index) => (
-              <AttendanceCard
-                key={att.id}
-                name={userName}
-                email=""
-                checkIn={att.waktu_checkin ? formatTime(att.waktu_checkin) : "Belum check-in"}
-                lateTime={att.status_kehadiran || "Tepat waktu"}
-                checkOut={att.waktu_checkout ? formatTime(att.waktu_checkout) : "-"}
-              />
-            ))
-          ) : (
-            <div className="bg-gray-800/50 rounded-xl p-4 sm:p-6 text-center">
-              <UserCheck className="w-8 h-8 sm:w-12 sm:h-12 text-gray-500 mx-auto mb-3 sm:mb-4" />
-              <p className="text-gray-400 text-sm sm:text-base">Belum ada data absensi hari ini</p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+          {/* Today's Attendance Section */}
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center space-x-2">
+              <UserCheck className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" />
+              <span>Absensi Hari Ini</span>
+            </h2>
+            <div>
+              {attendance.length > 0 ? (
+                attendance.map((att, index) => (
+                  <AttendanceCard
+                    key={att.id}
+                    name={userName}
+                    email=""
+                    checkIn={att.waktu_checkin ? formatTime(att.waktu_checkin) : "Belum check-in"}
+                    lateTime={att.status_kehadiran || "Tepat waktu"}
+                    checkOut={att.waktu_checkout ? formatTime(att.waktu_checkout) : "-"}
+                  />
+                ))
+              ) : (
+                <div className="bg-gray-800/50 rounded-xl p-4 sm:p-6 text-center">
+                  <UserCheck className="w-8 h-8 sm:w-12 sm:h-12 text-gray-500 mx-auto mb-3 sm:mb-4" />
+                  <p className="text-gray-400 text-sm sm:text-base">Belum ada data absensi hari ini</p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+
+          {/* Today's Tasks Section */}
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center space-x-2">
+              <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
+              <span>Tugas Hari Ini</span>
+            </h2>
+            <div>
+              {transformedTasks.length > 0 ? (
+                transformedTasks.map((task, index) => (
+                  <TaskCard key={index} {...task} />
+                ))
+              ) : (
+                <div className="bg-gray-800/50 rounded-xl p-4 sm:p-6 text-center">
+                  <Calendar className="w-8 h-8 sm:w-12 sm:h-12 text-gray-500 mx-auto mb-3 sm:mb-4" />
+                  <p className="text-gray-400 text-sm sm:text-base">Tidak ada tugas untuk hari ini</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Magang Dates Section */}
+      {magangDates.length > 0 && (
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center space-x-2">
+            <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
+            <span>Informasi Magang</span>
+          </h2>
+          {magangDates.map((magangData, index) => {
+            const progress = calculateMagangProgress(magangData);
+            return (
+              <div key={magangData.id || index} className="mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                  <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl p-4 sm:p-6 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                      <div className="p-2 sm:p-3 bg-white/20 rounded-lg backdrop-blur-sm">
+                        <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-white/80 text-xs sm:text-sm font-medium">Tanggal Mulai</p>
+                      <div className="text-white font-bold text-sm sm:text-base">
+                        {magangData.tanggal_mulai_magang ? formatDate(magangData.tanggal_mulai_magang) : 'Tidak ada data'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-4 sm:p-6 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                      <div className="p-2 sm:p-3 bg-white/20 rounded-lg backdrop-blur-sm">
+                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-white/80 text-xs sm:text-sm font-medium">Tanggal Selesai</p>
+                      <div className="text-white font-bold text-sm sm:text-base">
+                        {magangData.tanggal_selesai_magang ? formatDate(magangData.tanggal_selesai_magang) : 'Tidak ada data'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl p-4 sm:p-6 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                      <div className="p-2 sm:p-3 bg-white/20 rounded-lg backdrop-blur-sm">
+                        <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-white/80 text-xs sm:text-sm font-medium">Total Hari</p>
+                      <div className="text-white font-bold text-sm sm:text-base">
+                        {progress.totalDays} hari
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-orange-500 to-red-500 rounded-xl p-4 sm:p-6 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                      <div className="p-2 sm:p-3 bg-white/20 rounded-lg backdrop-blur-sm">
+                        <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-white/80 text-xs sm:text-sm font-medium">Sisa Hari</p>
+                      <div className="text-white font-bold text-sm sm:text-base">
+                        {progress.remainingDays} hari
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="mt-6 bg-gray-800/50 rounded-xl p-4 sm:p-6 backdrop-blur-sm border border-gray-700/50">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-semibold text-white">Progress Magang - {magangData.nama_institusi}</h3>
+                    <span className="text-blue-400 font-bold">
+                      {progress.progressPercentage}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-700 rounded-full h-3">
+                    <div 
+                      className="bg-gradient-to-r from-blue-500 to-cyan-500 h-3 rounded-full transition-all duration-500"
+                      style={{ width: `${progress.progressPercentage}%` }}
+                    ></div>
+                  </div>
+                  <div className="mt-2 text-sm text-gray-400">
+                    Status: <span className="text-white font-medium">{magangData.status_magang}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <Divider />
 
-      {/* Today's Tasks Section */}
-      <div className="mb-6 sm:mb-8">
-        <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center space-x-2">
-          <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
-          <span>Tugas Hari Ini</span>
-        </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          {transformedTasks.length > 0 ? (
-            transformedTasks.map((task, index) => (
-              <TaskCard key={index} {...task} />
-            ))
-          ) : (
-            <div className="col-span-1 lg:col-span-2 bg-gray-800/50 rounded-xl p-4 sm:p-6 text-center">
-              <Calendar className="w-8 h-8 sm:w-12 sm:h-12 text-gray-500 mx-auto mb-3 sm:mb-4" />
-              <p className="text-gray-400 text-sm sm:text-base">Tidak ada tugas untuk hari ini</p>
-            </div>
-          )}
-        </div>
-      </div>
+
 
       <Divider />
     </div>
