@@ -231,6 +231,17 @@ export const landingPageAPI = {
       throw error;
     }
   },
+
+  // Get magang dates data
+  getMagangDates: async () => {
+    try {
+      const response = await api.get('/api/landingpage/magang-dates');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch magang dates data:', error);
+      throw error;
+    }
+  },
 };
 
 // Root API endpoint
