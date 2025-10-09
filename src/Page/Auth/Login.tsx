@@ -178,8 +178,15 @@ const Login: React.FC = () => {
               </button>
             </div>
             
-            {/* Forgot Password Link */}
-            <div className="flex justify-end -mt-1 mb-1">
+            {/* Forgot Password and Back to Homepage Links */}
+            <div className="flex justify-between -mt-1 mb-1">
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                className="text-blue-400 hover:text-blue-300 text-xs lg:text-sm focus:outline-none"
+              >
+                Kembali ke Beranda
+              </button>
               <button
                 type="button"
                 onClick={handleForgotPassword}
