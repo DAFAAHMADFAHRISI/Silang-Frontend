@@ -12,6 +12,10 @@ interface UserRow {
   asal_institusi_id?: number;
   created_at?: string;
   updated_at?: string;
+  // Field khusus untuk siswa
+  tanggal_mulai_magang?: string | null;
+  tanggal_selesai_magang?: string | null;
+  status_magang?: string;
 }
 
 interface InstitusiRow {
@@ -35,7 +39,7 @@ const Edit: React.FC = () => {
       
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:3000/api/users/${id}`, {
+        const res = await fetch(`http://localhost:3000/api/superadmin/users/${id}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -160,8 +164,8 @@ const Edit: React.FC = () => {
       const token = localStorage.getItem('token');
       console.log('Token available:', !!token);
       
-      // Use the correct API endpoint
-      const apiUrl = `http://localhost:3000/api/users/update/${editingUser.id}`;
+      // Use the correct API endpoint - superadmin endpoint untuk edit siswa
+      const apiUrl = `http://localhost:3000/api/superadmin/users/update/${editingUser.id}`;
       console.log('Sending PATCH request to:', apiUrl);
       
       const res = await fetch(apiUrl, {
@@ -348,6 +352,39 @@ const Edit: React.FC = () => {
                    })}
                 </select>
              </div>
+             
+             {/* Field khusus untuk role siswa */}
+             {editingUser.role === 'siswa' && (
+               <>
+                 <div>
+                   <label className="block text-sm text-gray-300 mb-1">Tanggal Mulai Magang</label>
+                   <input 
+                     name="tanggal_mulai_magang" 
+                     type="date" 
+                     defaultValue={editingUser.tanggal_mulai_magang ? editingUser.tanggal_mulai_magang.split('T')[0] : ''} 
+                     className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white" 
+                     placeholder="Pilih tanggal mulai magang"
+                   />
+                 </div>
+                 <div>
+                   <label className="block text-sm text-gray-300 mb-1">Tanggal Selesai Magang</label>
+                   <input 
+                     name="tanggal_selesai_magang" 
+                     type="date" 
+                     defaultValue={editingUser.tanggal_selesai_magang ? editingUser.tanggal_selesai_magang.split('T')[0] : ''} 
+                     className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white" 
+                     placeholder="Pilih tanggal selesai magang"
+                   />
+                 </div>
+                 <div>
+                   <label className="block text-sm text-gray-300 mb-1">Status Magang</label>
+                   <div className="px-3 py-2 rounded bg-gray-700 border border-gray-600 text-gray-400 text-sm">
+                     {editingUser.status_magang || 'Belum Ditentukan'} (Otomatis berdasarkan tanggal)
+                   </div>
+                   <p className="text-xs text-gray-500 mt-1">Status magang akan dihitung otomatis berdasarkan tanggal yang dipilih</p>
+                 </div>
+               </>
+             )}
           </div>
           <div className="flex gap-2">
             <button 
