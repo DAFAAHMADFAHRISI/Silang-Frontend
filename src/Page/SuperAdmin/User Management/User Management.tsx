@@ -15,6 +15,11 @@ interface UserRow {
   asal_institusi: string;
   created_at: string;
   updated_at: string;
+  // Field khusus untuk siswa
+  tanggal_mulai_magang?: string | null;
+  tanggal_selesai_magang?: string | null;
+  status?: string;
+  status_magang?: string;
 }
 
 const UserManagement: React.FC = () => {
@@ -54,20 +59,32 @@ const UserManagement: React.FC = () => {
         console.log('Is array:', Array.isArray(json));
         console.log('Length:', Array.isArray(json) ? json.length : 0);
         
-        if (Array.isArray(json) && json.length > 0) {
-          console.log('=== FIRST USER DETAILED DEBUG ===');
-          console.log('First user:', json[0]);
-          console.log('All keys in first user:', Object.keys(json[0]));
-          console.log('All values in first user:', Object.values(json[0]));
-          console.log('First user stringified:', JSON.stringify(json[0], null, 2));
+        // Handle response format untuk role siswa (dengan success, message, data)
+        let usersData = [];
+        if (json.success && json.data && Array.isArray(json.data)) {
+          usersData = json.data;
+          console.log('=== SISWA DATA FROM API ===');
+          console.log('Success:', json.success);
+          console.log('Message:', json.message);
+          console.log('Data length:', json.data.length);
+        } else if (Array.isArray(json)) {
+          usersData = json;
         }
         
-        setUserData(Array.isArray(json) ? json : []);
+        if (usersData.length > 0) {
+          console.log('=== FIRST USER DETAILED DEBUG ===');
+          console.log('First user:', usersData[0]);
+          console.log('All keys in first user:', Object.keys(usersData[0]));
+          console.log('All values in first user:', Object.values(usersData[0]));
+          console.log('First user stringified:', JSON.stringify(usersData[0], null, 2));
+        }
+        
+        setUserData(usersData);
         
         // Debug: Log all users and their roles
-        if (Array.isArray(json)) {
+        if (Array.isArray(usersData)) {
           console.log('=== ALL USERS DEBUG ===');
-          json.forEach((user, index) => {
+          usersData.forEach((user, index) => {
             console.log(`User ${index + 1}:`, {
               nama: user.nama,
               email: user.email,
@@ -82,7 +99,7 @@ const UserManagement: React.FC = () => {
           });
           
           // Check for unverified users
-          const unverifiedUsers = json.filter(user => {
+          const unverifiedUsers = usersData.filter(user => {
             const role = user.role;
             return !role || 
                    role === '' || 
@@ -352,7 +369,12 @@ const UserManagement: React.FC = () => {
       (user.no_hp && user.no_hp.toLowerCase().includes(searchLower)) ||
       (user.asal_institusi && user.asal_institusi.toLowerCase().includes(searchLower)) ||
       (user.role && user.role.toLowerCase().includes(searchLower)) ||
-      (user.kelamin && user.kelamin.toLowerCase().includes(searchLower))
+      (user.kelamin && user.kelamin.toLowerCase().includes(searchLower)) ||
+      // Field khusus untuk siswa
+      (user.status && user.status.toLowerCase().includes(searchLower)) ||
+      (user.status_magang && user.status_magang.toLowerCase().includes(searchLower)) ||
+      (user.tanggal_mulai_magang && user.tanggal_mulai_magang.toLowerCase().includes(searchLower)) ||
+      (user.tanggal_selesai_magang && user.tanggal_selesai_magang.toLowerCase().includes(searchLower))
     );
   };
 
@@ -480,6 +502,15 @@ const UserManagement: React.FC = () => {
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">No HP</th>
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Role</th>
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Asal Institusi</th>
+                {/* Kolom khusus untuk siswa */}
+                {activeTab === 'siswa' && (
+                  <>
+                    <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Tanggal Mulai</th>
+                    <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Tanggal Selesai</th>
+                    <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Status</th>
+                    <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Status Magang</th>
+                  </>
+                )}
                 {activeTab !== 'superadmin' && (
                   <th className="px-3 py-2 text-center text-xs font-bold uppercase tracking-wider">Aksi</th>
                 )}
@@ -525,6 +556,55 @@ const UserManagement: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap text-gray-300 font-medium">{row.asal_institusi}</td>
+                    {/* Kolom khusus untuk siswa */}
+                    {activeTab === 'siswa' && (
+                      <>
+                        <td className="px-3 py-2 whitespace-nowrap text-gray-300">
+                          {row.tanggal_mulai_magang ? 
+                            new Date(row.tanggal_mulai_magang).toLocaleDateString('id-ID', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric'
+                            }) : 
+                            <span className="text-gray-500 italic">-</span>
+                          }
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap text-gray-300">
+                          {row.tanggal_selesai_magang ? 
+                            new Date(row.tanggal_selesai_magang).toLocaleDateString('id-ID', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric'
+                            }) : 
+                            <span className="text-gray-500 italic">-</span>
+                          }
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className={`px-2 py-1 text-xs rounded-full font-semibold shadow-sm ${
+                            row.status === 'aktif' 
+                              ? 'bg-green-500/20 text-green-300 border border-green-400/30' 
+                              : 'bg-red-500/20 text-red-300 border border-red-400/30'
+                          }`}>
+                            {row.status || '-'}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 whitespace-nowrap">
+                          <span className={`px-2 py-1 text-xs rounded-full font-semibold shadow-sm ${
+                            row.status_magang === 'Aktif' 
+                              ? 'bg-green-500/20 text-green-300 border border-green-400/30' :
+                            row.status_magang === 'Selesai' 
+                              ? 'bg-blue-500/20 text-blue-300 border border-blue-400/30' :
+                            row.status_magang === 'Belum Dimulai' 
+                              ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-400/30' :
+                            row.status_magang === 'Belum Ditentukan' 
+                              ? 'bg-gray-500/20 text-gray-300 border border-gray-400/30' :
+                              'bg-gray-700/20 text-gray-400 border border-gray-600/30'
+                          }`}>
+                            {row.status_magang || '-'}
+                          </span>
+                        </td>
+                      </>
+                    )}
                     {activeTab !== 'superadmin' && (
                       <td className="px-3 py-2 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center gap-1">
