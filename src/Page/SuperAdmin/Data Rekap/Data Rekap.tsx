@@ -27,7 +27,6 @@ const DataRekap: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [expandedCards, setExpandedCards] = useState<Set<number>>(new Set());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -172,14 +171,8 @@ const DataRekap: React.FC = () => {
     await fetchRekapData();
   };
 
-  const toggleCardExpansion = (guruId: number) => {
-    const newExpandedCards = new Set(expandedCards);
-    if (newExpandedCards.has(guruId)) {
-      newExpandedCards.delete(guruId);
-    } else {
-      newExpandedCards.add(guruId);
-    }
-    setExpandedCards(newExpandedCards);
+  const handleViewDetail = (guruId: number) => {
+    navigate(`/DataRekap/detail?guru_id=${guruId}`);
   };
 
   const handleLogout = () => {
@@ -328,13 +321,11 @@ const DataRekap: React.FC = () => {
             const totalAbsensiGuru = guru.siswa.reduce((sum, siswa) => sum + siswa.total_attendance, 0);
             const totalHadirGuru = guru.siswa.reduce((sum, siswa) => sum + siswa.present_days, 0);
             const totalTidakHadirGuru = guru.siswa.reduce((sum, siswa) => sum + siswa.absent_days, 0);
-            const isExpanded = expandedCards.has(guru.guru_id);
-
             return (
               <div 
                 key={index} 
                 className={`${guruConfig.bg} rounded-xl p-6 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 cursor-pointer`}
-                onClick={() => toggleCardExpansion(guru.guru_id)}
+                onClick={() => handleViewDetail(guru.guru_id)}
               >
                 <div className="flex items-start justify-between mb-4">
                   <h3 className="font-bold text-lg leading-tight pr-4">{guru.nama_guru}</h3>
@@ -393,65 +384,12 @@ const DataRekap: React.FC = () => {
                     </div>
                   </div>
                   
-                  {/* Siswa List - Only visible when expanded */}
-                  {isExpanded && (
-                    <div className="space-y-2 border-t border-white/20 pt-4">
-                      <div className="flex items-center space-x-2 text-sm">
-                        <User className="w-4 h-4" />
-                        <span className="font-medium">Daftar Siswa:</span>
-                      </div>
-                      <div className="bg-white/10 rounded-lg p-3 max-h-48 overflow-y-auto">
-                        {guru.siswa.map((siswa, siswaIndex) => (
-                          <div key={siswaIndex} className="mb-3 last:mb-0">
-                            <div className="flex items-center justify-between text-sm mb-2">
-                              <div className="flex items-center space-x-2">
-                                <div className="w-2 h-2 bg-white rounded-full"></div>
-                                <span className="font-medium">{siswa.nama_siswa}</span>
-                              </div>
-                              <span className="text-xs opacity-75">{siswa.institusi}</span>
-                            </div>
-                            
-                            <div className="ml-4 space-y-1 text-xs">
-                              <div className="flex justify-between">
-                                <span>Tugas: {siswa.total_tugas}</span>
-                                <span>Selesai: {siswa.tugas_selesai}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Total Nilai: {siswa.total_nilai}</span>
-                                <span className={getGradeColor(siswa.rata_rata_nilai)}>
-                                  Rata-rata: {siswa.rata_rata_nilai}
-                                </span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Total Absensi: {siswa.total_attendance}</span>
-                                <span>Hadir: {siswa.present_days}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Tidak Hadir: {siswa.absent_days}</span>
-                                <span className="text-orange-400">
-                                  Kehadiran: {siswa.total_attendance > 0 ? Math.round((siswa.present_days / siswa.total_attendance) * 100) : 0}%
-                                </span>
-                              </div>
-                              
-                              {/* Individual Progress Bar */}
-                              <div className="w-full bg-white/20 rounded-full h-1 mt-1">
-                                <div 
-                                  className="bg-white h-1 rounded-full transition-all duration-300"
-                                  style={{ 
-                                    width: `${siswa.total_tugas > 0 ? (siswa.tugas_selesai / siswa.total_tugas) * 100 : 0}%` 
-                                  }}
-                                ></div>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                  {/* View Detail Button */}
+                  <div className="border-t border-white/20 pt-4">
+                    <div className="flex items-center justify-center space-x-2 text-sm bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors duration-200">
+                      <Eye className="w-4 h-4" />
+                      <span className="font-medium">Klik untuk melihat detail lengkap</span>
                     </div>
-                  )}
-                  
-                  {/* Click indicator */}
-                  <div className="text-center text-xs opacity-75">
-                    {isExpanded ? 'Klik untuk sembunyikan detail' : 'Klik untuk lihat detail siswa'}
                   </div>
                 </div>
               </div>
@@ -477,7 +415,7 @@ const DataRekap: React.FC = () => {
               <TrendingUp className="w-5 h-5 text-blue-400" />
               <span>Statistik Keseluruhan</span>
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg p-4 text-white">
                 <div className="flex items-center space-x-2">
                   <Target className="w-6 h-6" />
@@ -488,18 +426,6 @@ const DataRekap: React.FC = () => {
                 </p>
                 <p className="text-sm opacity-90 mt-1">
                   {totalTugasSelesai} dari {totalTugas} tugas selesai
-                </p>
-              </div>
-              <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg p-4 text-white">
-                <div className="flex items-center space-x-2">
-                  <Award className="w-6 h-6" />
-                  <span className="font-semibold">Nilai Rata-rata</span>
-                </div>
-                <p className="text-2xl font-bold mt-2">
-                  {totalSiswa > 0 ? Math.round(totalNilai / totalSiswa) : 0}
-                </p>
-                <p className="text-sm opacity-90 mt-1">
-                  dari {totalSiswa} siswa
                 </p>
               </div>
               <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-lg p-4 text-white">

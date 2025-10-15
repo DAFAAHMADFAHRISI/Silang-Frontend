@@ -37,6 +37,7 @@ import TambahGuruSiswa from './Page/SuperAdmin/Data Guru Siswa/Tambah/Tambah';
 import EditGuruSiswa from './Page/SuperAdmin/Data Guru Siswa/Edit/Edit';
 import DetailGuruSiswa from './Page/SuperAdmin/Data Guru Siswa/Detail/Detail';
 import DataRekap from './Page/SuperAdmin/Data Rekap/Data Rekap';
+import DetailRekapSuperAdmin from './Page/SuperAdmin/Data Rekap/detail/detail';
 import TugasMentor from './Page/Mentor/Tugas/TugasMentor';
 import TambahTugas from './Page/Mentor/Tugas/Tambah/Tambah';
 import EditTugas from './Page/Mentor/Tugas/Edit/Edit';
@@ -238,6 +239,11 @@ function App() {
         <Route path='/DataRekap' element={
           <ProtectedRoute allowedRoles={['superadmin']}>
             <Layout><DataRekap /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/DataRekap/detail' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><DetailRekapSuperAdmin /></Layout>
           </ProtectedRoute>
         } />
         
