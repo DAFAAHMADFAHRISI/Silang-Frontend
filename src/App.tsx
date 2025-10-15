@@ -25,6 +25,7 @@ import Institusi from './Page/SuperAdmin/Institusi/Institusi';
 import TambahInstitusi from './Page/SuperAdmin/Institusi/Tambah/Tambah';
 import EditInstitusi from './Page/SuperAdmin/Institusi/Edit/Edit';
 import DataTugas from './Page/SuperAdmin/Tugas/Data Tugas';
+import DetailTugasSuperAdmin from './Page/SuperAdmin/Tugas/detail/detail';
 import DataJadwal from './Page/SuperAdmin/Jadwal/Data Jadwal';
 import TambahJadwal from './Page/SuperAdmin/Jadwal/Tambah/Tambah';
 import EditJadwal from './Page/SuperAdmin/Jadwal/Edit/Edit';
@@ -184,6 +185,11 @@ function App() {
         <Route path='/DataJadwal' element={
           <ProtectedRoute allowedRoles={['superadmin']}>
             <Layout><DataJadwal /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/SuperAdmin/Tugas/detail/:id' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><DetailTugasSuperAdmin /></Layout>
           </ProtectedRoute>
         } />
         <Route path='/DataJadwal/tambah' element={

@@ -52,7 +52,7 @@ const DataTugas: React.FC = () => {
         throw new Error('Token tidak ditemukan. Silakan login ulang.');
       }
 
-      const response = await fetch('http://localhost:3000/api/tugas', {
+      const response = await fetch('http://localhost:3000/api/superadmin/tugas', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -206,50 +206,32 @@ const DataTugas: React.FC = () => {
         </div>
 
         {/* Tasks Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {tasks.map((task) => {
             const priorityConfig = getPriorityConfig(task.priority);
             return (
-              <div key={task.id} className={`${priorityConfig.bg} rounded-xl p-6 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300`}>
-                <div className="flex items-start justify-between mb-4">
-                  <h3 className="font-bold text-lg leading-tight pr-4">{task.judul}</h3>
-                  <div className="flex items-center space-x-1 bg-white/20 px-3 py-1 rounded-full text-sm font-medium">
+              <div 
+                key={task.id} 
+                className="bg-gray-800 rounded-lg p-4 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 cursor-pointer border border-gray-700 hover:border-blue-500"
+                onClick={() => {
+                  console.log('Navigating to task detail:', task.id);
+                  navigate(`/SuperAdmin/Tugas/detail/${task.id}`);
+                }}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="font-bold text-lg leading-tight pr-2 flex-1">{task.judul}</h3>
+                  <div className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${priorityConfig.bg}`}>
                     {priorityConfig.icon}
-                    <span className="ml-1">{priorityConfig.text}</span>
                   </div>
                 </div>
                 
-                <div className="space-y-3">
-                  <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-                    <p className="text-sm leading-relaxed">{task.deskripsi}</p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2 text-sm">
-                      <FileText className="w-4 h-4" />
-                      <span>{task.file_tugas}</span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2 text-sm">
-                      <User className="w-4 h-4" />
-                      <span>{task.nama_mentor}</span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2 text-sm">
-                      <User className="w-4 h-4" />
-                      <span>{task.nama_siswa}</span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Calendar className="w-4 h-4" />
-                      <span>Assigned: {formatDate(task.waktu_diberikan)}</span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Clock className="w-4 h-4" />
-                      <span>Deadline: {formatDate(task.batas_waktu)}</span>
-                    </div>
-                  </div>
+                <div className="flex items-center space-x-2 text-sm text-gray-300">
+                  <User className="w-4 h-4 text-blue-400" />
+                  <span className="truncate">{task.nama_mentor}</span>
+                </div>
+                
+                <div className="mt-3 text-xs text-gray-400">
+                  <span>Klik untuk detail →</span>
                 </div>
               </div>
             );
