@@ -192,12 +192,6 @@ const Detail: React.FC = () => {
                   <span className="text-gray-400">Institusi:</span>
                   <p className="text-white mt-1 font-medium">{rekap.institusi}</p>
                 </div>
-                <div>
-                  <span className="text-gray-400">Status Akademik:</span>
-                  <span className={`ml-2 px-2 py-1 rounded text-xs ${getStatusColor(rekap.rata_nilai)}`}>
-                    {getStatusText(rekap.rata_nilai)}
-                  </span>
-                </div>
               </div>
             </div>
 
