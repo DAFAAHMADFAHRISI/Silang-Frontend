@@ -585,10 +585,6 @@ const DetailTugas: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="text-gray-400 text-sm">Mentor ID</label>
-                <p className="text-white text-sm">{task.mentor_id}</p>
-              </div>
-              <div>
                 <label className="text-gray-400 text-sm">Waktu Diberikan</label>
                 <p className="text-white text-sm">{formatDate(task.waktu_diberikan)}</p>
               </div>
@@ -638,7 +634,6 @@ const DetailTugas: React.FC = () => {
                         </div>
                         <div>
                           <p className="text-white font-semibold">{student.nama}</p>
-                          <p className="text-gray-400 text-xs">{student.email}</p>
                           <p className="text-gray-400 text-xs">{student.nama_institusi}</p>
                         </div>
                       </div>
@@ -692,7 +687,7 @@ const DetailTugas: React.FC = () => {
                         </div>
                         <div>
                           <p className="text-white font-semibold">{submission.siswa_nama}</p>
-                          <p className="text-gray-400 text-sm">ID: {submission.siswa_id}</p>
+                        
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
