@@ -256,13 +256,6 @@ const Detail: React.FC = () => {
             <UserCheck className="w-4 h-4" />
             <span>Edit Data</span>
           </button>
-          <button
-            onClick={() => navigate('/DataMentorSiswa')}
-            className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors flex items-center space-x-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Kembali ke Daftar</span>
-          </button>
         </div>
       </div>
     </div>
