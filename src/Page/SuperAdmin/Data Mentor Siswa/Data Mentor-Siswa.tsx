@@ -19,9 +19,6 @@ const DataMentorSiswa: React.FC = () => {
   const [mentorSiswaData, setMentorSiswaData] = useState<MentorSiswa[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedRecord, setSelectedRecord] = useState<MentorSiswaDetail | null>(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [detailLoading, setDetailLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -91,54 +88,8 @@ const DataMentorSiswa: React.FC = () => {
     }
   };
 
-  const fetchMentorSiswaById = async (id: number) => {
-    try {
-      setDetailLoading(true);
-      
-      const token = localStorage.getItem('token');
-      
-      if (!token) {
-        throw new Error('Token tidak ditemukan. Silakan login ulang.');
-      }
-
-      const response = await fetch(`http://localhost:3000/api/mentor-siswa/${id}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      
-      if (response.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('nama');
-        localStorage.removeItem('role');
-        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
-      }
-      
-      if (response.status === 403) {
-        throw new Error('Anda tidak memiliki izin untuk mengakses data ini.');
-      }
-      
-      if (response.status === 404) {
-        throw new Error('Data tidak ditemukan.');
-      }
-      
-      if (!response.ok) {
-        throw new Error(`Error server: ${response.status} ${response.statusText}`);
-      }
-      
-      const data = await response.json();
-      setSelectedRecord(data);
-      setShowDetailModal(true);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Gagal mengambil detail data.';
-      alert(errorMessage);
-      console.error('Error fetching mentor-siswa detail:', err);
-    } finally {
-      setDetailLoading(false);
-    }
+  const handleViewDetail = (id: number) => {
+    navigate(`/DataMentorSiswa/detail/${id}`);
   };
 
   const handleDeleteMentorSiswa = async (id: number) => {
@@ -352,9 +303,8 @@ const DataMentorSiswa: React.FC = () => {
                           </div>
                           <div className="flex space-x-1">
                             <button
-                              onClick={() => fetchMentorSiswaById(student.id)}
-                              disabled={detailLoading}
-                              className="bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded text-xs flex items-center space-x-1 transition-colors disabled:opacity-50"
+                              onClick={() => handleViewDetail(student.id)}
+                              className="bg-white/20 hover:bg-white/30 text-white px-2 py-1 rounded text-xs flex items-center space-x-1 transition-colors"
                             >
                               <Eye className="w-3 h-3" />
                               <span>Lihat</span>
@@ -433,72 +383,6 @@ const DataMentorSiswa: React.FC = () => {
           </div>
         )}
 
-        {/* Detail Modal */}
-        {showDetailModal && selectedRecord && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-white">Detail Mentor-Siswa</h3>
-                <button
-                  onClick={() => {
-                    setShowDetailModal(false);
-                    setSelectedRecord(null);
-                  }}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <i className="fa fa-times text-xl"></i>
-                </button>
-              </div>
-
-              {detailLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="bg-gray-700 rounded-lg p-4">
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                          <span className="text-white font-bold">{selectedRecord.id}</span>
-                        </div>
-                        <div>
-                          <p className="text-gray-300 text-sm">ID Record</p>
-                          <p className="text-white font-semibold">#{selectedRecord.id}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="border-t border-gray-600 pt-3">
-                        <div className="space-y-2">
-                          <div>
-                            <p className="text-gray-300 text-sm">Nama Mentor</p>
-                            <p className="text-white font-semibold">{selectedRecord.nama_mentor}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-300 text-sm">Nama Siswa</p>
-                            <p className="text-white font-semibold">{selectedRecord.nama_siswa}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex space-x-3 pt-4">
-                    <button
-                      onClick={() => {
-                        setShowDetailModal(false);
-                        setSelectedRecord(null);
-                      }}
-                      className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors"
-                    >
-                      Tutup
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     
   );

@@ -74,15 +74,7 @@ const DetailGuruSiswa: React.FC = () => {
       {detail && (
         <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md">
           <div className="space-y-3">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold">{detail.id}</span>
-              </div>
-              <div>
-                <p className="text-gray-300 text-sm">ID Record</p>
-                <p className="text-white font-semibold">#{detail.id}</p>
-              </div>
-            </div>
+
 
             <div className="border-t border-gray-600 pt-3 space-y-2">
               <div>
