@@ -219,6 +219,10 @@ const Detail: React.FC = () => {
       setFileLoading(true);
       
       const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token tidak ditemukan. Silakan login ulang.');
+      }
+
       let fileUrl = '';
       
       if (fileType === 'task') {
@@ -232,6 +236,8 @@ const Detail: React.FC = () => {
         fileUrl = `http://localhost:3000/api/tugas-guru/${task.id}/view-submission/${submission.siswa_id}`;
       }
 
+      console.log('Attempting to view file from:', fileUrl);
+
       const response = await fetch(fileUrl, {
         method: 'GET',
         headers: {
@@ -239,18 +245,36 @@ const Detail: React.FC = () => {
         },
       });
 
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('nama');
+        localStorage.removeItem('role');
+        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
+      }
+
       if (!response.ok) {
         throw new Error(`Failed to view file: ${response.status}`);
       }
 
       const blob = await response.blob();
+      
+      if (blob.size === 0) {
+        throw new Error('File kosong atau tidak valid');
+      }
+
       const url = window.URL.createObjectURL(blob);
       
       // For PDF files, open in new tab
       if (fileName.toLowerCase().endsWith('.pdf')) {
         window.open(url, '_blank');
+        // Clean up the URL after a short delay to allow the browser to use it
+        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+      } else if (fileName.toLowerCase().match(/\.(jpg|jpeg|png|gif|bmp|webp)$/)) {
+        // For image files, open in new tab
+        window.open(url, '_blank');
+        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
       } else {
-        // For other file types, show in modal
+        // For other file types (doc, docx, txt), show in modal
         const reader = new FileReader();
         reader.onload = (e) => {
           setSelectedFile({
@@ -260,12 +284,34 @@ const Detail: React.FC = () => {
             studentName: studentName
           });
           setFileViewerOpen(true);
+          // Clean up the URL
+          window.URL.revokeObjectURL(url);
+        };
+        reader.onerror = () => {
+          window.URL.revokeObjectURL(url);
+          throw new Error('Gagal membaca file');
         };
         reader.readAsText(blob);
       }
     } catch (error) {
       console.error('Error viewing file:', error);
-      alert('Failed to view file. Please try again.');
+      
+      // More specific error messages
+      let errorMessage = 'Gagal membuka file. Silakan coba lagi.';
+      
+      if (error instanceof Error) {
+        if (error.message.includes('404') || error.message.includes('tidak ditemukan')) {
+          errorMessage = `File ${fileName} tidak ditemukan di server.`;
+        } else if (error.message.includes('401')) {
+          errorMessage = 'Sesi Anda telah berakhir. Silakan login ulang.';
+        } else if (error.message.includes('403')) {
+          errorMessage = 'Anda tidak memiliki izin untuk melihat file ini.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
+      alert(errorMessage);
     } finally {
       setFileLoading(false);
     }
@@ -387,10 +433,13 @@ const Detail: React.FC = () => {
                 <div className="flex items-center justify-between mt-1">
                   <button
                     onClick={() => handleViewFile(task.file_tugas, 'task')}
-                    className="text-white text-sm hover:text-blue-400 transition-colors cursor-pointer text-left"
+                    className="text-white text-sm hover:text-blue-400 transition-colors cursor-pointer text-left flex items-center space-x-2"
                     title="Click to view file content"
+                    disabled={fileLoading}
                   >
-                    {task.file_tugas}
+                    <Eye className="w-4 h-4" />
+                    <span>{task.file_tugas}</span>
+                    {fileLoading && <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-400"></div>}
                   </button>
                   <button
                     onClick={() => handleDownload(task.file_tugas, 'task')}
@@ -444,10 +493,6 @@ const Detail: React.FC = () => {
                 <span className="text-gray-400 text-sm">Updated:</span>
                 <p className="text-white mt-1 text-sm">{formatDate(task.updated_at)}</p>
               </div>
-              <div>
-                <span className="text-gray-400 text-sm">Task ID:</span>
-                <p className="text-white mt-1 text-sm">#{task.id}</p>
-              </div>
             </div>
           </div>
         </div>
@@ -484,10 +529,13 @@ const Detail: React.FC = () => {
                         {submission.file_jawaban ? (
                           <button
                             onClick={() => handleViewFile(submission.file_jawaban, 'submission', submission.siswa_nama)}
-                            className="text-white hover:text-green-400 transition-colors cursor-pointer text-left"
+                            className="text-white hover:text-green-400 transition-colors cursor-pointer text-left flex items-center space-x-2"
                             title="Click to view file content"
+                            disabled={fileLoading}
                           >
-                            {submission.file_jawaban}
+                            <Eye className="w-4 h-4" />
+                            <span>{submission.file_jawaban}</span>
+                            {fileLoading && <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-green-400"></div>}
                           </button>
                         ) : (
                           <p className="text-white">Belum ada file</p>
@@ -615,9 +663,33 @@ const Detail: React.FC = () => {
                   <div className="bg-gray-900/50 rounded-lg p-4">
                     <h3 className="text-lg font-semibold text-white mb-3">File Content</h3>
                     <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                      <pre className="text-gray-300 text-sm whitespace-pre-wrap font-mono leading-relaxed">
-                        {selectedFile!.content}
-                      </pre>
+                      {selectedFile!.name.toLowerCase().match(/\.(jpg|jpeg|png|gif|bmp|webp)$/) ? (
+                        <div className="text-center">
+                          <p className="text-gray-400 mb-4">Image file - please use the download button to view the image</p>
+                          <button
+                            onClick={() => handleDownload(selectedFile!.name, selectedFile!.type)}
+                            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 mx-auto"
+                          >
+                            <Download className="w-4 h-4" />
+                            <span>Download Image</span>
+                          </button>
+                        </div>
+                      ) : selectedFile!.name.toLowerCase().endsWith('.pdf') ? (
+                        <div className="text-center">
+                          <p className="text-gray-400 mb-4">PDF file - please use the download button to view the PDF</p>
+                          <button
+                            onClick={() => handleDownload(selectedFile!.name, selectedFile!.type)}
+                            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 mx-auto"
+                          >
+                            <Download className="w-4 h-4" />
+                            <span>Download PDF</span>
+                          </button>
+                        </div>
+                      ) : (
+                        <pre className="text-gray-300 text-sm whitespace-pre-wrap font-mono leading-relaxed max-h-96 overflow-y-auto">
+                          {selectedFile!.content}
+                        </pre>
+                      )}
                     </div>
                   </div>
                 </div>
