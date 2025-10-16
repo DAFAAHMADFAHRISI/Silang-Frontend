@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Edit as EditIcon, ArrowLeft, FileText, Calendar, Users, AlertCircle, Save, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -54,6 +54,7 @@ const Edit: React.FC = () => {
     batas_waktu: '',
     selectedStudents: [],
   });
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
@@ -582,6 +583,14 @@ const Edit: React.FC = () => {
                   File Tugas (Opsional)
                 </label>
                 
+                {/* Hidden file input - always present */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={(e) => setEditForm({...editForm, file_tugas: e.target.files?.[0] || null})}
+                  className="hidden"
+                />
+                
                 {/* Show file input only when no existing file or when user wants to change */}
                 {(!task.file_tugas || editForm.file_tugas) && (
                   <div className="relative">
@@ -606,9 +615,10 @@ const Edit: React.FC = () => {
                       </div>
                       <button
                         onClick={() => {
-                          // Trigger file input click
-                          const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-                          if (fileInput) fileInput.click();
+                          // Trigger file input click using ref
+                          if (fileInputRef.current) {
+                            fileInputRef.current.click();
+                          }
                         }}
                         className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition-colors"
                       >
@@ -805,31 +815,6 @@ const Edit: React.FC = () => {
                       </div>
                     ) : (
                       <div className="divide-y divide-gray-600/50">
-                        {/* Debug info */}
-                        <div className="p-2 bg-gray-800/50 text-xs text-gray-400">
-                          Debug: {editForm.selectedStudents.length} siswa dipilih dari {students.length} total siswa
-                          <button 
-                            onClick={manualLoadStudents}
-                            className="ml-2 px-2 py-1 bg-blue-600 text-white rounded text-xs"
-                          >
-                            Reload Students
-                          </button>
-                          <button 
-                            onClick={() => {
-                              console.log('Manual reset - clearing all selections');
-                              setEditForm(prev => ({
-                                ...prev,
-                                selectedStudents: [],
-                              }));
-                            }}
-                            className="ml-2 px-2 py-1 bg-red-600 text-white rounded text-xs"
-                          >
-                            Reset Selection
-                          </button>
-                          <div className="mt-1 text-gray-500">
-                            Selected IDs: [{editForm.selectedStudents.join(', ')}]
-                          </div>
-                        </div>
                         {students.map((student) => (
                           <label key={student.id} className="flex items-center space-x-4 p-4 hover:bg-gray-600/30 cursor-pointer transition-colors duration-200">
                             <input
