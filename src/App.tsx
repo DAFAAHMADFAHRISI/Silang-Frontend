@@ -33,6 +33,7 @@ import DataAbsensi from './Page/SuperAdmin/Absensi/Data Absensi';
 import DataMentorSiswa from './Page/SuperAdmin/Data Mentor Siswa/Data Mentor-Siswa';
 import TambahMentorSiswa from './Page/SuperAdmin/Data Mentor Siswa/Tambah/Tambah';
 import EditMentorSiswa from './Page/SuperAdmin/Data Mentor Siswa/Edit/Edit';
+import DetailMentorSiswa from './Page/SuperAdmin/Data Mentor Siswa/detail/detail';
 import DataGuruSiswa from './Page/SuperAdmin/Data Guru Siswa/Data Guru - Siswa';
 import TambahGuruSiswa from './Page/SuperAdmin/Data Guru Siswa/Tambah/Tambah';
 import EditGuruSiswa from './Page/SuperAdmin/Data Guru Siswa/Edit/Edit';
@@ -210,6 +211,11 @@ function App() {
         <Route path='/DataMentorSiswa' element={
           <ProtectedRoute allowedRoles={['superadmin']}>
             <Layout><DataMentorSiswa /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/DataMentorSiswa/detail/:id' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><DetailMentorSiswa /></Layout>
           </ProtectedRoute>
         } />
         <Route path='/DataMentorSiswa/tambah' element={
