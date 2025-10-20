@@ -27,6 +27,10 @@ interface AttendanceCardProps {
   lateTime: string
   checkOut: string
   avatar?: string
+  checkInFace: string
+  checkOutFace: string
+  waktu_checkin: string
+  waktu_checkout: string
 }
 
 interface DashboardStats {
@@ -170,9 +174,24 @@ const TaskCard: React.FC<TaskCardProps> = ({ title, dueDate, status, score, comp
   );
 };
 
-const AttendanceCard: React.FC<AttendanceCardProps> = ({ name, email, checkIn, lateTime, checkOut }) => (
+const AttendanceCard: React.FC<AttendanceCardProps> = ({ name, email, checkIn, lateTime, checkOut, checkInFace, checkOutFace, waktu_checkin, waktu_checkout }) => {
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageAlt, setImageAlt] = useState<string>('');
+
+  const openImageModal = (imageSrc: string, alt: string) => {
+    setSelectedImage(imageSrc);
+    setImageAlt(alt);
+  };
+
+  const closeImageModal = () => {
+    setSelectedImage(null);
+    setImageAlt('');
+  };
+
+  return (
   <div className="bg-gray-800/50 rounded-xl p-4 sm:p-6 backdrop-blur-sm border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 mb-4 sm:mb-6">
-    <div className="flex items-center justify-between mb-3 sm:mb-4">
+    {/* Header with user info and status */}
+    <div className="flex items-center justify-between mb-4">
       <div className="flex items-center space-x-3 sm:space-x-4">
         <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
           <span className="text-white font-bold text-sm sm:text-base">{name.charAt(0).toUpperCase()}</span>
@@ -182,25 +201,131 @@ const AttendanceCard: React.FC<AttendanceCardProps> = ({ name, email, checkIn, l
           {email && <p className="text-xs sm:text-sm text-gray-400 truncate">{email}</p>}
         </div>
       </div>
-      <div className={`px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-medium ${
-        lateTime.includes('Telat') ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
+      <div className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
+        lateTime.includes('Telat') || lateTime.includes('Terlambat') ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
       }`}>
         {lateTime}
       </div>
     </div>
     
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
+    {/* Check In/Out Times */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm mb-4">
       <div className="flex items-center justify-between">
         <span className="text-gray-400">Check In:</span>
-        <span className="font-medium text-white">{checkIn}</span>
+        <span className="font-medium text-white">{waktu_checkin}</span>
       </div>
       <div className="flex items-center justify-between">
         <span className="text-gray-400">Check Out:</span>
-        <span className="font-medium text-white">{checkOut}</span>
+        <span className="font-medium text-white">{waktu_checkout}</span>
       </div>
     </div>
+
+    {/* Face Images Section */}
+    <div className="space-y-3">
+      <h4 className="text-sm font-semibold text-gray-300 mb-2">Foto Absensi</h4>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Check In Face */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-center">
+            <span className="text-xs text-gray-400">Check In:</span>
+          </div>
+          {checkInFace && checkInFace !== '-' ? (
+            <div className="relative cursor-pointer group" onClick={() => openImageModal(`http://localhost:3000/images/foto_absensi/${checkInFace}`, 'Check In Face')}>
+              <img 
+                src={`http://localhost:3000/images/foto_absensi/${checkInFace}`}
+                alt="Check In Face"
+                className="w-full h-32 sm:h-40 object-cover rounded-lg border border-gray-600/50 transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  target.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+              <div className="hidden w-full h-32 sm:h-40 bg-gray-700/50 rounded-lg border border-gray-600/50 flex items-center justify-center">
+                <span className="text-gray-500 text-sm">Gambar tidak tersedia</span>
+              </div>
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 rounded-lg flex items-center justify-center">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/20 backdrop-blur-sm rounded-full p-2">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="w-full h-32 sm:h-40 bg-gray-700/50 rounded-lg border border-gray-600/50 flex items-center justify-center">
+              <span className="text-gray-500 text-sm">Belum ada foto</span>
+            </div>
+          )}
+        </div>
+
+        {/* Check Out Face */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-center">
+            <span className="text-xs text-gray-400">Check Out:</span>
+          </div>
+          {checkOutFace && checkOutFace !== '-' ? (
+            <div className="relative cursor-pointer group" onClick={() => openImageModal(`http://localhost:3000/images/foto_absensi/${checkOutFace}`, 'Check Out Face')}>
+              <img 
+                src={`http://localhost:3000/images/foto_absensi/${checkOutFace}`}
+                alt="Check Out Face"
+                className="w-full h-32 sm:h-40 object-cover rounded-lg border border-gray-600/50 transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  target.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+              <div className="hidden w-full h-32 sm:h-40 bg-gray-700/50 rounded-lg border border-gray-600/50 flex items-center justify-center">
+                <span className="text-gray-500 text-sm">Gambar tidak tersedia</span>
+              </div>
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 rounded-lg flex items-center justify-center">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white/20 backdrop-blur-sm rounded-full p-2">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="w-full h-32 sm:h-40 bg-gray-700/50 rounded-lg border border-gray-600/50 flex items-center justify-center">
+              <span className="text-gray-500 text-sm">Belum ada foto</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* Image Modal */}
+    {selectedImage && (
+      <div 
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        onClick={closeImageModal}
+      >
+        <div className="relative max-w-4xl max-h-[90vh] w-full">
+          <button
+            onClick={closeImageModal}
+            className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          <img
+            src={selectedImage}
+            alt={imageAlt}
+            className="w-full h-full object-contain rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+          <div className="absolute bottom-4 left-4 bg-black/50 text-white px-3 py-1 rounded-lg text-sm">
+            {imageAlt}
+          </div>
+        </div>
+      </div>
+    )}
   </div>
-)
+  );
+};
 
 const Dashboard: React.FC = () => {
   // Get user name from localStorage
@@ -656,6 +781,10 @@ const Dashboard: React.FC = () => {
                     checkIn={att.waktu_checkin ? formatTime(att.waktu_checkin) : "Belum check-in"}
                     lateTime={att.status_kehadiran || "Tepat waktu"}
                     checkOut={att.waktu_checkout ? formatTime(att.waktu_checkout) : "-"}
+                    checkInFace={att.checkin_face}
+                    checkOutFace={att.checkout_face}
+                    waktu_checkin={att.waktu_checkin}
+                    waktu_checkout={att.waktu_checkout}
                   />
                 ))
               ) : (
