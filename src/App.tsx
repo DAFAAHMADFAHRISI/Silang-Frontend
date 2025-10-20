@@ -30,6 +30,7 @@ import DataJadwal from './Page/SuperAdmin/Jadwal/Data Jadwal';
 import TambahJadwal from './Page/SuperAdmin/Jadwal/Tambah/Tambah';
 import EditJadwal from './Page/SuperAdmin/Jadwal/Edit/Edit';
 import DataAbsensi from './Page/SuperAdmin/Absensi/Data Absensi';
+import DetailAbsensiSuperAdmin from './Page/SuperAdmin/Absensi/detail/detail';
 import DataMentorSiswa from './Page/SuperAdmin/Data Mentor Siswa/Data Mentor-Siswa';
 import TambahMentorSiswa from './Page/SuperAdmin/Data Mentor Siswa/Tambah/Tambah';
 import EditMentorSiswa from './Page/SuperAdmin/Data Mentor Siswa/Edit/Edit';
@@ -206,6 +207,11 @@ function App() {
         <Route path='/DataAbsensi' element={
           <ProtectedRoute allowedRoles={['superadmin']}>
             <Layout><DataAbsensi /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/DataAbsensi/detail/:studentName/:month/:date' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><DetailAbsensiSuperAdmin /></Layout>
           </ProtectedRoute>
         } />
         <Route path='/DataMentorSiswa' element={
