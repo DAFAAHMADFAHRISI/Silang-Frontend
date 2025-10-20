@@ -13,6 +13,8 @@ interface Attendance {
   foto_out: string;
   waktu_checkout: string;
   lokasi_out: string;
+  foto_in_url: string;
+  foto_out_url: string;
 }
 
 interface Mentor {
@@ -28,15 +30,14 @@ interface MentorSiswa {
 
 const DataAbsensi: React.FC = () => {
   const [attendances, setAttendances] = useState<Attendance[]>([]);
-  const [filteredAttendances, setFilteredAttendances] = useState<Attendance[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState<string>('');
-  const [selectedMentor, setSelectedMentor] = useState<string>('');
-  const [showDateModal, setShowDateModal] = useState(false);
-  const [showMentorModal, setShowMentorModal] = useState(false);
-  const [mentors, setMentors] = useState<Mentor[]>([]);
-  const [mentorSiswaMaps, setMentorSiswaMaps] = useState<MentorSiswa[]>([]);
+  const [currentView, setCurrentView] = useState<'students' | 'months' | 'dates'>('students');
+  const [selectedStudent, setSelectedStudent] = useState<string>('');
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [students, setStudents] = useState<string[]>([]);
+  const [months, setMonths] = useState<string[]>([]);
+  const [dates, setDates] = useState<string[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -57,38 +58,38 @@ const DataAbsensi: React.FC = () => {
     }
 
     fetchAttendances();
-    fetchMentors();
-    fetchMentorSiswaMaps();
   }, []);
 
   useEffect(() => {
-    // Filter attendances based on selected date and mentor
-    let filtered = attendances;
-    
-    if (selectedDate !== '') {
-      filtered = filtered.filter(attendance => {
-        const attendanceDate = new Date(attendance.tanggal_absensi);
-        const selectedDateObj = new Date(selectedDate);
-        
-        return attendanceDate.getFullYear() === selectedDateObj.getFullYear() &&
-               attendanceDate.getMonth() === selectedDateObj.getMonth() &&
-               attendanceDate.getDate() === selectedDateObj.getDate();
+    // Extract unique students from attendances
+    const uniqueStudents = Array.from(new Set(attendances.map(att => att.nama_siswa)));
+    setStudents(uniqueStudents);
+  }, [attendances]);
+
+  useEffect(() => {
+    // Extract unique months for selected student
+    if (selectedStudent) {
+      const studentAttendances = attendances.filter(att => att.nama_siswa === selectedStudent);
+      const uniqueMonths = Array.from(new Set(studentAttendances.map(att => {
+        const date = new Date(att.tanggal_absensi);
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      }))).sort();
+      setMonths(uniqueMonths);
+    }
+  }, [selectedStudent, attendances]);
+
+  useEffect(() => {
+    // Extract unique dates for selected student and month
+    if (selectedStudent && selectedMonth) {
+      const studentAttendances = attendances.filter(att => {
+        const date = new Date(att.tanggal_absensi);
+        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        return att.nama_siswa === selectedStudent && monthKey === selectedMonth;
       });
+      const uniqueDates = Array.from(new Set(studentAttendances.map(att => att.tanggal_absensi))).sort();
+      setDates(uniqueDates);
     }
-    
-    if (selectedMentor !== '') {
-      const mentorId = parseInt(selectedMentor);
-      const siswaIds = mentorSiswaMaps
-        .filter(ms => ms.mentor_id === mentorId)
-        .map(ms => ms.nama_siswa);
-      
-      filtered = filtered.filter(attendance => 
-        siswaIds.includes(attendance.nama_siswa)
-      );
-    }
-    
-    setFilteredAttendances(filtered);
-  }, [selectedDate, selectedMentor, attendances, mentorSiswaMaps]);
+  }, [selectedStudent, selectedMonth, attendances]);
 
   const fetchAttendances = async () => {
     try {
@@ -128,7 +129,6 @@ const DataAbsensi: React.FC = () => {
       
       const data = await response.json();
       setAttendances(data);
-      setFilteredAttendances(data);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Gagal mengambil data absensi.';
       setError(errorMessage);
@@ -138,84 +138,31 @@ const DataAbsensi: React.FC = () => {
     }
   };
 
-  const fetchMentors = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Token tidak ditemukan. Silakan login ulang.');
-      }
-
-      const response = await fetch('http://localhost:3000/api/mentors', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('nama');
-        localStorage.removeItem('role');
-        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
-      }
-
-      if (response.status === 403) {
-        throw new Error('Anda tidak memiliki izin untuk mengakses data ini.');
-      }
-
-      if (!response.ok) {
-        throw new Error(`Error server: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      setMentors(data);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Gagal mengambil data mentor.';
-      setError(errorMessage);
-      console.error('Error fetching mentors:', err);
-    }
+  // Navigation handlers
+  const handleStudentClick = (studentName: string) => {
+    setSelectedStudent(studentName);
+    setCurrentView('months');
+    setSelectedMonth('');
   };
 
-  const fetchMentorSiswaMaps = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('Token tidak ditemukan. Silakan login ulang.');
-      }
+  const handleMonthClick = (month: string) => {
+    setSelectedMonth(month);
+    setCurrentView('dates');
+  };
 
-      const response = await fetch('http://localhost:3000/api/mentor-siswa', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+  const handleDateClick = (date: string) => {
+    navigate(`/DataAbsensi/detail/${selectedStudent}/${selectedMonth}/${date}`);
+  };
 
-      if (response.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('nama');
-        localStorage.removeItem('role');
-        throw new Error('Sesi Anda telah berakhir. Silakan login ulang.');
-      }
+  const handleBackToStudents = () => {
+    setCurrentView('students');
+    setSelectedStudent('');
+    setSelectedMonth('');
+  };
 
-      if (response.status === 403) {
-        throw new Error('Anda tidak memiliki izin untuk mengakses data ini.');
-      }
-
-      if (!response.ok) {
-        throw new Error(`Error server: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      setMentorSiswaMaps(data);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Gagal mengambil data mentor-siswa.';
-      setError(errorMessage);
-      console.error('Error fetching mentor-siswa:', err);
-    }
+  const handleBackToMonths = () => {
+    setCurrentView('months');
+    setSelectedMonth('');
   };
 
   const handleLogout = () => {
@@ -225,53 +172,13 @@ const DataAbsensi: React.FC = () => {
     navigate('/Login');
   };
 
-  const handleViewMaps = (location: string, studentName: string) => {
-    if (!location || location === 'null' || location === 'undefined') {
-      alert('Lokasi tidak tersedia');
-      return;
-    }
-    
-    const [lat, lng] = location.split(', ');
-    if (!lat || !lng) {
-      alert('Format lokasi tidak valid');
-      return;
-    }
-    
-    const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-    window.open(mapsUrl, '_blank');
-  };
-
-  const formatSelectedDate = (dateString: string) => {
-    if (!dateString) return 'Semua Tanggal';
-    const date = new Date(dateString);
+  const formatMonth = (monthKey: string) => {
+    const [year, month] = monthKey.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1);
     return date.toLocaleDateString('id-ID', {
       year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+      month: 'long'
     });
-  };
-
-  const getStatusConfig = (telat: string) => {
-    if (telat === 'Tepat waktu' || telat === '0 menit') {
-      return {
-        bg: "bg-gradient-to-br from-green-500 to-emerald-600",
-        icon: <CheckCircle className="w-5 h-5" />,
-        text: "Tepat Waktu"
-      };
-    } else {
-      return {
-        bg: "bg-gradient-to-br from-yellow-500 to-orange-500",
-        icon: <AlertCircle className="w-5 h-5" />,
-        text: `Telat ${telat}`
-      };
-    }
-  };
-
-  const formatTime = (timeString: string) => {
-    if (!timeString || timeString === 'null' || timeString === 'undefined') {
-      return '--:--';
-    }
-    return timeString.substring(0, 5); // Remove seconds, keep HH:MM format
   };
 
   const formatDate = (dateString: string) => {
@@ -280,18 +187,6 @@ const DataAbsensi: React.FC = () => {
       month: 'long',
       day: 'numeric'
     });
-  };
-
-  const parseLocation = (location: string) => {
-    if (!location || location === 'null' || location === 'undefined') {
-      return { latitude: '0', longitude: '0' };
-    }
-    
-    const [lat, lng] = location.split(', ');
-    return { 
-      latitude: lat || '0', 
-      longitude: lng || '0' 
-    };
   };
 
   if (loading) {
@@ -349,224 +244,150 @@ const DataAbsensi: React.FC = () => {
   }
 
   return (
-    
-      <div className="p-6">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2 flex items-center space-x-3">
-          <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
-          <span>Data Absensi</span>
-        </h1>
-        <p className="text-gray-400 mt-2 ml-5">Pantau dan kelola data kehadiran siswa.</p>
-        <hr className="border-gray-700 my-4" />
-        
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold flex items-center space-x-2">
-            <Users className="w-6 h-6 text-blue-400" />
-            <span className="text-white">Daftar Absensi</span>
-          </h2>
-          <div className="flex space-x-3">
+    <div className="p-6">
+      <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2 flex items-center space-x-3">
+        <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
+        <span>Data Absensi</span>
+      </h1>
+      <p className="text-gray-400 mt-2 ml-5">Pantau dan kelola data kehadiran siswa.</p>
+      <hr className="border-gray-700 my-4" />
+      
+      {/* Breadcrumb Navigation */}
+      <div className="flex items-center space-x-2 mb-6">
+        <button
+          onClick={handleBackToStudents}
+          className="text-blue-400 hover:text-blue-300 flex items-center space-x-1"
+        >
+          <Users className="w-4 h-4" />
+          <span>Siswa</span>
+        </button>
+        {selectedStudent && (
+          <>
+            <span className="text-gray-500">›</span>
             <button
-              onClick={() => setShowMentorModal(true)}
-              className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
+              onClick={handleBackToMonths}
+              className="text-blue-400 hover:text-blue-300 flex items-center space-x-1"
             >
-              <UserCheck className="w-4 h-4 mr-2" />
-              {selectedMentor ? mentors.find(m => m.id === parseInt(selectedMentor))?.nama || 'Pilih Mentor' : 'Pilih Mentor'}
+              <Calendar className="w-4 h-4" />
+              <span>{selectedStudent}</span>
             </button>
-            <button
-              onClick={() => setShowDateModal(true)}
-              className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300 transform hover:scale-105"
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              {formatSelectedDate(selectedDate)}
-            </button>
-          </div>
-        </div>
-
-        {/* Attendances Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAttendances.map((attendance, index) => {
-            const statusConfig = getStatusConfig(attendance.telat);
-            const locationIn = parseLocation(attendance.lokasi_in);
-            const locationOut = parseLocation(attendance.lokasi_out);
-            return (
-              <div key={index} className={`${statusConfig.bg} rounded-xl p-6 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300`}>
-                <div className="flex items-start justify-between mb-4">
-                  <h3 className="font-bold text-lg leading-tight pr-4">{attendance.nama_siswa}</h3>
-                  <div className="flex items-center space-x-1 bg-white/20 px-3 py-1 rounded-full text-sm font-medium">
-                    {statusConfig.icon}
-                    <span className="ml-1">{statusConfig.text}</span>
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2 text-sm">
-                        <Calendar className="w-4 h-4" />
-                        <span>{formatDate(attendance.tanggal_absensi)}</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm">
-                        <Clock className="w-4 h-4" />
-                        <span>Check-in: {formatTime(attendance.waktu_checkin)}</span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-sm">
-                        <Clock className="w-4 h-4" />
-                        <span>Check-out: {formatTime(attendance.waktu_checkout)}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    {/* Removed photo and location information display */}
-                  </div>
-
-                  {/* View Maps Buttons */}
-                  <div className="flex space-x-2 pt-2">
-                    <button
-                      onClick={() => handleViewMaps(attendance.lokasi_in, `${attendance.nama_siswa} - Check-in`)}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-3 rounded text-sm flex items-center justify-center transition-colors"
-                    >
-                      <MapPin className="w-4 h-4 mr-1" />
-                      Check-in
-                    </button>
-                    <button
-                      onClick={() => handleViewMaps(attendance.lokasi_out, `${attendance.nama_siswa} - Check-out`)}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded text-sm flex items-center justify-center transition-colors"
-                    >
-                      <MapPin className="w-4 h-4 mr-1" />
-                      Check-out
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Empty State */}
-        {filteredAttendances.length === 0 && !loading && (
-          <div className="text-center py-12">
-            <div className="w-24 h-24 bg-gradient-to-br from-gray-500 to-gray-600 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="w-12 h-12 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-400 mb-2">
-              {selectedDate ? `Tidak Ada Data Absensi untuk ${formatSelectedDate(selectedDate)}` : 'Tidak Ada Data Absensi'}
-            </h3>
-            <p className="text-gray-500">
-              {selectedDate ? `Belum ada data absensi untuk tanggal ${formatSelectedDate(selectedDate)} saat ini.` : 'Belum ada data absensi yang tersedia saat ini.'}
-            </p>
-          </div>
+          </>
         )}
-
-        {/* Date Selection Modal */}
-        {showDateModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-white">Pilih Tanggal</h3>
-                <button
-                  onClick={() => setShowDateModal(false)}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <i className="fa fa-times text-xl"></i>
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Pilih Tanggal
-                  </label>
-                  <input
-                    type="date"
-                    value={selectedDate}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-
-                <div className="flex space-x-3 pt-4">
-                  <button
-                    onClick={() => {
-                      setSelectedDate('');
-                      setShowDateModal(false);
-                    }}
-                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors"
-                  >
-                    Semua Tanggal
-                  </button>
-                  <button
-                    onClick={() => setShowDateModal(false)}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors"
-                  >
-                    Terapkan
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Mentor Selection Modal */}
-        {showMentorModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 rounded-xl p-6 w-full max-w-md mx-4">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-bold text-white">Pilih Mentor</h3>
-                <button
-                  onClick={() => setShowMentorModal(false)}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <i className="fa fa-times text-xl"></i>
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Pilih Mentor
-                  </label>
-                  <select
-                    value={selectedMentor}
-                    onChange={(e) => setSelectedMentor(e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-                  >
-                    <option value="">Semua Mentor</option>
-                    {mentors.map((mentor) => (
-                      <option key={mentor.id} value={mentor.id}>
-                        {mentor.nama}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex space-x-3 pt-4">
-                  <button
-                    onClick={() => {
-                      setSelectedMentor('');
-                      setShowMentorModal(false);
-                    }}
-                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-colors"
-                  >
-                    Semua Mentor
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (selectedMentor) {
-                        navigate(`/DataAbsensi/detail/${selectedMentor}`);
-                      }
-                      setShowMentorModal(false);
-                    }}
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors"
-                  >
-                    Lihat Detail
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+        {selectedMonth && (
+          <>
+            <span className="text-gray-500">›</span>
+            <span className="text-gray-300 flex items-center space-x-1">
+              <Calendar className="w-4 h-4" />
+              <span>{formatMonth(selectedMonth)}</span>
+            </span>
+          </>
         )}
       </div>
-    
+
+      {/* Students View */}
+      {currentView === 'students' && (
+        <div>
+          <h2 className="text-2xl font-bold flex items-center space-x-2 mb-6">
+            <Users className="w-6 h-6 text-blue-400" />
+            <span className="text-white">Daftar Siswa</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {students.map((student, index) => (
+              <div
+                key={index}
+                onClick={() => handleStudentClick(student)}
+                className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 cursor-pointer"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <span className="text-xl font-bold">{student.charAt(0).toUpperCase()}</span>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">{student}</h3>
+                    <p className="text-white/80 text-sm">Klik untuk melihat bulan</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Months View */}
+      {currentView === 'months' && (
+        <div>
+          <h2 className="text-2xl font-bold flex items-center space-x-2 mb-6">
+            <Calendar className="w-6 h-6 text-blue-400" />
+            <span className="text-white">Bulan untuk {selectedStudent}</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {months.map((month, index) => (
+              <div
+                key={index}
+                onClick={() => handleMonthClick(month)}
+                className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 cursor-pointer"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <Calendar className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">{formatMonth(month)}</h3>
+                    <p className="text-white/80 text-sm">Klik untuk melihat tanggal</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Dates View */}
+      {currentView === 'dates' && (
+        <div>
+          <h2 className="text-2xl font-bold flex items-center space-x-2 mb-6">
+            <Clock className="w-6 h-6 text-blue-400" />
+            <span className="text-white">Tanggal untuk {selectedStudent} - {formatMonth(selectedMonth)}</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {dates.map((date, index) => (
+              <div
+                key={index}
+                onClick={() => handleDateClick(date)}
+                className="bg-gradient-to-br from-orange-500 to-red-600 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 cursor-pointer"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <Clock className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-lg">{formatDate(date)}</h3>
+                    <p className="text-white/80 text-sm">Klik untuk melihat detail</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Empty State */}
+      {((currentView === 'students' && students.length === 0) ||
+        (currentView === 'months' && months.length === 0) ||
+        (currentView === 'dates' && dates.length === 0)) && !loading && (
+        <div className="text-center py-12">
+          <div className="w-24 h-24 bg-gradient-to-br from-gray-500 to-gray-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Users className="w-12 h-12 text-white" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-400 mb-2">
+            Tidak Ada Data
+          </h3>
+          <p className="text-gray-500">
+            Belum ada data yang tersedia untuk ditampilkan.
+          </p>
+        </div>
+      )}
+    </div>
   );
 };
 
