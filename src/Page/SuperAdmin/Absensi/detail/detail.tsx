@@ -259,65 +259,154 @@ const Detail: React.FC = () => {
 
       {/* Complete Data Display */}
       <div className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700/50 mb-6">
-        <h3 className="text-xl font-bold text-white mb-4 flex items-center space-x-2">
+        <h3 className="text-xl font-bold text-white mb-6 flex items-center space-x-2">
           <Eye className="w-6 h-6 text-blue-400" />
           <span>Data Lengkap Absensi</span>
         </h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-400">Nama Siswa:</span>
-              <span className="text-white font-medium">{attendance.nama_siswa}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Tanggal Absensi */}
+          <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 rounded-lg p-4 border border-blue-500/30">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <span className="text-gray-400 text-sm font-medium">Tanggal</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Tanggal Absensi:</span>
-              <span className="text-white font-medium">{attendance.tanggal_absensi}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Waktu Check In:</span>
-              <span className="text-white font-medium">{attendance.waktu_checkin}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Status Keterlambatan:</span>
-              <span className={`font-medium ${statusConfig.textColor}`}>{attendance.telat}</span>
-            </div>
+            <p className="text-white font-semibold text-lg">{formatDate(attendance.tanggal_absensi)}</p>
+            <p className="text-gray-400 text-xs mt-1">{attendance.tanggal_absensi}</p>
           </div>
-          
-          <div className="space-y-3">
-            <div className="flex justify-between">
-              <span className="text-gray-400">Waktu Check Out:</span>
-              <span className="text-white font-medium">{attendance.waktu_checkout || 'Belum check out'}</span>
+
+          {/* Waktu Check In */}
+          <div className="bg-gradient-to-br from-green-600/20 to-green-800/20 rounded-lg p-4 border border-green-500/30">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <span className="text-gray-400 text-sm font-medium">Check In</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-gray-400">Foto Check Out:</span>
-              <span className="text-white font-medium">{attendance.foto_out || 'Tidak ada'}</span>
+            <p className="text-white font-semibold text-lg">{formatTime(attendance.waktu_checkin)}</p>
+            <p className="text-gray-400 text-xs mt-1">{attendance.waktu_checkin}</p>
+          </div>
+
+          {/* Keterlambatan */}
+          <div className={`rounded-lg p-4 border ${attendance.telat === 'Tepat waktu' || attendance.telat === '0 menit' 
+            ? 'bg-gradient-to-br from-green-600/20 to-green-800/20 border-green-500/30' 
+            : 'bg-gradient-to-br from-orange-600/20 to-orange-800/20 border-orange-500/30'}`}>
+            <div className="flex items-center space-x-3 mb-3">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                attendance.telat === 'Tepat waktu' || attendance.telat === '0 menit'
+                  ? 'bg-green-500/20'
+                  : 'bg-orange-500/20'
+              }`}>
+                {attendance.telat === 'Tepat waktu' || attendance.telat === '0 menit' ? (
+                  <CheckCircle className="w-5 h-5 text-green-400" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 text-orange-400" />
+                )}
+              </div>
+              <span className="text-gray-400 text-sm font-medium">Status</span>
             </div>
+            <p className={`font-semibold text-lg ${
+              attendance.telat === 'Tepat waktu' || attendance.telat === '0 menit'
+                ? 'text-green-400'
+                : 'text-orange-400'
+            }`}>
+              {attendance.telat === 'Tepat waktu' || attendance.telat === '0 menit' ? 'Tepat Waktu' : attendance.telat}
+            </p>
+            <p className="text-gray-400 text-xs mt-1">
+              {attendance.telat === 'Tepat waktu' || attendance.telat === '0 menit' ? 'Sesuai jadwal' : 'Terlambat masuk'}
+            </p>
+          </div>
+
+          {/* Waktu Check Out */}
+          <div className="bg-gradient-to-br from-purple-600/20 to-purple-800/20 rounded-lg p-4 border border-purple-500/30">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </div>
+              <span className="text-gray-400 text-sm font-medium">Check Out</span>
+            </div>
+            <p className="text-white font-semibold text-lg">
+              {attendance.waktu_checkout ? formatTime(attendance.waktu_checkout) : '--:--'}
+            </p>
+            <p className="text-gray-400 text-xs mt-1">
+              {attendance.waktu_checkout || 'Belum check out'}
+            </p>
           </div>
         </div>
       </div>
 
       {/* Photo Display */}
-      {attendance.foto_in && attendance.foto_in !== 'null' && (
-        <div className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700/50 mb-6">
-          <h3 className="text-xl font-bold text-white mb-4 flex items-center space-x-2">
-            <Eye className="w-6 h-6 text-green-400" />
-            <span>Foto Check In</span>
-          </h3>
-          <div className="flex justify-center">
-            <img 
-              src={`http://localhost:3000/images/foto_absensi/${attendance.foto_in}`}
-              alt="Check In Photo"
-              className="max-w-full h-64 object-contain rounded-lg border border-gray-600/50"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                target.nextElementSibling?.classList.remove('hidden');
-              }}
-            />
-            <div className="hidden w-full h-64 bg-gray-700/50 rounded-lg border border-gray-600/50 flex items-center justify-center">
-              <span className="text-gray-500 text-sm">Gambar tidak tersedia</span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Check In Photo */}
+        {attendance.foto_in && attendance.foto_in !== 'null' && (
+          <div className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700/50">
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center space-x-2">
+              <Eye className="w-6 h-6 text-green-400" />
+              <span>Foto Check In</span>
+            </h3>
+            <div className="flex justify-center">
+              <img 
+                src={`http://localhost:3000/images/foto_absensi/${attendance.foto_in}`}
+                alt="Check In Photo"
+                className="max-w-full h-64 object-contain rounded-lg border border-gray-600/50"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  target.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+              <div className="hidden w-full h-64 bg-gray-700/50 rounded-lg border border-gray-600/50 flex items-center justify-center">
+                <span className="text-gray-500 text-sm">Gambar tidak tersedia</span>
+              </div>
             </div>
+          </div>
+        )}
+
+        {/* Check Out Photo */}
+        {attendance.foto_out && attendance.foto_out !== 'null' && (
+          <div className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700/50">
+            <h3 className="text-xl font-bold text-white mb-4 flex items-center space-x-2">
+              <Eye className="w-6 h-6 text-red-400" />
+              <span>Foto Check Out</span>
+            </h3>
+            <div className="flex justify-center">
+              <img 
+                src={`http://localhost:3000/images/foto_absensi/${attendance.foto_out}`}
+                alt="Check Out Photo"
+                className="max-w-full h-64 object-contain rounded-lg border border-gray-600/50"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  target.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+              <div className="hidden w-full h-64 bg-gray-700/50 rounded-lg border border-gray-600/50 flex items-center justify-center">
+                <span className="text-gray-500 text-sm">Gambar tidak tersedia</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Show message if no photos available */}
+      {(!attendance.foto_in || attendance.foto_in === 'null') && (!attendance.foto_out || attendance.foto_out === 'null') && (
+        <div className="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700/50 mb-6">
+          <div className="text-center py-8">
+            <Eye className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-400 mb-2">
+              Foto Tidak Tersedia
+            </h3>
+            <p className="text-gray-500">
+              Foto check in dan check out tidak tersedia untuk absensi ini.
+            </p>
           </div>
         </div>
       )}
