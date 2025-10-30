@@ -258,6 +258,28 @@ export const rootAPI = {
   },
 };
 
+// Superadmin Certificate API
+export const certificateAPI = {
+  getGraduatedStudents: async (): Promise<{ success: boolean; data: Array<{ id: number; nama: string; institusi?: string; tanggal_mulai_magang?: string; tanggal_selesai_magang?: string; status?: string }>; }> => {
+    const response = await api.get('/api/superadmin/graduated-students');
+    return response.data;
+  },
+
+  getCertificatePdfUrl: (siswaId: number): string => {
+    return `${api.defaults.baseURL || ''}/api/superadmin/certificate/${siswaId}.pdf`;
+  },
+
+  // Siswa endpoints
+  getSiswaMagangStatus: async (): Promise<{ success: boolean; data: { status: string; status_magang: string; tanggal_mulai_magang?: string; tanggal_selesai_magang?: string; nama: string; id: number } }> => {
+    const response = await api.get('/api/siswa/magang-status');
+    return response.data;
+  },
+
+  getOwnCertificatePdfUrl: (): string => {
+    return `${api.defaults.baseURL || ''}/api/siswa/certificate.pdf`;
+  },
+};
+
 // Utility functions
 export const setAuthToken = (token: string) => {
   localStorage.setItem('token', token);

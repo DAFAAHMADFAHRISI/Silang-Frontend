@@ -66,7 +66,8 @@ import ErrorBoundary from './components/ErrorBoundary';
 import ToastManager from './components/ToastManager';
 import ErrorHandler from './components/ErrorHandler';
 import ProtectedRoute from './components/ProtectedRoute';
-
+import Sertifikat from './Page/SuperAdmin/Sertifikat/Sertifikat';
+import SiswaSertifikat from './Page/Siswa/sertifikat/sertifikat';
 
 import './App.css';
 
@@ -264,7 +265,7 @@ function App() {
             <Layout><DetailRekapSuperAdmin /></Layout>
           </ProtectedRoute>
         } />
-        
+
         {/* Mentor Routes */}
         <Route path='/mentor/dashboard' element={
           <ProtectedRoute allowedRoles={['mentor']}>
@@ -379,8 +380,17 @@ function App() {
           </ProtectedRoute>
         } />
         
-
-
+        {/* Sertifikat Routes */}
+        <Route path='/Sertifikat' element={
+          <ProtectedRoute allowedRoles={['superadmin']}>
+            <Layout><Sertifikat /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/SiswaSertifikat' element={
+          <ProtectedRoute allowedRoles={['siswa']}>
+            <Layout><SiswaSertifikat /></Layout>
+          </ProtectedRoute>
+        } />
         
         {/* 404 Route - Must be last */}
         <Route path="*" element={<ErrorHandler />} />
