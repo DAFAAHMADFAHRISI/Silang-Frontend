@@ -26,6 +26,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       { to: '/DataMentorSiswa', icon: 'fa fa-chalkboard-teacher', label: 'Data Mentor - Siswa' },
       { to: '/DataGuruSiswa', icon: 'fa fa-user-graduate', label: 'Data Guru - Siswa' },
       { to: '/DataRekap', icon: 'fa fa-chart-bar', label: 'Data Rekap' },
+      { to: '/Sertifikat', icon: 'fa fa-award', label: 'Sertifikat' }
     ];
   } else if (role === 'siswa') {
     menuItems = [
@@ -34,6 +35,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       { to: '/TodoSiswa', icon: 'fa fa-tasks', label: 'To Do' },
       { to: '/AttendanceSiswa', icon: 'fa fa-calendar-check', label: 'Attendance' },
       { to: '/ReportSiswa', icon: 'fa fa-file-alt', label: 'Report' },
+      { to: '/SiswaSertifikat', icon: 'fa fa-award', label: 'Sertifikat' },
     ];
   } else if (role === 'mentor') {
     menuItems = [
@@ -95,10 +97,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     location.pathname === item.to 
                       ? 'bg-gray-800 text-white' 
                       : 'text-gray-300 hover:bg-gray-800 hover:text-white'
-                  }`}
+                  } ${(item.to === '/Sertifikat' || item.to === '/SiswaSertifikat') ? 'border border-yellow-700/40 hover:border-yellow-500/70' : ''}`}
                 >
-                  <span className="mr-3 text-lg"><i className={item.icon} /></span>
-                  <span className="text-sm lg:text-base">{item.label}</span>
+                  <span className={`mr-3 text-lg ${(item.to === '/Sertifikat' || item.to === '/SiswaSertifikat') ? 'text-yellow-400' : ''}`}>
+                    <i className={item.icon} />
+                  </span>
+                  <span className={`text-sm lg:text-base ${(item.to === '/Sertifikat' || item.to === '/SiswaSertifikat') ? 'text-yellow-300' : ''}`}>{item.label}</span>
                 </Link>
               ))
             )}
