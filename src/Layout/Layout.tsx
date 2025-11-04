@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import { Link, useLocation } from 'react-router-dom';
+import PetStreak from '../Page/Siswa/PetStreak';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -114,6 +115,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           {children}
         </main>
       </div>
+      {/* Floating PetStreak only for siswa */}
+      {role === 'siswa' && (
+        <PetStreak />
+      )}
       <Footer />
     </div>
   );
