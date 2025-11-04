@@ -1,5 +1,5 @@
 import type React from "react"
-import { Users, UserCheck, Clock, CheckCircle, AlertCircle, Calendar, Mail, Award, TrendingUp, Building } from "lucide-react"
+import { Users, UserCheck, Clock, CheckCircle, AlertCircle, Calendar, Mail, Award, TrendingUp, Building, Flame } from "lucide-react"
 import { useState, useEffect } from "react"
 import { landingPageAPI } from "../../services/api"
 
@@ -87,6 +87,15 @@ interface MagangDatesData {
   tanggal_selesai_magang: string
   status_magang: string
   nama_institusi: string
+}
+
+interface PointsSummary {
+  total_points: number
+  streak: {
+    current_streak: number
+    best_streak: number
+    last_activity_date: string | null
+  }
 }
 
 const Divider: React.FC = () => <div className="border-t border-gray-700/50 my-8 w-full" />
@@ -352,6 +361,7 @@ const Dashboard: React.FC = () => {
   const [magangDates, setMagangDates] = useState<MagangDatesData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pointsSummary, setPointsSummary] = useState<PointsSummary>({ total_points: 0, streak: { current_streak: 0, best_streak: 0, last_activity_date: null }})
 
   // Fetch dashboard stats
   const fetchDashboardStats = async () => {
@@ -478,6 +488,26 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const fetchPointsSummary = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:3000/api/siswa/points/me', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) return;
+      const json = await response.json();
+      if (json && json.success && json.data) {
+        setPointsSummary({ total_points: json.data.total_points || 0, streak: json.data.streak || { current_streak: 0, best_streak: 0, last_activity_date: null } })
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
   // Fetch magang dates data
   const fetchMagangDates = async () => {
     try {
@@ -515,7 +545,8 @@ const Dashboard: React.FC = () => {
           fetchTasksData(),
           fetchInstitusiData(),
           fetchAllSiswaData(),
-          fetchMagangDates()
+          fetchMagangDates(),
+          fetchPointsSummary()
         ]);
       } catch (err) {
         console.error('Error loading data:', err);
@@ -619,6 +650,25 @@ const Dashboard: React.FC = () => {
 
   // Transform API data to component props
   const statsCards = [
+    {
+      title: "Total Poin",
+      value: pointsSummary.total_points,
+      icon: <Award className="w-6 h-6 text-white" />,
+      color: "bg-gradient-to-br from-yellow-500 to-orange-500",
+      trend: undefined,
+    },
+    {
+      title: "Streak Beruntun",
+      value: (
+        <div className="flex items-baseline gap-2">
+          <span className="text-2xl font-extrabold">{pointsSummary.streak.current_streak}</span>
+          <span className="text-xs text-white/80">hari</span>
+        </div>
+      ),
+      icon: <Flame className="w-6 h-6 text-white" />,
+      color: "bg-gradient-to-br from-red-500 to-pink-600",
+      trend: pointsSummary.streak.best_streak ? `Rekor: ${pointsSummary.streak.best_streak}` : undefined,
+    },
     // {
     //   title: "Hadir Hari Ini",
     //   value: stats.total_hadir || 0,
