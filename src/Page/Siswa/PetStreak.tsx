@@ -11,9 +11,17 @@ interface PointsSummary {
   streak: StreakData
 }
 
-interface AllSiswaData {
-  total_all_siswa: number
+interface PointsHistoryItem {
+  id: number
+  source_type: 'absensi' | 'tugas'
+  source_id: number
+  points: number
+  reason: string
+  event_date: string
+  created_at: string
 }
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000'
 
 const PetStreak: React.FC = () => {
   const [data, setData] = useState<PointsSummary>({ total_points: 0, streak: { current_streak: 0, best_streak: 0, last_activity_date: null } })
@@ -21,8 +29,11 @@ const PetStreak: React.FC = () => {
   const [expanded, setExpanded] = useState(false)
   const [isBouncing, setIsBouncing] = useState(false)
   const [showInfo, setShowInfo] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
   const [ranking, setRanking] = useState<{ rank: number; total_siswa: number } | null>(null)
-  const [allSiswaData, setAllSiswaData] = useState<AllSiswaData>({ total_all_siswa: 0 })
+  const [pointsHistory, setPointsHistory] = useState<PointsHistoryItem[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Compute pet growth (evolution) from streak and points
   const computePetMetrics = (streakVal: number, totalPoints: number) => {
@@ -74,59 +85,120 @@ const PetStreak: React.FC = () => {
 
   const metrics = computePetMetrics(data.streak.current_streak, data.total_points)
 
+  const fetchPoints = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const token = localStorage.getItem('token')
+      if (!token) {
+        setError('Token tidak ditemukan')
+        return
+      }
+      
+      const res = await fetch(`${API_BASE_URL}/api/siswa/points/me`, {
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token}` 
+        }
+      })
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`)
+      }
+      
+      const json = await res.json()
+      if (json && json.success && json.data) {
+        setData({ 
+          total_points: json.data.total_points || 0, 
+          streak: json.data.streak || { 
+            current_streak: 0, 
+            best_streak: 0, 
+            last_activity_date: null 
+          } 
+        })
+      }
+    } catch (e) {
+      console.error('Error fetching points:', e)
+      setError('Gagal memuat data poin')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchRanking = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) return
+      
+      const res = await fetch(`${API_BASE_URL}/api/siswa/streak/ranking`, {
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token}` 
+        }
+      })
+      
+      if (!res.ok) return
+      
+      const json = await res.json()
+      if (json && json.success && json.data) {
+        setRanking({ 
+          rank: json.data.rank || 0, 
+          total_siswa: json.data.total_siswa || 0 
+        })
+      }
+    } catch (e) {
+      console.error('Error fetching ranking:', e)
+    }
+  }
+
+  const fetchPointsHistory = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) return
+      
+      // Fetch only today's points
+      const res = await fetch(`${API_BASE_URL}/api/siswa/points/history?today=true`, {
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Authorization': `Bearer ${token}` 
+        }
+      })
+      
+      if (!res.ok) return
+      
+      const json = await res.json()
+      if (json && json.success && json.data) {
+        setPointsHistory(json.data || [])
+      }
+    } catch (e) {
+      console.error('Error fetching points history:', e)
+    }
+  }
+
   useEffect(() => {
-    const fetchPoints = async () => {
-      try {
-        const token = localStorage.getItem('token')
-        if (!token) return
-        const res = await fetch('http://localhost:3000/api/siswa/points/me', {
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
-        })
-        if (!res.ok) return
-        const json = await res.json()
-        if (json && json.success && json.data) {
-          setData({ total_points: json.data.total_points || 0, streak: json.data.streak || { current_streak: 0, best_streak: 0, last_activity_date: null } })
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-    const fetchRanking = async () => {
-      try {
-        const token = localStorage.getItem('token')
-        if (!token) return
-        const res = await fetch('http://localhost:3000/api/siswa/streak/ranking', {
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
-        })
-        if (!res.ok) return
-        const json = await res.json()
-        if (json && json.success && json.data) {
-          setRanking({ rank: json.data.rank || 0, total_siswa: json.data.total_siswa || 0 })
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
-    const fetchAllSiswaData = async () => {
-      try {
-        const token = localStorage.getItem('token')
-        if (!token) return
-        const res = await fetch('http://localhost:3000/api/dashboard-all-siswa', {
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
-        })
-        if (!res.ok) return
-        const data = await res.json()
-        if (data) {
-          setAllSiswaData({ total_all_siswa: data.total_all_siswa || 0 })
-        }
-      } catch (e) {
-        // ignore
-      }
-    }
     fetchPoints()
     fetchRanking()
-    fetchAllSiswaData()
   }, [])
+
+  // Auto-refresh data every 30 seconds when expanded
+  useEffect(() => {
+    if (!expanded) return
+    
+    const interval = setInterval(() => {
+      fetchPoints()
+      fetchRanking()
+    }, 30000) // Refresh every 30 seconds
+    
+    return () => clearInterval(interval)
+  }, [expanded])
+
+  // Fetch history when showHistory is toggled
+  useEffect(() => {
+    if (showHistory && pointsHistory.length === 0) {
+      fetchPointsHistory()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showHistory])
 
   // Periodic gentle jump animation
   useEffect(() => {
@@ -196,6 +268,16 @@ const PetStreak: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-1">
+              <button 
+                onClick={() => {
+                  setShowHistory(!showHistory)
+                  if (!showHistory) fetchPointsHistory()
+                }} 
+                className="text-gray-300 hover:text-white px-2" 
+                title="Riwayat poin"
+              >
+                📜
+              </button>
               <button onClick={() => setShowInfo(!showInfo)} className="text-gray-300 hover:text-white px-2" title="Info poin & level">ℹ️</button>
               <button onClick={() => setExpanded(false)} className="text-gray-300 hover:text-white px-2" title="Minimize">—</button>
               {/* <button onClick={() => setHidden(true)} className="text-gray-400 hover:text-white px-2">✕</button> */}
@@ -212,11 +294,58 @@ const PetStreak: React.FC = () => {
                 <li> 🐔 Level 4: ≥ 500 poin</li>
                 <li> 🐓 Level 5: ≥ 750 poin</li>
               </ul>
+              {/* <div className="font-semibold text-white/90 pt-1">Aturan Level (berdasar streak)</div>
+              <ul className="list-disc list-inside text-gray-300/90 space-y-0.5">
+                <li> 🥚 Level 1: Streak 0-4 hari</li>
+                <li> 🐣 Level 2: Streak 5-9 hari</li>
+                <li> 🐥 Level 3: Streak 10-19 hari</li>
+                <li> 🐔 Level 4: Streak 20-34 hari</li>
+                <li> 🐓 Level 5: Streak ≥ 35 hari</li>
+              </ul> */}
               <div className="font-semibold text-white/90 pt-1">Aturan Poin</div>
               <ul className="list-disc list-inside text-gray-300/90 space-y-0.5">
                 <li>Absensi: Masuk 10 poin, Terlambat 5 poin, Tidak masuk 0 poin</li>
                 <li>Tugas: Tepat waktu 20 poin, Terlambat 10 poin, Tidak mengumpulkan 0 poin</li>
               </ul>
+            </div>
+          )}
+
+          {showHistory && (
+            <div className="mt-2 text-xs bg-gray-800/80 border border-gray-700/70 rounded-lg p-3 max-h-48 overflow-y-auto">
+              <div className="font-semibold text-white/90 mb-2">Riwayat Poin Hari Ini</div>
+              {pointsHistory.length === 0 ? (
+                <div className="text-gray-400 text-center py-2">Belum ada poin hari ini</div>
+              ) : (
+                <div className="space-y-2">
+                  {pointsHistory.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between py-1 border-b border-gray-700/50">
+                      <div className="flex-1">
+                        <div className="text-white/90">{item.reason}</div>
+                        <div className="text-gray-400 text-[10px]">
+                          {new Date(item.event_date).toLocaleDateString('id-ID', { 
+                            day: 'numeric', 
+                            month: 'short', 
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                          {' • '}
+                          {item.source_type === 'absensi' ? '📅 Absensi' : '📝 Tugas'}
+                        </div>
+                      </div>
+                      <div className={`font-semibold ${item.points > 0 ? 'text-green-400' : 'text-gray-500'}`}>
+                        {item.points > 0 ? '+' : ''}{item.points}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {error && (
+            <div className="mt-2 text-xs bg-red-900/50 border border-red-700/70 rounded-lg p-2 text-red-300">
+              {error}
             </div>
           )}
 
@@ -229,12 +358,9 @@ const PetStreak: React.FC = () => {
               <div className="text-right">
                 <div className="text-lg font-extrabold">{data.streak.current_streak}</div>
                 <div className="text-[10px] text-gray-400">
-                  Rekor {data.streak.best_streak}
-                  {allSiswaData && allSiswaData.total_all_siswa > 0 && (
-                    <span className="ml-1 text-gray-500">({allSiswaData.total_all_siswa})</span>
-                  )}
+                  
                   {ranking && ranking.total_siswa > 0 && (
-                    <span className="block mt-0.5">#{ranking.rank} dari {ranking.total_siswa} siswa</span>
+                    <span className="block mt-0.5">{ranking.rank} dari {ranking.total_siswa} siswa</span>
                   )}
                 </div>
               </div>
@@ -251,7 +377,16 @@ const PetStreak: React.FC = () => {
             </div>
 
             <div className="mt-3 text-[11px] text-gray-400">
-              Raih +10 poin per hari untuk mempertahankan streak.
+              {loading ? (
+                <span className="text-blue-400">Memuat data...</span>
+              ) : (
+                <>
+                  Raih +10 poin per hari untuk mempertahankan streak.
+                  {data.streak.current_streak === 0 && data.total_points === 0 && (
+                    <span className="block mt-1 text-yellow-400">Mulai absensi atau kumpulkan tugas untuk mulai mendapatkan poin!</span>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
