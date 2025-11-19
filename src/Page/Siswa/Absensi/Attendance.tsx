@@ -944,25 +944,6 @@ const Attendance: React.FC = () => {
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-semibold text-white">Absensi dengan Kamera</h3>
             <div className="flex items-center space-x-3">
-              {/* GPS Status Indicator */}
-              <div className="flex items-center space-x-2">
-                <div className={`w-3 h-3 rounded-full ${
-                  locationData ? 
-                    (locationData.accuracy && locationData.accuracy <= 10 ? 'bg-green-500' : 
-                     locationData.accuracy && locationData.accuracy <= 25 ? 'bg-yellow-500' : 'bg-red-500') 
-                    : 'bg-gray-500'
-                }`}></div>
-                <span className="text-xs text-gray-400">
-                  {locationData ? 
-                    (locationData.accuracy && locationData.accuracy <= 10 ? 'GPS Optimal' : 
-                     locationData.accuracy && locationData.accuracy <= 25 ? 'GPS Baik' : 'GPS Kurang Akurat') 
-                    : 'GPS Belum Aktif'
-                  }
-                </span>
-              </div>
-              <div className="p-2 rounded-full bg-blue-600">
-                <Camera className="w-5 h-5 text-white" />
-              </div>
             </div>
           </div>
 
@@ -985,7 +966,7 @@ const Attendance: React.FC = () => {
               }`} />
               <div className="text-center">
                 <div className="font-semibold text-lg">Check In</div>
-                <div className="text-sm opacity-75">06:00 - 12:00</div>
+                {/* <div className="text-sm opacity-75">06:00 - 12:00</div> */}
               </div>
             </button>
 
@@ -1004,7 +985,7 @@ const Attendance: React.FC = () => {
               }`} />
               <div className="text-center">
                 <div className="font-semibold text-lg">Check Out</div>
-                <div className="text-sm opacity-75">15:00 - 20:00</div>
+                {/* <div className="text-sm opacity-75">15:00 - 20:00</div> */}
               </div>
             </button>
           </div>
@@ -1087,11 +1068,11 @@ const Attendance: React.FC = () => {
                 style={{ transform: 'scaleX(-1)' }}
                 onUserMediaError={(error) => {
                   console.error('Webcam error:', error);
-                  setCameraError('Tidak dapat mengakses kamera. Silakan gunakan "Pilih File" sebagai alternatif.');
+                  setCameraError('Tidak dapat mengakses kamera.');
                   Swal.fire({
-                    icon: 'warning',
+                    icon: 'error',
                     title: 'Kamera tidak dapat diakses!',
-                    text: 'Silakan gunakan tombol "Pilih File" untuk upload foto dari galeri.',
+                    text: 'Pastikan kamera aktif dan izin kamera telah diizinkan.',
                   });
                 }}
                 onUserMedia={() => {
@@ -1110,16 +1091,6 @@ const Attendance: React.FC = () => {
                 <div className="flex items-center justify-center space-x-2">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                   <span>Memproses...</span>
-                </div>
-              )}
-              {locationData && (
-                <div className="bg-green-600 text-white px-3 py-2 rounded text-xs mb-2">
-                  📍 Lokasi GPS: {locationData.latitude.toFixed(6)}, {locationData.longitude.toFixed(6)}
-                  {locationData.accuracy && (
-                    <span className="ml-2">
-                      (Akurasi: {locationData.accuracy <= 10 ? '🟢' : locationData.accuracy <= 25 ? '🟡' : '🔴'} {locationData.accuracy.toFixed(1)}m)
-                    </span>
-                  )}
                 </div>
               )}
               {locationError && (
