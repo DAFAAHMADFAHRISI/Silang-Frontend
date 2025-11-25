@@ -32,7 +32,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   } else if (role === 'siswa') {
     menuItems = [
       { to: '/DashboardSiswa', icon: 'fa fa-tachometer-alt', label: 'Dashboard' },
-      // { to: '/ChatSiswa', icon: 'fa fa-comments', label: 'Chat' },
+      { to: '/ChatSiswa', icon: 'fa fa-comments', label: 'Chat' },
       { to: '/TodoSiswa', icon: 'fa fa-tasks', label: 'To Do' },
       { to: '/AttendanceSiswa', icon: 'fa fa-calendar-check', label: 'Attendance' },
       { to: '/ReportSiswa', icon: 'fa fa-file-alt', label: 'Report' },
@@ -41,7 +41,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   } else if (role === 'mentor') {
     menuItems = [
       { to: '/mentor/dashboard', icon: 'fa fa-tachometer-alt', label: 'Dashboard' },
-      // { to: '/mentor/chat', icon: 'fa fa-comments', label: 'Chat' },
+      { to: '/mentor/chat', icon: 'fa fa-comments', label: 'Chat' },
       { to: '/mentor/tugas', icon: 'fa fa-clipboard-list', label: 'Data Tugas' },
       { to: '/mentor/absensi', icon: 'fa fa-user-check', label: 'Data Absensi' },
       { to: '/mentor/rekap', icon: 'fa fa-chart-bar', label: 'Data Rekap' },
@@ -49,7 +49,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   } else if (role === 'guru') {
     menuItems = [
       { to: '/guru/dashboard', icon: 'fa fa-tachometer-alt', label: 'Dashboard' },
-      // { to: '/guru/chat', icon: 'fa fa-comments', label: 'Chat' },
+      { to: '/guru/chat', icon: 'fa fa-comments', label: 'Chat' },
       { to: '/guru/tugas', icon: 'fa fa-clipboard-list', label: 'Data Tugas' },
       { to: '/guru/absensi', icon: 'fa fa-user-check', label: 'Data Absensi' },
       { to: '/guru/rekap', icon: 'fa fa-chart-bar', label: 'Data Rekap' },
