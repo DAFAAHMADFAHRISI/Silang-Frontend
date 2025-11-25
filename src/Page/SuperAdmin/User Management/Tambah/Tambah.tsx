@@ -10,6 +10,7 @@ const Tambah: React.FC = () => {
   const [notif, setNotif] = useState<string | null>(null);
   const [institusiList, setInstitusiList] = useState<InstitusiRow[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<string>('');
   const navigate = useNavigate();
 
   // Fetch institusi list for dropdown
@@ -62,6 +63,34 @@ const Tambah: React.FC = () => {
         setNotif('Pilih institusi terlebih dahulu');
         setLoading(false);
         return;
+      }
+      
+      // Validate date fields for siswa role
+      if (roleValue === 'siswa') {
+        const tanggalAwalMagang = formData.get('tanggal_awal_magang');
+        const tanggalKeluarMagang = formData.get('tanggal_keluar_magang');
+        
+        if (!tanggalAwalMagang) {
+          setNotif('Tanggal awal magang harus diisi untuk role siswa');
+          setLoading(false);
+          return;
+        }
+        
+        if (!tanggalKeluarMagang) {
+          setNotif('Tanggal keluar magang harus diisi untuk role siswa');
+          setLoading(false);
+          return;
+        }
+        
+        // Validate that end date is after start date
+        const startDate = new Date(tanggalAwalMagang as string);
+        const endDate = new Date(tanggalKeluarMagang as string);
+        
+        if (endDate <= startDate) {
+          setNotif('Tanggal keluar magang harus setelah tanggal awal magang');
+          setLoading(false);
+          return;
+        }
       }
       
       // Log all form data for debugging
@@ -157,7 +186,14 @@ const Tambah: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm text-gray-300 mb-1">Role</label>
-              <select name="role" required className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white">
+              <select 
+                name="role" 
+                required 
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value)}
+                className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white"
+              >
+                <option value="">Pilih Role</option>
                 <option value="mentor">Mentor</option>
                 <option value="guru">Guru</option>
                 <option value="siswa">Siswa</option>
@@ -183,6 +219,28 @@ const Tambah: React.FC = () => {
                 ))}
               </select>
             </div>
+            {selectedRole === 'siswa' && (
+              <>
+                <div>
+                  <label className="block text-sm text-gray-300 mb-1">Tanggal Awal Magang</label>
+                  <input 
+                    name="tanggal_awal_magang" 
+                    type="date" 
+                    required={selectedRole === 'siswa'}
+                    className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white" 
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-300 mb-1">Tanggal Keluar Magang</label>
+                  <input 
+                    name="tanggal_keluar_magang" 
+                    type="date" 
+                    required={selectedRole === 'siswa'}
+                    className="w-full px-3 py-2 rounded bg-gray-800 border border-gray-700 text-white" 
+                  />
+                </div>
+              </>
+            )}
           </div>
           <div className="flex gap-2">
             <button 

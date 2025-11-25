@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { landingPageAPI } from '../services/api';
 import KPICard from '../components/LandingPage/KPICard';
 import BarChart from '../components/LandingPage/BarChart';
-import DonutChart from '../components/LandingPage/DonutChart';
 import { 
   Users, 
   GraduationCap, 
@@ -60,13 +59,6 @@ const Dashboard: React.FC = () => {
     { name: 'Siswa Tidak Aktif', value: data.siswaTidakAktif.total },
     { name: 'Guru', value: data.guru.total },
     { name: 'Institusi', value: data.institusi.length }
-  ] : [];
-
-  const donutChartData = data ? [
-    { name: 'Siswa Aktif', value: data.siswaAktif.total, color: '#10B981' },
-    { name: 'Siswa Tidak Aktif', value: data.siswaTidakAktif.total, color: '#EF4444' },
-    { name: 'Guru', value: data.guru.total, color: '#3B82F6' },
-    { name: 'Institusi', value: data.institusi.length, color: '#F59E0B' }
   ] : [];
 
   if (loading) {
@@ -172,14 +164,10 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+        <div className="mb-12">
           <BarChart
             data={barChartData}
             title="Distribusi Data Sistem"
-          />
-          <DonutChart
-            data={donutChartData}
-            title="Persentase Data Sistem"
           />
         </div>
 
