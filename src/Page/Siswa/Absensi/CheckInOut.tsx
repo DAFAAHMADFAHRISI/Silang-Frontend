@@ -255,10 +255,9 @@ const CheckInOut: React.FC = () => {
                 <LogIn className={`w-8 h-8 ${
                   action === 'checkin' ? 'text-white' : 'text-gray-500'
                 }`} />
-                <div className="text-center">
-                  <div className="font-semibold text-lg">Check In</div>
-                  {/* <div className="text-sm opacity-75">06:00 - 12:00</div> */}
-                </div>
+              <div className="text-center">
+                <div className="font-semibold text-lg">Check In</div>
+              </div>
               </button>
             )}
 
@@ -279,7 +278,6 @@ const CheckInOut: React.FC = () => {
               }`} />
               <div className="text-center">
                 <div className="font-semibold text-lg">Check Out</div>
-                {/* <div className="text-sm opacity-75">15:00 - 20:00</div> */}
               </div>
             </button>
           </div>

@@ -966,7 +966,6 @@ const Attendance: React.FC = () => {
               }`} />
               <div className="text-center">
                 <div className="font-semibold text-lg">Check In</div>
-                {/* <div className="text-sm opacity-75">06:00 - 12:00</div> */}
               </div>
             </button>
 
@@ -985,7 +984,6 @@ const Attendance: React.FC = () => {
               }`} />
               <div className="text-center">
                 <div className="font-semibold text-lg">Check Out</div>
-                {/* <div className="text-sm opacity-75">15:00 - 20:00</div> */}
               </div>
             </button>
           </div>
