@@ -1066,11 +1066,11 @@ const Attendance: React.FC = () => {
                 style={{ transform: 'scaleX(-1)' }}
                 onUserMediaError={(error) => {
                   console.error('Webcam error:', error);
-                  setCameraError('Tidak dapat mengakses kamera. Silakan gunakan "Pilih File" sebagai alternatif.');
+                  setCameraError('Tidak dapat mengakses kamera.');
                   Swal.fire({
-                    icon: 'warning',
+                    icon: 'error',
                     title: 'Kamera tidak dapat diakses!',
-                    text: 'Silakan gunakan tombol "Pilih File" untuk upload foto dari galeri.',
+                    text: 'Pastikan kamera aktif dan izin kamera telah diizinkan.',
                   });
                 }}
                 onUserMedia={() => {
