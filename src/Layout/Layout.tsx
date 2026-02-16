@@ -35,6 +35,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       { to: '/ChatSiswa', icon: 'fa fa-comments', label: 'Chat' },
       { to: '/TodoSiswa', icon: 'fa fa-tasks', label: 'To Do' },
       { to: '/AttendanceSiswa', icon: 'fa fa-calendar-check', label: 'Attendance' },
+      { to: '/siswa/work-assignments', icon: 'fa fa-map-marker-alt', label: 'Tugas Luar' },
       { to: '/ReportSiswa', icon: 'fa fa-file-alt', label: 'Report' },
       { to: '/SiswaSertifikat', icon: 'fa fa-award', label: 'Sertifikat' },
     ];
@@ -43,6 +44,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       { to: '/mentor/dashboard', icon: 'fa fa-tachometer-alt', label: 'Dashboard' },
       { to: '/mentor/chat', icon: 'fa fa-comments', label: 'Chat' },
       { to: '/mentor/tugas', icon: 'fa fa-clipboard-list', label: 'Data Tugas' },
+      { to: '/mentor/work-assignments', icon: 'fa fa-map-marker-alt', label: 'Tugas Luar' },
       { to: '/mentor/absensi', icon: 'fa fa-user-check', label: 'Data Absensi' },
       { to: '/mentor/rekap', icon: 'fa fa-chart-bar', label: 'Data Rekap' },
     ];

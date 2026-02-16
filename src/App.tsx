@@ -59,6 +59,7 @@ import ProfileGuru from './Page/Guru/Profile';
 import ResetPasswordGuru from './Page/Guru/ResetPassword';
 import ProfileMentor from './Page/Mentor/Profile';
 import ResetPasswordMentor from './Page/Mentor/ResetPassword';
+import Mwork from './Page/Mentor/Mwork/Mwork';
 import LoadingRole from './Page/LoadingRole';
 import GoogleCallback from './Page/GoogleCallback';
 import AuthError from './Page/AuthError';
@@ -68,6 +69,7 @@ import ErrorHandler from './components/ErrorHandler';
 import ProtectedRoute from './components/ProtectedRoute';
 import Sertifikat from './Page/SuperAdmin/Sertifikat/Sertifikat';
 import SiswaSertifikat from './Page/Siswa/sertifikat/sertifikat';
+import Work from './Page/Siswa/work/work';
 
 import './App.css';
 
@@ -322,6 +324,11 @@ function App() {
             <Layout><ResetPasswordMentor /></Layout>
           </ProtectedRoute>
         } />
+        <Route path='/mentor/work-assignments' element={
+          <ProtectedRoute allowedRoles={['mentor']}>
+            <Layout><Mwork /></Layout>
+          </ProtectedRoute>
+        } />
 
         {/* Guru Routes */}
         <Route path='/guru/dashboard' element={
@@ -389,6 +396,11 @@ function App() {
         <Route path='/SiswaSertifikat' element={
           <ProtectedRoute allowedRoles={['siswa']}>
             <Layout><SiswaSertifikat /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/siswa/work-assignments' element={
+          <ProtectedRoute allowedRoles={['siswa']}>
+            <Layout><Work /></Layout>
           </ProtectedRoute>
         } />
         
