@@ -18,7 +18,7 @@ interface WorkAssignment {
   radius_meter: number | null;
   mulai: string | null;
   selesai: string | null;
-  status: 'aktif' | 'selesai';
+  status: 'pending' | 'aktif' | 'selesai';
   request_type: 'siswa' | 'mentor';
   status_request: 'pending' | 'approved' | 'rejected' | null;
   alasan: string | null;
@@ -43,7 +43,7 @@ const Mwork: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'aktif' | 'selesai'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'aktif' | 'selesai'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'siswa' | 'mentor'>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showPendingModal, setShowPendingModal] = useState(false);
@@ -326,6 +326,7 @@ const Mwork: React.FC = () => {
             className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
           >
             <option value="all">Semua Status</option>
+            <option value="pending">Menunggu Approve</option>
             <option value="aktif">Aktif</option>
             <option value="selesai">Selesai</option>
           </select>

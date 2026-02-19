@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { UserCheck, Clock, Calendar, TrendingUp, AlertCircle, CheckCircle, Award, Users, Mail, Camera, LogIn, LogOut } from 'lucide-react';
+import { UserCheck, Clock, Calendar, TrendingUp, AlertCircle, CheckCircle, Award, Users, Mail, Camera, LogIn, LogOut, MapPin } from 'lucide-react';
 import Webcam from 'react-webcam';
 import Swal from 'sweetalert2';
 
@@ -16,6 +16,8 @@ interface AttendanceRow {
   checkin_location: string;
   checkout_location: string;
   status_kehadiran: string;
+  tugas_luar?: number;
+  nama_lokasi_tugas_luar?: string | null;
   checkin_face_url?: string;
   checkout_face_url?: string;
 }
@@ -1212,7 +1214,7 @@ const Attendance: React.FC = () => {
       
       {/* Attendance Table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-xs sm:text-sm min-w-[1200px]">
+        <table className="w-full text-xs sm:text-sm min-w-[1300px]">
           <thead>
             <tr className="border-b border-gray-700">
               <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">No.</th>
@@ -1222,6 +1224,7 @@ const Attendance: React.FC = () => {
               <th className="text-center py-2 px-2 sm:px-4 font-semibold text-gray-300">Foto Check In</th>
               <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Lokasi In</th>
               <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Status</th>
+              <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Lokasi Absen</th>
               <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Check Out</th>
               <th className="text-center py-2 px-2 sm:px-4 font-semibold text-gray-300">Foto Check Out</th>
               <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Lokasi Out</th>
@@ -1230,7 +1233,7 @@ const Attendance: React.FC = () => {
           <tbody>
             {filteredAttendance.length === 0 ? (
               <tr>
-                <td colSpan={10} className="text-center py-12">
+                <td colSpan={11} className="text-center py-12">
                   <div className="text-center">
                     <UserCheck className="w-16 h-16 text-gray-500 mx-auto mb-4" />
                     {attendanceData.length === 0 ? (
@@ -1264,6 +1267,18 @@ const Attendance: React.FC = () => {
                     </td>
                     <td className={`py-3 px-2 sm:px-4 font-medium ${lateStatus.class}`}>
                       {lateStatus.text}
+                    </td>
+                    <td className="py-3 px-2 sm:px-4">
+                      {row.tugas_luar ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-amber-900/50 text-amber-400 border border-amber-600/50">
+                          <MapPin className="w-3.5 h-3.5" />
+                          Di Luar Instansi{row.nama_lokasi_tugas_luar ? ` (${row.nama_lokasi_tugas_luar})` : ''}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-700/50 text-gray-400 border border-gray-600/50">
+                          Instansi
+                        </span>
+                      )}
                     </td>
                     <td className="py-3 px-2 sm:px-4 text-blue-400 font-medium">{formatTime(row.waktu_checkout)}</td>
                     <td className="py-3 px-2 sm:px-4 text-center">
