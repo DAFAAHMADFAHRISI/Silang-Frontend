@@ -1,0 +1,506 @@
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Calendar,
+  Users,
+  BarChart3,
+  Search,
+  TrendingUp,
+  RefreshCw,
+  Sparkles,
+  X,
+} from "lucide-react";
+import api from "../../../services/api";
+
+interface ActivitySummaryRow {
+  siswa_id: number;
+  siswa_nama: string;
+  institusi: string;
+  total_hari_hadir: number;
+  present_days: number;
+  late_days: number;
+  total_tugas_diberikan: number;
+  total_tugas_selesai: number;
+  total_nilai: number;
+  rata_rata_nilai: number;
+}
+
+const ActivitySummary: React.FC = () => {
+  const [start, setStart] = useState<string>("");
+  const [end, setEnd] = useState<string>("");
+  const [data, setData] = useState<ActivitySummaryRow[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [initializing, setInitializing] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [aiSummary, setAiSummary] = useState<{
+    siswa_id: number;
+    siswa_nama: string;
+    summary: string;
+  } | null>(null);
+  const [generatingSummary, setGeneratingSummary] = useState(false);
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+
+    if (!token || role !== "mentor") {
+      setError("Anda tidak memiliki akses ke halaman ini.");
+      setInitializing(false);
+      return;
+    }
+
+    const today = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 6);
+
+    const toDateString = (d: Date) => d.toISOString().split("T")[0];
+
+    const defaultStart = toDateString(sevenDaysAgo);
+    const defaultEnd = toDateString(today);
+
+    setStart(defaultStart);
+    setEnd(defaultEnd);
+
+    fetchSummary(defaultStart, defaultEnd).finally(() => {
+      setInitializing(false);
+    });
+  }, []);
+
+  const fetchSummary = async (startDate: string, endDate: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      setData([]);
+
+      const response = await api.get("/api/mentor/rekap-mentor/activity-summary", {
+        params: { start: startDate, end: endDate },
+      });
+
+      if (!response.data || response.data.success === false) {
+        throw new Error(response.data?.message || "Gagal memuat ringkasan aktivitas.");
+      }
+
+      setData(response.data.data || []);
+    } catch (err: any) {
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Gagal memuat ringkasan aktivitas.";
+      setError(msg);
+      console.error("Error fetching activity summary:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!start || !end) return;
+    fetchSummary(start, end);
+  };
+
+  const handleResetPeriod = () => {
+    const today = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 6);
+    const toDateString = (d: Date) => d.toISOString().split("T")[0];
+    const defaultStart = toDateString(sevenDaysAgo);
+    const defaultEnd = toDateString(today);
+    setStart(defaultStart);
+    setEnd(defaultEnd);
+    fetchSummary(defaultStart, defaultEnd);
+  };
+
+  const filteredData = data.filter((row) => {
+    const term = searchTerm.toLowerCase();
+    return (
+      row.siswa_nama.toLowerCase().includes(term) ||
+      row.institusi.toLowerCase().includes(term)
+    );
+  });
+
+  const generateAISummary = async (siswaId: number, siswaNama: string) => {
+    if (!start || !end) {
+      alert("Pilih periode terlebih dahulu");
+      return;
+    }
+
+    try {
+      setGeneratingSummary(true);
+      setError(null);
+
+      const response = await api.post("/api/mentor/rekap-mentor/ai-summary", {
+        siswa_id: siswaId,
+        period_start: start,
+        period_end: end,
+      });
+
+      if (response.data?.success) {
+        setAiSummary({
+          siswa_id: siswaId,
+          siswa_nama: siswaNama,
+          summary: response.data.data.summary,
+        });
+        setShowSummaryModal(true);
+      } else {
+        throw new Error(response.data?.message || "Gagal generate ringkasan");
+      }
+    } catch (err: any) {
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Gagal generate ringkasan aktivitas.";
+      setError(msg);
+      alert(msg);
+    } finally {
+      setGeneratingSummary(false);
+    }
+  };
+
+  const totalSiswa = filteredData.length;
+  const totalHadir = filteredData.reduce(
+    (sum, row) => sum + (row.total_hari_hadir || 0),
+    0
+  );
+  const totalTelat = filteredData.reduce(
+    (sum, row) => sum + (row.late_days || 0),
+    0
+  );
+  const rataRataNilaiGlobal =
+    filteredData.length > 0
+      ? (
+          filteredData.reduce(
+            (sum, row) => sum + (row.rata_rata_nilai || 0),
+            0
+          ) / filteredData.length
+        ).toFixed(2)
+      : "0";
+
+  if (initializing) {
+    return (
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6 min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-400" />
+          <p className="text-gray-400">Menyiapkan halaman ringkasan aktivitas...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6 min-h-screen">
+        <div className="flex items-center justify-center min-h-[300px]">
+          <div className="text-center">
+            <div className="w-10 h-10 text-red-500 mx-auto mb-4">⚠️</div>
+            <p className="text-red-400 mb-4 text-lg font-semibold">Error: {error}</p>
+            <div className="space-y-2">
+              <button
+                onClick={() => fetchSummary(start, end)}
+                className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors font-semibold"
+              >
+                Coba Lagi
+              </button>
+              <button
+                onClick={() => navigate("/Login")}
+                className="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-lg transition-colors font-semibold ml-2"
+              >
+                Login Ulang
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6 min-h-screen">
+      {/* Header */}
+      <div className="mb-6 mt-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+              Ringkasan Aktivitas Peserta
+            </h1>
+          </div>
+        </div>
+        <p className="text-gray-400 mt-2 ml-5">
+          Rekap kehadiran dan tugas siswa dalam periode tertentu.
+        </p>
+      </div>
+
+      <div className="border-t border-gray-700/50 my-6 w-full" />
+
+      {/* Period Picker + Search */}
+      <form
+        onSubmit={handleSubmit}
+        className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
+      >
+        <div>
+          <label className="block text-gray-300 mb-1 text-sm">Periode Mulai</label>
+          <div className="flex items-center bg-gray-800 border border-gray-700 rounded-lg px-3 py-2">
+            <Calendar className="w-4 h-4 text-blue-400 mr-2" />
+            <input
+              type="date"
+              value={start}
+              onChange={(e) => setStart(e.target.value)}
+              className="bg-transparent flex-1 text-white focus:outline-none text-sm"
+              required
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-gray-300 mb-1 text-sm">Periode Akhir</label>
+          <div className="flex items-center bg-gray-800 border border-gray-700 rounded-lg px-3 py-2">
+            <Calendar className="w-4 h-4 text-purple-400 mr-2" />
+            <input
+              type="date"
+              value={end}
+              onChange={(e) => setEnd(e.target.value)}
+              className="bg-transparent flex-1 text-white focus:outline-none text-sm"
+              required
+            />
+          </div>
+        </div>
+        <div className="flex flex-col space-y-2">
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300 transform hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span>Memuat...</span>
+              </>
+            ) : (
+              <>
+                <BarChart3 className="w-4 h-4" />
+                <span>Lihat Ringkasan</span>
+              </>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={handleResetPeriod}
+            className="w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 text-sm transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>Reset ke 7 Hari Terakhir</span>
+          </button>
+        </div>
+      </form>
+
+      {/* Search */}
+      <div className="mb-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <input
+            type="text"
+            placeholder="Cari nama siswa atau institusi..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm"
+          />
+        </div>
+      </div>
+
+      {/* Top stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-4 flex items-center justify-between">
+          <div>
+            <p className="text-white/80 text-xs font-medium mb-1">
+              Total Siswa dalam Ringkasan
+            </p>
+            <p className="text-2xl font-bold text-white">{totalSiswa}</p>
+          </div>
+          <div className="p-3 bg-white/20 rounded-lg">
+            <Users className="w-6 h-6 text-white" />
+          </div>
+        </div>
+        <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl p-4 flex items-center justify-between">
+          <div>
+            <p className="text-white/80 text-xs font-medium mb-1">
+              Total Hari Hadir
+            </p>
+            <p className="text-2xl font-bold text-white">{totalHadir}</p>
+          </div>
+          <div className="p-3 bg-white/20 rounded-lg">
+            <Calendar className="w-6 h-6 text-white" />
+          </div>
+        </div>
+        <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl p-4 flex items-center justify-between">
+          <div>
+            <p className="text-white/80 text-xs font-medium mb-1">
+              Total Hari Telat
+            </p>
+            <p className="text-2xl font-bold text-white">{totalTelat}</p>
+          </div>
+          <div className="p-3 bg.white/20 rounded-lg">
+            <TrendingUp className="w-6 h-6 text-white" />
+          </div>
+        </div>
+        <div className="bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl p-4 flex items-center justify-between">
+          <div>
+            <p className="text-white/80 text-xs font-medium mb-1">
+              Rata-rata Nilai Keseluruhan
+            </p>
+            <p className="text-2xl font-bold text-white">{rataRataNilaiGlobal}</p>
+          </div>
+          <div className="p-3 bg-white/20 rounded-lg">
+            <BarChart3 className="w-6 h-6 text-white" />
+          </div>
+        </div>
+      </div>
+
+      {/* Tabel ringkasan */}
+      <div className="bg-gray-900/60 border border-gray-700 rounded-xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-gray-700 flex items-center justify-between">
+          <h2 className="text-lg font-semibold flex items-center space-x-2">
+            <BarChart3 className="w-5 h-5 text-blue-400" />
+            <span>Ringkasan Per Siswa ({filteredData.length})</span>
+          </h2>
+        </div>
+
+        {filteredData.length === 0 ? (
+          <div className="p-6 text-center text-gray-400">
+            Tidak ada data ringkasan untuk periode dan filter yang dipilih.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-800">
+                <tr>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-200">
+                    Siswa
+                  </th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-200">
+                    Institusi
+                  </th>
+                  <th className="px-4 py-3 text-center font-semibold text-gray-200">
+                    Hari Hadir
+                  </th>
+                  <th className="px-4 py-3 text-center font-semibold text-gray-200">
+                    Hari Telat
+                  </th>
+                  <th className="px-4 py-3 text-center font-semibold text-gray-200">
+                    Tugas Diberikan
+                  </th>
+                  <th className="px-4 py-3 text-center font-semibold text-gray-200">
+                    Tugas Selesai
+                  </th>
+                  <th className="px-4 py-3 text-center font-semibold text-gray-200">
+                    Total Nilai
+                  </th>
+                    <th className="px-4 py-3 text-center font-semibold text-gray-200">
+                      Rata-rata Nilai
+                    </th>
+                    <th className="px-4 py-3 text-center font-semibold text-gray-200">
+                      Aksi
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredData.map((row, idx) => (
+                    <tr
+                      key={row.siswa_id}
+                      className={idx % 2 === 0 ? "bg-gray-900" : "bg-gray-900/70"}
+                    >
+                      <td className="px-4 py-3 text-left text-gray-100">
+                        {row.siswa_nama}
+                      </td>
+                      <td className="px-4 py-3 text-left text-gray-300">
+                        {row.institusi}
+                      </td>
+                      <td className="px-4 py-3 text-center text-gray-100">
+                        {row.total_hari_hadir}
+                      </td>
+                      <td className="px-4 py-3 text-center text-gray-100">
+                        {row.late_days}
+                      </td>
+                      <td className="px-4 py-3 text-center text-gray-100">
+                        {row.total_tugas_diberikan}
+                      </td>
+                      <td className="px-4 py-3 text-center text-gray-100">
+                        {row.total_tugas_selesai}
+                      </td>
+                      <td className="px-4 py-3 text-center text-gray-100">
+                        {row.total_nilai}
+                      </td>
+                      <td className="px-4 py-3 text-center text-blue-300 font-semibold">
+                        {row.rata_rata_nilai}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => generateAISummary(row.siswa_id, row.siswa_nama)}
+                          disabled={generatingSummary}
+                          className="px-3 py-1.5 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-lg text-xs font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed flex items-center space-x-1 mx-auto"
+                        >
+                          <Sparkles className="w-3 h-3" />
+                          <span>AI Summary</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* AI Summary Modal */}
+      {showSummaryModal && aiSummary && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2">
+                <Sparkles className="w-6 h-6 text-purple-400" />
+                <h2 className="text-2xl font-bold text-white">
+                  Ringkasan AI - {aiSummary.siswa_nama}
+                </h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowSummaryModal(false);
+                  setAiSummary(null);
+                }}
+                className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+            <div className="bg-gray-900/50 rounded-lg p-4 mb-4">
+              <p className="text-sm text-gray-400 mb-2">
+                Periode: {start} hingga {end}
+              </p>
+            </div>
+            <div className="prose prose-invert max-w-none">
+              <div className="text-gray-200 whitespace-pre-wrap leading-relaxed">
+                {aiSummary.summary}
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => {
+                  setShowSummaryModal(false);
+                  setAiSummary(null);
+                }}
+                className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors font-semibold"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ActivitySummary;
+

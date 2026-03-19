@@ -249,8 +249,10 @@ const Mwork: React.FC = () => {
   };
 
   const filteredAssignments = assignments.filter(assignment => {
-    const matchesSearch = assignment.nama_lokasi.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         assignment.siswa_nama.toLowerCase().includes(searchTerm.toLowerCase());
+    const namaLokasi = assignment.nama_lokasi || '';
+    const siswaNama = assignment.siswa_nama || '';
+    const matchesSearch = namaLokasi.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         siswaNama.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || assignment.status === statusFilter;
     const matchesType = typeFilter === 'all' || assignment.request_type === typeFilter;
     return matchesSearch && matchesStatus && matchesType;
@@ -278,7 +280,14 @@ const Mwork: React.FC = () => {
               Penugasan Lokasi Luar
             </h1>
           </div>
-          <div className="flex space-x-3">
+          <div className="flex flex-wrap gap-3 justify-end">
+            <button
+              onClick={() => navigate('/mentor/work-assignments/auto')}
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-300 transform hover:scale-105"
+            >
+              <Map className="w-4 h-4" />
+              <span>Jadwal Otomatis</span>
+            </button>
             {pendingRequests.length > 0 && (
               <button
                 onClick={() => setShowPendingModal(true)}
