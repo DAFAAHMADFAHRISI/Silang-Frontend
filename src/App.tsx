@@ -60,6 +60,8 @@ import ResetPasswordGuru from './Page/Guru/ResetPassword';
 import ProfileMentor from './Page/Mentor/Profile';
 import ResetPasswordMentor from './Page/Mentor/ResetPassword';
 import Mwork from './Page/Mentor/Mwork/Mwork';
+import ActivitySummary from './Page/Mentor/ActivitySummary/ActivitySummary';
+import AutoWorkAssignments from './Page/Mentor/work-assignments/work-assignments';
 import LoadingRole from './Page/LoadingRole';
 import GoogleCallback from './Page/GoogleCallback';
 import AuthError from './Page/AuthError';
@@ -70,6 +72,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Sertifikat from './Page/SuperAdmin/Sertifikat/Sertifikat';
 import SiswaSertifikat from './Page/Siswa/sertifikat/sertifikat';
 import Work from './Page/Siswa/work/work';
+import ActivityPage from './Page/Siswa/activity/activity';
 
 import './App.css';
 
@@ -116,6 +119,11 @@ function App() {
         <Route path='/AttendanceSiswa' element={
           <ProtectedRoute allowedRoles={['siswa']}>
             <Layout><Attendance /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/siswa/activity' element={
+          <ProtectedRoute allowedRoles={['siswa']}>
+            <Layout><ActivityPage /></Layout>
           </ProtectedRoute>
         } />
         <Route path='/ChatSiswa' element={
@@ -304,6 +312,11 @@ function App() {
             <Layout><DataRekapMentor /></Layout>
           </ProtectedRoute>
         } />
+        <Route path='/mentor/activity-summary' element={
+          <ProtectedRoute allowedRoles={['mentor']}>
+            <Layout><ActivitySummary /></Layout>
+          </ProtectedRoute>
+        } />
         <Route path='/mentor/chat' element={
           <ProtectedRoute allowedRoles={['mentor']}>
             <Layout><ChatMentor /></Layout>
@@ -327,6 +340,11 @@ function App() {
         <Route path='/mentor/work-assignments' element={
           <ProtectedRoute allowedRoles={['mentor']}>
             <Layout><Mwork /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/mentor/work-assignments/auto' element={
+          <ProtectedRoute allowedRoles={['mentor']}>
+            <Layout><AutoWorkAssignments /></Layout>
           </ProtectedRoute>
         } />
 

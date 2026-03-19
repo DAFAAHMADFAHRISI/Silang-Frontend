@@ -11,7 +11,7 @@ interface WorkAssignment {
   id: number;
   siswa_id: number;
   mentor_id: number;
-  nama_lokasi: string;
+  nama_lokasi: string | null;
   latitude: number | null;
   longitude: number | null;
   radius_meter: number | null;
@@ -22,8 +22,8 @@ interface WorkAssignment {
   status_request: 'pending' | 'approved' | 'rejected' | null;
   alasan: string | null;
   created_at: string;
-  mentor_nama: string;
-  mentor_email: string;
+  mentor_nama: string | null;
+  mentor_email: string | null;
   mentor_foto: string | null;
 }
 
@@ -165,7 +165,7 @@ const Work: React.FC = () => {
     setSelectedAssignment(assignment);
     setFormData({
       mentor_id: assignment.mentor_id.toString(),
-      nama_lokasi: assignment.nama_lokasi,
+      nama_lokasi: assignment.nama_lokasi || '',
       latitude: assignment.latitude,
       longitude: assignment.longitude,
       mulai: assignment.mulai || '',
@@ -230,13 +230,15 @@ const Work: React.FC = () => {
   assignments.forEach(a => {
     if (!seenMentorIds.has(a.mentor_id)) {
       seenMentorIds.add(a.mentor_id);
-      uniqueMentors.push({ id: a.mentor_id, nama: a.mentor_nama, email: a.mentor_email });
+      uniqueMentors.push({ id: a.mentor_id, nama: a.mentor_nama || 'Mentor', email: a.mentor_email || '' });
     }
   });
 
   const filteredAssignments = assignments.filter(assignment => {
-    const matchesSearch = assignment.nama_lokasi.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         assignment.mentor_nama.toLowerCase().includes(searchTerm.toLowerCase());
+    const namaLokasi = assignment.nama_lokasi || '';
+    const mentorNama = assignment.mentor_nama || '';
+    const matchesSearch = namaLokasi.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         mentorNama.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || assignment.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -329,7 +331,7 @@ const Work: React.FC = () => {
           <div key={assignment.id} className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-xl p-4 sm:p-6 border border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-lg">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1 min-w-0">
-                <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 truncate">{assignment.nama_lokasi}</h3>
+                <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 truncate">{assignment.nama_lokasi || 'Lokasi Luar Instansi'}</h3>
                 {/* Lokasi akan diambil langsung dari GPS/Maps */}
               </div>
               <div className="ml-2 flex-shrink-0">
@@ -340,7 +342,7 @@ const Work: React.FC = () => {
             <div className="space-y-2 mb-4">
               <div className="flex items-center text-gray-400 text-xs sm:text-sm">
                 <User className="w-4 h-4 mr-2 flex-shrink-0" />
-                <span className="truncate">{assignment.mentor_nama}</span>
+                <span className="truncate">{assignment.mentor_nama || 'Mentor'}</span>
               </div>
               <div className="flex items-center text-gray-400 text-xs sm:text-sm">
                 <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
