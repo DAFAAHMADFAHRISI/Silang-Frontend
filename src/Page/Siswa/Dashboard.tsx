@@ -60,6 +60,7 @@ interface AttendanceData {
   checkin_location: string
   checkout_location: string
   status_kehadiran: string
+  tanggal_absen?: string
 }
 
 interface TaskData {
@@ -822,19 +823,27 @@ const Dashboard: React.FC = () => {
               <span>Absensi Hari Ini</span>
             </h2>
             <div>
-              {attendance.length > 0 ? (
-                attendance.map((att, index) => (
+              {attendance.filter((att) => {
+                const today = new Date().toLocaleDateString('en-CA'); // Gets YYYY-MM-DD local time
+                const attDate = att.tanggal_absen || (att.waktu_checkin ? new Date(att.waktu_checkin).toLocaleDateString('en-CA') : '');
+                return attDate === today;
+              }).length > 0 ? (
+                attendance.filter((att) => {
+                  const today = new Date().toLocaleDateString('en-CA');
+                  const attDate = att.tanggal_absen || (att.waktu_checkin ? new Date(att.waktu_checkin).toLocaleDateString('en-CA') : '');
+                  return attDate === today;
+                }).map((att, index) => (
                   <AttendanceCard
                     key={att.id}
                     name={userName}
                     email=""
-                    checkIn={att.waktu_checkin ? formatTime(att.waktu_checkin) : "Belum check-in"}
+                    checkIn={att.waktu_checkin ? (att.waktu_checkin.length === 8 ? att.waktu_checkin : formatTime(att.waktu_checkin)) : "Belum check-in"}
                     lateTime={att.status_kehadiran || "Tepat waktu"}
-                    checkOut={att.waktu_checkout ? formatTime(att.waktu_checkout) : "-"}
+                    checkOut={att.waktu_checkout ? (att.waktu_checkout.length === 8 ? att.waktu_checkout : formatTime(att.waktu_checkout)) : "-"}
                     checkInFace={att.checkin_face}
                     checkOutFace={att.checkout_face}
-                    waktu_checkin={att.waktu_checkin}
-                    waktu_checkout={att.waktu_checkout}
+                    waktu_checkin={att.waktu_checkin && att.waktu_checkin.length === 8 ? att.waktu_checkin : (att.waktu_checkin ? formatTime(att.waktu_checkin) : "Belum check-in")}
+                    waktu_checkout={att.waktu_checkout && att.waktu_checkout.length === 8 ? att.waktu_checkout : (att.waktu_checkout ? formatTime(att.waktu_checkout) : "-")}
                   />
                 ))
               ) : (
