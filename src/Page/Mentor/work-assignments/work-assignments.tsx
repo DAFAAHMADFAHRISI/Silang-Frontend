@@ -145,7 +145,7 @@ const AutoWorkAssignments: React.FC = () => {
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Contoh: Tanggal 24 Februari 2026, siswa yang ditugaskan di luar hanya yang cowok. Atau: Besok lokasi Kejaksaan Sampang, semua siswa. Atau: 25-27 Februari 2026 penugasan luar untuk siswa A dan B."
+            placeholder=""
             className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 text-sm resize-y min-h-[100px]"
             rows={4}
           />
