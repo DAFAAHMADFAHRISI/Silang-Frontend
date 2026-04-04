@@ -288,6 +288,13 @@ const Mwork: React.FC = () => {
               <Map className="w-4 h-4" />
               <span>Jadwal Otomatis</span>
             </button>
+            <button
+              onClick={() => navigate('/mentor/schedule-validation')}
+              className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-300 transform hover:scale-105"
+            >
+              <CheckCircle className="w-4 h-4" />
+              <span>Lihat Hybrid Validation</span>
+            </button>
             {pendingRequests.length > 0 && (
               <button
                 onClick={() => setShowPendingModal(true)}

@@ -70,24 +70,18 @@ const AutoWorkAssignments: React.FC = () => {
       const data = response.data.data as GeneratedSchedule;
       setSchedule(data);
 
-      setApplying(true);
-      const applyRes = await api.post(
-        `/api/mentor/work-assignments/auto-apply/${data.id}`,
-        {}
-      );
-      if (!applyRes.data || applyRes.data.success === false) {
-        throw new Error(applyRes.data?.message || "Gagal menerapkan jadwal");
-      }
+      setMessage("Jadwal berhasil dibuat! Mengalihkan ke halaman Hybrid Validation...");
 
-      const applyData = applyRes.data.data as { applied_count: number };
-      setMessage(
-        `Jadwal berhasil diterapkan. ${applyData.applied_count} penugasan baru dibuat di Tugas Luar.`
-      );
+      // Tunggu sebentar agar user bisa membaca pesan, lalu arahkan ke halaman validasi
+      setTimeout(() => {
+        navigate('/mentor/schedule-validation');
+      }, 1500);
+
     } catch (err: any) {
       const msg =
         err.response?.data?.message ||
         err.message ||
-        "Gagal membuat atau menerapkan jadwal.";
+        "Gagal membuat jadwal.";
       setError(msg);
     } finally {
       setLoading(false);
@@ -125,7 +119,22 @@ const AutoWorkAssignments: React.FC = () => {
               Jadwal Penugasan Otomatis
             </h1>
           </div>
+          
+          <button
+            type="button"
+            onClick={() => navigate("/mentor/schedule-validation")}
+            className="hidden md:flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg transition-all border border-purple-500/30 text-sm font-medium shadow-lg hover:shadow-purple-500/20"
+          >
+            Lihat Hybrid Validation
+          </button>
         </div>
+        <button
+          type="button"
+          onClick={() => navigate("/mentor/schedule-validation")}
+          className="md:hidden mt-4 w-full flex items-center justify-center px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg transition-all border border-purple-500/30 text-sm font-medium"
+        >
+          Lihat Hybrid Validation
+        </button>
         <p className="text-gray-400 mt-2 ml-10 text-sm">
           Buat jadwal penugasan otomatis untuk siswa berdasarkan jadwal absen dan relasi mentor–siswa.
         </p>
@@ -158,12 +167,12 @@ const AutoWorkAssignments: React.FC = () => {
           {loading || applying ? (
             <>
               <RefreshCw className="w-5 h-5 animate-spin" />
-              <span>{applying ? "Menerapkan..." : "Membuat jadwal..."}</span>
+              <span>Membuat jadwal...</span>
             </>
           ) : (
             <>
               <BarChart3 className="w-5 h-5" />
-              <span>Buat & Terapkan dengan AI</span>
+              <span>Buat Jadwal dengan AI</span>
             </>
           )}
         </button>
@@ -176,7 +185,7 @@ const AutoWorkAssignments: React.FC = () => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Cari siswa atau tanggal (misal: Senin, 2025-11-03)..."
+              placeholder="Cari siswa atau tanggal (misal: Senin, 2026-11-03)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm"
