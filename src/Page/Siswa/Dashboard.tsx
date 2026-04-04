@@ -338,8 +338,20 @@ const AttendanceCard: React.FC<AttendanceCardProps> = ({ name, email, checkIn, l
 };
 
 const Dashboard: React.FC = () => {
-  // Get user name from localStorage
+  // Get user name and role from localStorage
   const userName = localStorage.getItem('nama') || 'Siswa';
+  const userRole = localStorage.getItem('role') || 'siswa';
+
+  // Map role to display label
+  const getRoleLabel = (role: string): string => {
+    const roleMap: Record<string, string> = {
+      superadmin: 'Super Admin',
+      mentor: 'Mentor',
+      guru: 'Guru',
+      siswa: 'Siswa',
+    };
+    return roleMap[role.toLowerCase()] || role;
+  };
 
   // State for API data
   const [stats, setStats] = useState<DashboardStats>({
@@ -793,7 +805,7 @@ const Dashboard: React.FC = () => {
             Dashboard
           </h1>
         </div>
-        <p className="text-gray-400 mt-2 ml-3 sm:ml-5 text-sm sm:text-base">Selamat datang, {userName}! Berikut rekap hari ini.</p>
+        <p className="text-gray-400 mt-2 ml-3 sm:ml-5 text-sm sm:text-base">Selamat datang, {userName}! sebagai <span className="text-blue-400 font-semibold">{getRoleLabel(userRole)}</span>. Berikut rekap hari ini.</p>
       </div>
 
       <Divider />

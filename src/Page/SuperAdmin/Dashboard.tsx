@@ -64,8 +64,20 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Get user name from localStorage
+  // Get user name and role from localStorage
   const userName = localStorage.getItem('nama') || 'Super Admin';
+  const userRole = localStorage.getItem('role') || 'superadmin';
+
+  // Map role to display label
+  const getRoleLabel = (role: string): string => {
+    const roleMap: Record<string, string> = {
+      superadmin: 'Super Admin',
+      mentor: 'Mentor',
+      guru: 'Guru',
+      siswa: 'Siswa',
+    };
+    return roleMap[role.toLowerCase()] || role;
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -141,7 +153,7 @@ const Dashboard: React.FC = () => {
         <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
         <span>Dashboard</span>
       </h1>
-      <p className="text-gray-400 mt-2 ml-5">Selamat datang, {userName}! Berikut rekap hari ini.</p>
+      <p className="text-gray-400 mt-2 ml-5">Selamat datang, {userName}! sebagai <span className="text-blue-400 font-semibold">{getRoleLabel(userRole)}</span>. Berikut rekap hari ini.</p>
       <hr className="border-gray-700 my-4" />
       <h2 className="text-2xl font-bold mb-6 flex items-center space-x-2">
         <TrendingUp className="w-6 h-6 text-blue-400" />
