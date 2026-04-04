@@ -62,6 +62,7 @@ import ResetPasswordMentor from './Page/Mentor/ResetPassword';
 import Mwork from './Page/Mentor/Mwork/Mwork';
 import ActivitySummary from './Page/Mentor/ActivitySummary/ActivitySummary';
 import AutoWorkAssignments from './Page/Mentor/work-assignments/work-assignments';
+import ScheduleValidation from './Page/Mentor/ScheduleValidation/ScheduleValidation';
 import LoadingRole from './Page/LoadingRole';
 import GoogleCallback from './Page/GoogleCallback';
 import AuthError from './Page/AuthError';
@@ -345,6 +346,11 @@ function App() {
         <Route path='/mentor/work-assignments/auto' element={
           <ProtectedRoute allowedRoles={['mentor']}>
             <Layout><AutoWorkAssignments /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path='/mentor/schedule-validation' element={
+          <ProtectedRoute allowedRoles={['mentor']}>
+            <Layout><ScheduleValidation /></Layout>
           </ProtectedRoute>
         } />
 

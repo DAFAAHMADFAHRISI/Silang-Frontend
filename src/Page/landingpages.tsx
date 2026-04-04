@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { landingPageAPI } from '../services/api';
 import KPICard from '../components/LandingPage/KPICard';
 import BarChart from '../components/LandingPage/BarChart';
-import { 
-  Users, 
-  GraduationCap, 
-  Building2, 
+import {
+  Users,
+  GraduationCap,
+  Building2,
   UserCheck,
   TrendingUp,
   Activity
@@ -77,7 +77,7 @@ const Dashboard: React.FC = () => {
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-400 text-lg">{error}</p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
@@ -177,7 +177,7 @@ const Dashboard: React.FC = () => {
             {/* Background decoration */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500 bg-opacity-10 rounded-full -translate-y-16 translate-x-16"></div>
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-green-500 bg-opacity-10 rounded-full translate-y-12 -translate-x-12"></div>
-            
+
             <div className="relative z-10">
               <div className="text-center mb-8">
                 <h3 className="text-3xl font-bold text-white mb-3 flex items-center justify-center">
@@ -188,16 +188,16 @@ const Dashboard: React.FC = () => {
                 </h3>
                 <p className="text-gray-400 text-lg">Daftar institusi yang terdaftar dalam sistem SILANG</p>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {data.institusi.map((institusi, index) => (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     className="group bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl p-6 hover:from-gray-600 hover:to-gray-700 transition-all duration-300 transform hover:-translate-y-2 hover:shadow-xl border border-gray-600 hover:border-blue-500 relative overflow-hidden"
                   >
                     {/* Card decoration */}
                     <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500 bg-opacity-20 rounded-full -translate-y-8 translate-x-8 group-hover:bg-opacity-30 transition-all duration-300"></div>
-                    
+
                     <div className="relative z-10">
                       <div className="flex items-start mb-4">
                         <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-3 rounded-xl mr-4 shadow-lg group-hover:shadow-blue-500/25 transition-all duration-300">
@@ -215,7 +215,7 @@ const Dashboard: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      
+
                       {/* Status indicator */}
                       <div className="flex items-center mt-4 pt-4 border-t border-gray-600">
                         <div className="flex items-center">
@@ -227,7 +227,7 @@ const Dashboard: React.FC = () => {
                   </div>
                 ))}
               </div>
-              
+
               {/* Summary section */}
               <div className="mt-8 pt-6 border-t border-gray-700">
                 <div className="flex items-center justify-center space-x-8">
@@ -251,7 +251,7 @@ const Dashboard: React.FC = () => {
       <footer className="bg-gray-900 py-6 mt-12 border-t border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-gray-300 text-sm">
-            © 2025 SILANG - Sistem Informasi Layanan Magang.
+            © 2026 SILANG - Sistem Informasi Layanan Magang.
           </p>
         </div>
       </footer>
