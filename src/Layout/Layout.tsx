@@ -63,28 +63,28 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <div className="h-screen flex flex-col bg-gray-900 overflow-hidden">
       <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
         {/* Mobile overlay */}
         {sidebarOpen && (
           <div 
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            className="absolute inset-0 bg-black bg-opacity-60 z-40 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
         
         {/* Sidebar */}
         <aside className={`
-          fixed lg:static inset-y-0 left-0 z-50 w-64 bg-gray-900 border-r border-gray-800 flex flex-col py-6 px-2 overflow-y-auto
-          transform transition-transform duration-300 ease-in-out
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          absolute lg:static top-0 left-0 z-50 w-full lg:w-64 bg-gray-900 lg:border-r border-b border-gray-800 lg:border-b-0 flex flex-col py-4 lg:py-6 px-4 lg:px-2 max-h-full overflow-y-auto
+          transform transition-transform duration-300 ease-in-out shadow-2xl lg:shadow-none
+          ${sidebarOpen ? 'translate-y-0' : '-translate-y-full lg:translate-y-0'}
         `}>
-          {/* Close button for mobile */}
-          <div className="flex justify-end lg:hidden mb-4">
+          {/* Toggle up button for mobile */}
+          <div className="flex justify-center mb-2 lg:hidden">
             <button
               onClick={() => setSidebarOpen(false)}
-              className="text-gray-400 hover:text-white p-2"
+              className="text-gray-400 hover:text-white p-2 flex items-center justify-center w-full"
             >
-              <i className="fa fa-times text-xl"></i>
+              <i className="fa fa-chevron-up text-xl"></i>
             </button>
           </div>
           
