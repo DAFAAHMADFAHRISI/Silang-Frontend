@@ -466,7 +466,7 @@ const ScheduleValidation: React.FC = () => {
               {expandedSchedule === schedule.id && (
                 <div className="border-t border-gray-700 p-4 bg-gray-850">
                   {/* Meta info */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-4 text-xs">
                     <div className="bg-gray-900/50 rounded-lg p-3">
                       <p className="text-gray-500">Dibuat</p>
                       <p className="text-gray-300 mt-0.5">{formatDateTime(schedule.created_at)}</p>
@@ -498,13 +498,13 @@ const ScheduleValidation: React.FC = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2">
                     {/* Validate - only for draft */}
                     {schedule.status === 'draft' && (
                       <button
                         onClick={(e) => { e.stopPropagation(); handleValidate(schedule.id); }}
                         disabled={actionLoading === `validate-${schedule.id}`}
-                        className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                        className="w-full sm:w-auto justify-center bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors"
                       >
                         {actionLoading === `validate-${schedule.id}` ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
                         Validasi
@@ -516,7 +516,7 @@ const ScheduleValidation: React.FC = () => {
                       <button
                         onClick={(e) => { e.stopPropagation(); handleLock(schedule.id); }}
                         disabled={actionLoading === `lock-${schedule.id}`}
-                        className="bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                        className="w-full sm:w-auto justify-center bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors"
                       >
                         {actionLoading === `lock-${schedule.id}` ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
                         Lock Jadwal
@@ -528,7 +528,7 @@ const ScheduleValidation: React.FC = () => {
                       <button
                         onClick={(e) => { e.stopPropagation(); handleExport(schedule.id); }}
                         disabled={actionLoading === `export-${schedule.id}`}
-                        className="bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                        className="w-full sm:w-auto justify-center bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors"
                       >
                         {actionLoading === `export-${schedule.id}` ? <RefreshCw className="w-4 h-4 animate-spin" /> : <FileSpreadsheet className="w-4 h-4" />}
                         Export Excel
@@ -540,7 +540,7 @@ const ScheduleValidation: React.FC = () => {
                       <button
                         onClick={(e) => { e.stopPropagation(); handleApply(schedule.id); }}
                         disabled={actionLoading === `apply-${schedule.id}`}
-                        className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                        className="w-full sm:w-auto justify-center bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors"
                       >
                         {actionLoading === `apply-${schedule.id}` ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
                         Terapkan
@@ -554,7 +554,7 @@ const ScheduleValidation: React.FC = () => {
                           e.stopPropagation();
                           window.open(`http://localhost:3000/exports/${schedule.export_filename}`, '_blank');
                         }}
-                        className="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                        className="w-full sm:w-auto justify-center bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors"
                       >
                         <Download className="w-4 h-4" /> Download
                       </button>
@@ -567,7 +567,7 @@ const ScheduleValidation: React.FC = () => {
                         setSelectedSchedule(schedule);
                         loadEntries(schedule.id);
                       }}
-                      className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                      className="w-full sm:w-auto justify-center bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors"
                     >
                       <Eye className="w-4 h-4" /> Lihat Detail
                     </button>
@@ -580,7 +580,7 @@ const ScheduleValidation: React.FC = () => {
                           setSelectedSchedule(schedule);
                           loadConflicts(schedule.id);
                         }}
-                        className="bg-red-700 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                        className="w-full sm:w-auto justify-center bg-red-700 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors"
                       >
                         <AlertTriangle className="w-4 h-4" /> Lihat Konflik
                       </button>
@@ -594,7 +594,7 @@ const ScheduleValidation: React.FC = () => {
                           setSelectedSchedule(schedule);
                           setShowRejectModal(true);
                         }}
-                        className="bg-red-900 hover:bg-red-800 text-red-200 px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors"
+                        className="w-full sm:w-auto justify-center bg-red-900 hover:bg-red-800 text-red-200 px-4 py-2 rounded-lg flex items-center gap-2 text-sm transition-colors"
                       >
                         <XCircle className="w-4 h-4" /> Reject
                       </button>
@@ -624,7 +624,7 @@ const ScheduleValidation: React.FC = () => {
               {entries.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">Belum ada entri. Validasi jadwal untuk expand data.</p>
               ) : (
-                <table className="w-full text-xs md:text-sm">
+                <table className="w-full min-w-max md:min-w-0 text-xs md:text-sm whitespace-nowrap md:whitespace-normal">
                   <thead className="bg-gray-900 sticky top-0">
                     <tr>
                       <th className="px-3 py-2 text-left text-gray-400">Tanggal</th>

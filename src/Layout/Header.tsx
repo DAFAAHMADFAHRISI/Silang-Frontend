@@ -67,10 +67,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           className="bg-gray-800 px-2 py-1 rounded text-white flex items-center space-x-2 cursor-pointer relative min-w-[120px] lg:min-w-[140px] justify-between text-sm lg:text-base"
           onClick={() => setOpen((v) => !v)}
         >
-          <span className="text-base lg:text-lg"><i className="fa fa-user-circle" /></span>
-          <span className="flex-1 text-center font-semibold truncate hidden sm:block">{nama}</span>
-          <span className="flex-1 text-center font-semibold truncate sm:hidden">User</span>
-          <svg className="w-3 h-3 lg:w-4 lg:h-4 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <span className="text-base lg:text-lg shrink-0"><i className="fa fa-user-circle" /></span>
+          <span className="flex-1 text-center font-semibold truncate max-w-[80px] sm:max-w-[150px] lg:max-w-[200px]">{nama}</span>
+          <svg className="w-3 h-3 lg:w-4 lg:h-4 ml-1 shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
           </svg>
           {open && (
