@@ -31,10 +31,10 @@ const CheckInOut: React.FC = () => {
     const day = currentTime.getDay(); // 0 = Sunday, 1 = Monday, etc.
     const hour = currentTime.getHours();
     const minute = currentTime.getMinutes();
-    
+
     const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     const currentDayName = dayNames[day];
-    
+
     return {
       day,
       dayName: currentDayName,
@@ -60,21 +60,21 @@ const CheckInOut: React.FC = () => {
   // Determine current action based on time and day
   const getCurrentAction = () => {
     const { day, hour, minute, isWeekend, isFriday } = getCurrentDayInfo();
-    
+
     if (isWeekend) {
       return { action: 'weekend', message: 'Hari libur - tidak ada absensi' };
     }
 
     // Check if it's check-in time (6:00-12:00)
-    if (hour >= 6 && hour < 12) {
+    if (hour >= 6 && hour < 14) {
       return { action: 'checkin', message: 'Check In' };
     }
-    
+
     // Check if it's check-out time (15:00-20:00)
-    if (hour >= 15 && hour < 20) {
+    if (hour >= 15 && hour < 24) {
       return { action: 'checkout', message: 'Check Out' };
     }
-    
+
     // Outside working hours
     return { action: 'closed', message: 'Jam kerja telah selesai' };
   };
@@ -84,7 +84,7 @@ const CheckInOut: React.FC = () => {
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      
+
       // Create preview URL
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
@@ -105,7 +105,7 @@ const CheckInOut: React.FC = () => {
 
     try {
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
         throw new Error('Token tidak ditemukan. Silakan login ulang.');
       }
@@ -133,20 +133,20 @@ const CheckInOut: React.FC = () => {
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         setSuccess(result.message);
         setCheckInOutData(result.data);
         setSelectedFile(null);
         setPreviewUrl(null);
         setActionType(null);
-        
+
         // Clear success message after 5 seconds
         setTimeout(() => setSuccess(null), 5000);
       } else {
         throw new Error(result.message || 'Gagal melakukan absensi');
       }
-      
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Gagal melakukan absensi.';
       setError(errorMessage);
@@ -192,11 +192,10 @@ const CheckInOut: React.FC = () => {
             <Calendar className="w-6 h-6 text-green-400" />
           </div>
           <div className="text-center">
-            <div className={`text-2xl font-bold mb-2 ${
-              action === 'checkin' ? 'text-green-400' : 
-              action === 'checkout' ? 'text-blue-400' : 
-              action === 'weekend' ? 'text-yellow-400' : 'text-gray-400'
-            }`}>
+            <div className={`text-2xl font-bold mb-2 ${action === 'checkin' ? 'text-green-400' :
+                action === 'checkout' ? 'text-blue-400' :
+                  action === 'weekend' ? 'text-yellow-400' : 'text-gray-400'
+              }`}>
               {message}
             </div>
             <div className="text-gray-300">{dayName}</div>
@@ -246,18 +245,16 @@ const CheckInOut: React.FC = () => {
               <button
                 onClick={() => handleCheckInOut('checkin')}
                 disabled={isLoading || !selectedFile}
-                className={`p-6 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center space-y-3 ${
-                  isLoading || !selectedFile
+                className={`p-6 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center space-y-3 ${isLoading || !selectedFile
                     ? 'border-gray-600 bg-gray-700 text-gray-400 cursor-not-allowed'
                     : 'border-green-500 bg-green-600 hover:bg-green-700 text-white shadow-lg'
-                }`}
+                  }`}
               >
-                <LogIn className={`w-8 h-8 ${
-                  action === 'checkin' ? 'text-white' : 'text-gray-500'
-                }`} />
-              <div className="text-center">
-                <div className="font-semibold text-lg">Check In</div>
-              </div>
+                <LogIn className={`w-8 h-8 ${action === 'checkin' ? 'text-white' : 'text-gray-500'
+                  }`} />
+                <div className="text-center">
+                  <div className="font-semibold text-lg">Check In</div>
+                </div>
               </button>
             )}
 
@@ -265,17 +262,15 @@ const CheckInOut: React.FC = () => {
             <button
               onClick={() => handleCheckInOut('checkout')}
               disabled={isLoading || !selectedFile}
-              className={`p-6 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center space-y-3 ${
-                isLoading || !selectedFile
+              className={`p-6 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center space-y-3 ${isLoading || !selectedFile
                   ? 'border-gray-600 bg-gray-700 text-gray-400 cursor-not-allowed'
                   : action === 'checkout'
-                  ? 'border-blue-500 bg-blue-600 hover:bg-blue-700 text-white shadow-lg'
-                  : 'border-gray-600 bg-gray-700 text-gray-400 cursor-not-allowed'
-              }`}
+                    ? 'border-blue-500 bg-blue-600 hover:bg-blue-700 text-white shadow-lg'
+                    : 'border-gray-600 bg-gray-700 text-gray-400 cursor-not-allowed'
+                }`}
             >
-              <LogOut className={`w-8 h-8 ${
-                action === 'checkout' ? 'text-white' : 'text-gray-500'
-              }`} />
+              <LogOut className={`w-8 h-8 ${action === 'checkout' ? 'text-white' : 'text-gray-500'
+                }`} />
               <div className="text-center">
                 <div className="font-semibold text-lg">Check Out</div>
               </div>
@@ -333,7 +328,7 @@ const CheckInOut: React.FC = () => {
           {action === 'closed' && (
             <div className="bg-yellow-600 text-white px-4 py-3 rounded-lg text-center">
               <p className="font-semibold">Tidak dalam jam kerja</p>
-              <p className="text-sm opacity-90">Check In: 06:00-09:00 | Check Out: 15:00-20:00</p>
+              <p className="text-sm opacity-90">Check In: 06:00-24:00 | Check Out: 15:00-24:00</p>
             </div>
           )}
         </div>
@@ -342,14 +337,13 @@ const CheckInOut: React.FC = () => {
       {/* Weekend/Closed Message */}
       {(action === 'weekend' || action === 'closed') && (
         <div className="bg-gray-800 rounded-lg p-8 border border-gray-700 text-center">
-          <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${
-            action === 'weekend' ? 'bg-yellow-600' : 'bg-gray-600'
-          }`}>
+          <div className={`w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center ${action === 'weekend' ? 'bg-yellow-600' : 'bg-gray-600'
+            }`}>
             <Calendar className="w-8 h-8 text-white" />
           </div>
           <h3 className="text-xl font-semibold text-white mb-2">{message}</h3>
           <p className="text-gray-400">
-            {action === 'weekend' 
+            {action === 'weekend'
               ? 'Silakan lakukan absensi pada hari kerja (Senin-Jumat)'
               : 'Jam kerja telah selesai. Silakan lakukan absensi besok.'
             }
@@ -365,7 +359,7 @@ const CheckInOut: React.FC = () => {
             <div>
               <label className="text-gray-400 text-sm">Waktu</label>
               <p className="text-white font-medium">
-                {checkInOutData.checkin_time 
+                {checkInOutData.checkin_time
                   ? new Date(checkInOutData.checkin_time).toLocaleString('id-ID')
                   : '-'
                 }

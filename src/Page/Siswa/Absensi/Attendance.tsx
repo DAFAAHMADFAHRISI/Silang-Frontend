@@ -41,7 +41,7 @@ const Attendance: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  
+
   // Camera states
   const [showCamera, setShowCamera] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -55,7 +55,7 @@ const Attendance: React.FC = () => {
 
   // Photo modal states
   const [showPhotoModal, setShowPhotoModal] = useState(false);
-  const [selectedPhoto, setSelectedPhoto] = useState<{url: string, type: string, name: string} | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<{ url: string, type: string, name: string } | null>(null);
 
   // Get current GPS location with improved accuracy
   const getCurrentLocation = (): Promise<LocationData> => {
@@ -80,19 +80,19 @@ const Attendance: React.FC = () => {
             longitude: position.coords.longitude,
             accuracy: position.coords.accuracy
           };
-          
+
           // Validate coordinates
           if (isNaN(locationData.latitude) || isNaN(locationData.longitude)) {
             reject(new Error('Koordinat GPS tidak valid. Silakan coba lagi.'));
             return;
           }
-          
+
           // Check if accuracy is reasonable (less than 50 meters)
           if (locationData.accuracy && locationData.accuracy > 50) {
             console.warn('GPS accuracy is low:', locationData.accuracy, 'meters');
             // Still resolve but warn user about low accuracy
           }
-          
+
           console.log('GPS Location captured with accuracy:', locationData.accuracy, 'meters');
           resolve(locationData);
         },
@@ -204,10 +204,10 @@ const Attendance: React.FC = () => {
   const fetchAttendance = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
         throw new Error('Token tidak ditemukan. Silakan login ulang.');
       }
@@ -231,13 +231,13 @@ const Attendance: React.FC = () => {
       }
 
       const result = await response.json();
-      
+
       if (result.success && result.data) {
         setAttendanceData(result.data);
       } else {
         throw new Error('Format response tidak valid');
       }
-      
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Gagal memuat data absensi.';
       setError(errorMessage);
@@ -254,10 +254,10 @@ const Attendance: React.FC = () => {
     const day = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
     const hour = now.getHours();
     const minute = now.getMinutes();
-    
+
     const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
     const currentDayName = dayNames[day];
-    
+
     return {
       day,
       dayName: currentDayName,
@@ -282,21 +282,21 @@ const Attendance: React.FC = () => {
   // Determine current action based on time and day
   const getCurrentAction = () => {
     const { day, hour, minute, isWeekend } = getCurrentTimeInfo();
-    
+
     if (isWeekend) {
       return { action: 'weekend', message: 'Hari libur - tidak ada absensi' };
     }
 
     // Check if it's check-in time (6:00-14:00)
-    if (hour >= 6 && hour < 16) {
+    if (hour >= 0 && hour < 24) {
       return { action: 'checkin', message: 'Check In' };
     }
-    
+
     // Check if it's check-out time (15:00-20:00)
-    if (hour >= 15 && hour < 20) {
+    if (hour >= 0 && hour < 24) {
       return { action: 'checkout', message: 'Check Out' };
     }
-    
+
     // Outside working hours
     return { action: 'closed', message: 'Jam kerja telah selesai' };
   };
@@ -324,33 +324,33 @@ const Attendance: React.FC = () => {
           canvas.width = img.width;
           canvas.height = img.height;
           ctx?.drawImage(img, 0, 0);
-          
+
           const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
           if (imageData) {
             const data = imageData.data;
             let skinPixels = 0;
             let totalPixels = 0;
-            
+
             // Calculate skin tone pixels (simple face detection)
             for (let i = 0; i < data.length; i += 4) {
               const r = data[i];
               const g = data[i + 1];
               const b = data[i + 2];
-              
+
               // Simple skin tone detection
-              const isSkinTone = 
+              const isSkinTone =
                 r > 95 && g > 40 && b > 20 &&
                 Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
                 Math.abs(r - g) > 15 && r > g && r > b;
-              
+
               if (isSkinTone) {
                 skinPixels++;
               }
               totalPixels++;
             }
-            
+
             const skinRatio = skinPixels / totalPixels;
-            
+
             // Check if there's enough skin tone (indicating a face)
             if (skinRatio < 0.05) { // Less than 5% skin tone
               Swal.fire({
@@ -360,7 +360,7 @@ const Attendance: React.FC = () => {
               });
               return;
             }
-            
+
             // If validation passes, proceed with upload
             fetch(imageSrc)
               .then(res => res.blob())
@@ -377,7 +377,7 @@ const Attendance: React.FC = () => {
               });
           }
         };
-        
+
         img.onerror = () => {
           Swal.fire({
             icon: 'error',
@@ -385,7 +385,7 @@ const Attendance: React.FC = () => {
             text: 'Tidak dapat memproses gambar. Silakan coba lagi.',
           });
         };
-        
+
         img.src = imageSrc;
       } else {
         Swal.fire({
@@ -430,14 +430,14 @@ const Attendance: React.FC = () => {
       }
 
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
         throw new Error('Token tidak ditemukan. Silakan login ulang.');
       }
 
       const formData = new FormData();
       formData.append('face_image', photoBlob, 'face_image.jpg');
-      
+
       // Add location data if available
       if (currentLocation) {
         formData.append('latitude', currentLocation.latitude.toString());
@@ -465,7 +465,7 @@ const Attendance: React.FC = () => {
       if (!response.ok) {
         const errorData = await response.json();
         let errorMessage = errorData.message || 'Gagal melakukan absensi.';
-        
+
         // Handle specific error cases
         if (errorData.message && errorData.message.includes('face')) {
           errorMessage = 'Wajah tidak terdeteksi dalam foto. Pastikan wajah Anda terlihat jelas dan tidak terhalang.';
@@ -476,23 +476,23 @@ const Attendance: React.FC = () => {
         } else if (errorData.message && errorData.message.includes('time')) {
           errorMessage = 'Tidak dalam jam absensi. Silakan cek jadwal absensi.';
         }
-        
+
         // Redirect to main page if face verification fails
-        if (errorData.message && (errorData.message.includes('Face verification failed') || errorData.message.includes('Wajah tidak sesuai'))) {
+        if (errorData.message && (errorData.message.includes('Face verification failed') || errorData.message.includes('Wajah tidak sesuai') || errorData.message.includes('Sistem menolak'))) {
           Swal.fire({
             icon: 'error',
             title: 'Verifikasi Wajah Gagal!',
-            text: 'Wajah tidak sesuai dengan foto profil. Silakan coba lagi.',
+            text: errorData.message,
             showConfirmButton: false,
-            timer: 3000,
+            timer: 4000,
           });
-          
+
           setTimeout(() => {
             window.location.href = '/AttendanceSiswa';
-          }, 3000);
+          }, 4000);
           return;
         }
-        
+
         // Redirect to main page if distance error occurs
         if (errorData.message && (errorData.message.includes('luar area absensi') || errorData.message.includes('jarak maksimal'))) {
           Swal.fire({
@@ -502,13 +502,13 @@ const Attendance: React.FC = () => {
             showConfirmButton: false,
             timer: 3000,
           });
-          
+
           setTimeout(() => {
             window.location.href = '/AttendanceSiswa';
           }, 3000);
           return;
         }
-        
+
         // Redirect to main page if already checked in today
         if (errorData.message && errorData.message.includes('sudah melakukan check-in hari ini')) {
           Swal.fire({
@@ -518,18 +518,18 @@ const Attendance: React.FC = () => {
             showConfirmButton: false,
             timer: 3000,
           });
-          
+
           setTimeout(() => {
             window.location.href = '/AttendanceSiswa';
           }, 3000);
           return;
         }
-        
+
         throw new Error(errorMessage);
       }
 
       const result = await response.json();
-      
+
       if (result.success) {
         // Show success message
         Swal.fire({
@@ -539,45 +539,45 @@ const Attendance: React.FC = () => {
           showConfirmButton: false,
           timer: 3000,
         });
-        
+
         setSuccess(result.message);
         setCheckInOutData(result.data);
-        
+
         // Clear success message after 5 seconds
         setTimeout(() => setSuccess(null), 5000);
-        
+
         // Redirect to AttendanceSiswa page after successful attendance
         setTimeout(() => {
           window.location.href = '/AttendanceSiswa';
         }, 3000);
-        
+
         // Refresh attendance data
         await fetchAttendance();
       } else {
         throw new Error(result.message || 'Gagal melakukan absensi');
       }
-      
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Gagal melakukan absensi.';
       setError(errorMessage);
       console.error('Error during check-in/out:', err);
-      
+
       // Redirect to main page if face verification fails
-      if (errorMessage.includes('Face verification failed') || errorMessage.includes('Wajah tidak sesuai')) {
+      if (errorMessage.includes('Face verification failed') || errorMessage.includes('Wajah tidak sesuai') || errorMessage.includes('Sistem menolak')) {
         Swal.fire({
           icon: 'error',
           title: 'Verifikasi Wajah Gagal!',
-          text: 'Wajah tidak sesuai dengan foto profil. Silakan coba lagi.',
+          text: errorMessage,
           showConfirmButton: false,
-          timer: 3000,
+          timer: 4000,
         });
-        
+
         setTimeout(() => {
           window.location.href = '/AttendanceSiswa';
-        }, 3000);
+        }, 4000);
         return;
       }
-      
+
       // Redirect to main page if distance error occurs
       if (errorMessage.includes('luar area absensi') || errorMessage.includes('jarak maksimal')) {
         Swal.fire({
@@ -587,13 +587,13 @@ const Attendance: React.FC = () => {
           showConfirmButton: false,
           timer: 3000,
         });
-        
+
         setTimeout(() => {
           window.location.href = '/AttendanceSiswa';
         }, 3000);
         return;
       }
-      
+
       // Redirect to main page if already checked in today
       if (errorMessage.includes('sudah melakukan check-in hari ini')) {
         Swal.fire({
@@ -603,13 +603,13 @@ const Attendance: React.FC = () => {
           showConfirmButton: false,
           timer: 3000,
         });
-        
+
         setTimeout(() => {
           window.location.href = '/AttendanceSiswa';
         }, 3000);
         return;
       }
-      
+
       // Show error notification
       Swal.fire({
         icon: 'error',
@@ -630,7 +630,7 @@ const Attendance: React.FC = () => {
     setLocationError(null);
     setLocationData(null);
     setShowCamera(true);
-    
+
     // Request location permission when camera opens
     try {
       const location = await getCurrentLocation();
@@ -650,12 +650,12 @@ const Attendance: React.FC = () => {
 
   const filteredAttendance = attendanceData.filter(item => {
     const matchesSearch = item.nama_siswa.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.tanggal_absen.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'late' && item.status_kehadiran.toLowerCase().includes('terlambat')) ||
-                         (statusFilter === 'ontime' && !item.status_kehadiran.toLowerCase().includes('terlambat'));
-    
+      item.tanggal_absen.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus = statusFilter === 'all' ||
+      (statusFilter === 'late' && item.status_kehadiran.toLowerCase().includes('terlambat')) ||
+      (statusFilter === 'ontime' && !item.status_kehadiran.toLowerCase().includes('terlambat'));
+
     return matchesSearch && matchesStatus;
   });
 
@@ -680,10 +680,10 @@ const Attendance: React.FC = () => {
       if (isNaN(date.getTime())) {
         return dateString; // Return as-is if can't parse
       }
-      return date.toLocaleDateString('id-ID', { 
-        day: '2-digit', 
-        month: 'long', 
-        year: 'numeric' 
+      return date.toLocaleDateString('id-ID', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
       });
     } catch {
       return dateString; // Return as-is if error
@@ -692,23 +692,23 @@ const Attendance: React.FC = () => {
 
   const formatTime = (timeString: string) => {
     if (!timeString) return '-';
-    
+
     // Jika format sudah HH:MM:SS, langsung return
     if (timeString.includes(':')) {
       return timeString;
     }
-    
+
     // Jika format adalah timestamp, convert ke HH:MM:SS
     try {
       const date = new Date(timeString);
       if (isNaN(date.getTime())) {
         return timeString; // Return as-is if can't parse
       }
-      return date.toLocaleTimeString('id-ID', { 
-        hour: '2-digit', 
-        minute: '2-digit', 
+      return date.toLocaleTimeString('id-ID', {
+        hour: '2-digit',
+        minute: '2-digit',
         second: '2-digit',
-        hour12: false 
+        hour12: false
       });
     } catch {
       return timeString; // Return as-is if error
@@ -719,9 +719,9 @@ const Attendance: React.FC = () => {
     if (!statusKehadiran) {
       return { text: 'Tidak ada status', class: 'text-gray-400' };
     }
-    
+
     const status = statusKehadiran.toLowerCase();
-    
+
     if (status.includes('terlambat')) {
       // Extract minutes from status like "Terlambat 388 menit"
       const minutesMatch = status.match(/(\d+)\s*menit/);
@@ -753,16 +753,16 @@ const Attendance: React.FC = () => {
 
   const openLocationMap = (location: string, type: 'checkin' | 'checkout') => {
     if (!location) return;
-    
+
     try {
       const [lat, lng] = location.split(',').map(coord => coord.trim());
-      
+
       // Validasi koordinat
       if (!lat || !lng || isNaN(parseFloat(lat)) || isNaN(parseFloat(lng))) {
         alert('Koordinat tidak valid');
         return;
       }
-      
+
       const url = `https://www.google.com/maps?q=${lat},${lng}`;
       window.open(url, '_blank');
     } catch (error) {
@@ -778,7 +778,7 @@ const Attendance: React.FC = () => {
 
     try {
       const [lat, lng] = location.split(',').map(coord => coord.trim());
-      
+
       // Validasi koordinat
       if (!lat || !lng || isNaN(parseFloat(lat)) || isNaN(parseFloat(lng))) {
         return <span className="text-gray-500">Invalid</span>;
@@ -861,7 +861,7 @@ const Attendance: React.FC = () => {
       window.location.href = '/AttendanceSiswa';
       return null;
     }
-    
+
     return (
       <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -869,14 +869,14 @@ const Attendance: React.FC = () => {
             <div className="w-12 h-12 text-red-500 mx-auto mb-4">⚠️</div>
             <p className="text-red-400 mb-4 text-lg font-semibold">Error: {error}</p>
             <div className="space-y-2">
-              <button 
-                onClick={fetchAttendance} 
+              <button
+                onClick={fetchAttendance}
                 className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors font-semibold"
               >
                 Coba Lagi
               </button>
-              <button 
-                onClick={() => window.location.href = '/Login'} 
+              <button
+                onClick={() => window.location.href = '/Login'}
                 className="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-lg transition-colors font-semibold ml-2"
               >
                 Login Ulang
@@ -900,9 +900,9 @@ const Attendance: React.FC = () => {
         </div>
         <p className="text-gray-400 mt-2 ml-3 sm:ml-5 text-sm sm:text-base">Riwayat kehadiran dan absensi siswa.</p>
       </div>
-      
+
       <Divider />
-      
+
       {/* Success/Error Messages */}
       {success && (
         <div className="mb-6 bg-green-600 text-white px-4 py-3 rounded-lg flex items-center justify-between">
@@ -957,15 +957,13 @@ const Attendance: React.FC = () => {
             <button
               onClick={() => handleCheckInOut('checkin')}
               disabled={isLoading || getCurrentAction().action !== 'checkin'}
-              className={`p-6 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center space-y-3 ${
-                isLoading || getCurrentAction().action !== 'checkin'
+              className={`p-6 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center space-y-3 ${isLoading || getCurrentAction().action !== 'checkin'
                   ? 'border-gray-600 bg-gray-700 text-gray-400 cursor-not-allowed'
                   : 'border-green-500 bg-green-600 hover:bg-green-700 text-white shadow-lg'
-              }`}
+                }`}
             >
-              <LogIn className={`w-8 h-8 ${
-                getCurrentAction().action === 'checkin' ? 'text-white' : 'text-gray-500'
-              }`} />
+              <LogIn className={`w-8 h-8 ${getCurrentAction().action === 'checkin' ? 'text-white' : 'text-gray-500'
+                }`} />
               <div className="text-center">
                 <div className="font-semibold text-lg">Check In</div>
               </div>
@@ -975,15 +973,13 @@ const Attendance: React.FC = () => {
             <button
               onClick={() => handleCheckInOut('checkout')}
               disabled={isLoading || getCurrentAction().action !== 'checkout'}
-              className={`p-6 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center space-y-3 ${
-                isLoading || getCurrentAction().action !== 'checkout'
+              className={`p-6 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center space-y-3 ${isLoading || getCurrentAction().action !== 'checkout'
                   ? 'border-gray-600 bg-gray-700 text-gray-400 cursor-not-allowed'
                   : 'border-blue-500 bg-blue-600 hover:bg-blue-700 text-white shadow-lg'
-              }`}
+                }`}
             >
-              <LogOut className={`w-8 h-8 ${
-                getCurrentAction().action === 'checkout' ? 'text-white' : 'text-gray-500'
-              }`} />
+              <LogOut className={`w-8 h-8 ${getCurrentAction().action === 'checkout' ? 'text-white' : 'text-gray-500'
+                }`} />
               <div className="text-center">
                 <div className="font-semibold text-lg">Check Out</div>
               </div>
@@ -1013,10 +1009,9 @@ const Attendance: React.FC = () => {
                   <div className="text-xs text-gray-300 mt-1">
                     📍 GPS: {locationData.latitude.toFixed(6)}, {locationData.longitude.toFixed(6)}
                     {locationData.accuracy && (
-                      <span className={`ml-2 ${
-                        locationData.accuracy <= 10 ? 'text-green-400' : 
-                        locationData.accuracy <= 25 ? 'text-yellow-400' : 'text-red-400'
-                      }`}>
+                      <span className={`ml-2 ${locationData.accuracy <= 10 ? 'text-green-400' :
+                          locationData.accuracy <= 25 ? 'text-yellow-400' : 'text-red-400'
+                        }`}>
                         (Akurasi: {locationData.accuracy.toFixed(1)}m)
                       </span>
                     )}
@@ -1052,7 +1047,7 @@ const Attendance: React.FC = () => {
                 </button>
               </div>
             </div>
-            
+
             <div className="relative">
               <Webcam
                 ref={webcamRef}
@@ -1080,12 +1075,12 @@ const Attendance: React.FC = () => {
                 }}
               />
             </div>
-            
+
             <div className="mt-4 text-center">
               <p className="text-gray-300 text-sm mb-4">
                 Posisikan wajah Anda di dalam frame dan klik "Ambil Foto"
               </p>
-              
+
 
               {isLoading && (
                 <div className="flex items-center justify-center space-x-2">
@@ -1096,7 +1091,7 @@ const Attendance: React.FC = () => {
               {locationError && (
                 <div className="bg-yellow-600 text-white px-3 py-2 rounded text-xs mb-2">
                   ⚠️ {locationError}
-                  <button 
+                  <button
                     onClick={async () => {
                       try {
                         setLocationError(null);
@@ -1113,16 +1108,15 @@ const Attendance: React.FC = () => {
                 </div>
               )}
             </div>
-            
+
             <div className="grid grid-cols-1 gap-3 mt-4">
               <button
                 onClick={capturePhoto}
                 disabled={isLoading}
-                className={`px-4 py-2 rounded font-semibold ${
-                  isLoading
-                    ? 'bg-gray-500 cursor-not-allowed' 
+                className={`px-4 py-2 rounded font-semibold ${isLoading
+                    ? 'bg-gray-500 cursor-not-allowed'
                     : 'bg-blue-600 hover:bg-blue-700 text-white'
-                }`}
+                  }`}
               >
                 📸 Ambil Foto
               </button>
@@ -1136,11 +1130,11 @@ const Attendance: React.FC = () => {
                 ❌ Batal
               </button>
             </div>
-            
+
           </div>
         </div>
       )}
-      
+
       {/* Statistics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
@@ -1186,7 +1180,7 @@ const Attendance: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Search and Filter */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3 sm:gap-4">
         <input
@@ -1197,7 +1191,7 @@ const Attendance: React.FC = () => {
           className="bg-gray-800 text-white px-3 py-2 sm:px-4 sm:py-2 rounded focus:outline-none border border-gray-700 w-full sm:w-64 text-sm sm:text-base"
         />
         <div className="flex gap-2 items-center">
-          <select 
+          <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className="bg-gray-800 text-white px-2 py-2 rounded border border-gray-700 text-xs sm:text-sm"
@@ -1209,9 +1203,9 @@ const Attendance: React.FC = () => {
           {/* Tombol Check In dihapus sesuai permintaan user */}
         </div>
       </div>
-      
+
       <Divider />
-      
+
       {/* Attendance Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-xs sm:text-sm min-w-[1300px]">
@@ -1294,9 +1288,9 @@ const Attendance: React.FC = () => {
           </tbody>
         </table>
       </div>
-      
+
       <Divider />
-      
+
       {/* Pagination */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-2">
@@ -1317,7 +1311,7 @@ const Attendance: React.FC = () => {
 
       {/* Photo Modal */}
       {showPhotoModal && selectedPhoto && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
           onClick={() => {
             setShowPhotoModal(false);
