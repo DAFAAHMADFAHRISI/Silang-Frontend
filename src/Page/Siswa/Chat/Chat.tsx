@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, Smile, MoreVertical, Phone, Video, Search, User, MessageCircle, Loader2 } from 'lucide-react';
+import { Send, MoreVertical, Phone, Video, Search, User, MessageCircle, Loader2 } from 'lucide-react';
 
 interface Message {
   id: number;
@@ -890,9 +890,7 @@ const Chat: React.FC = () => {
               {/* Message Input */}
               <div className="p-4 border-t border-gray-700">
                 <div className="flex items-end space-x-3">
-                  <button className="text-gray-400 hover:text-white p-2">
-                    <Paperclip className="w-5 h-5" />
-                  </button>
+
                   <div className="flex-1 relative">
                     <textarea
                       value={newMessage}
@@ -905,9 +903,7 @@ const Chat: React.FC = () => {
                       style={{ minHeight: '44px', maxHeight: '120px' }}
                     />
                   </div>
-                  <button className="text-gray-400 hover:text-white p-2">
-                    <Smile className="w-5 h-5" />
-                  </button>
+
                   <button
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim() || sendingMessage}
