@@ -115,22 +115,12 @@ const Chat: React.FC = () => {
     }
   }, [messages]);
 
-  // Load persisted state from localStorage
-  useEffect(() => {
-    const savedSelectedRoom = localStorage.getItem('guru_chat_selected_room');
-    if (savedSelectedRoom) {
-      try {
-        setSelectedRoom(JSON.parse(savedSelectedRoom));
-      } catch (error) {
-        console.error('Error parsing saved room:', error);
-      }
-    }
-  }, []);
-
-  // Save selected room to localStorage
+  // Save selected room to localStorage (or remove if null)
   useEffect(() => {
     if (selectedRoom) {
       localStorage.setItem('guru_chat_selected_room', JSON.stringify(selectedRoom));
+    } else {
+      localStorage.removeItem('guru_chat_selected_room');
     }
   }, [selectedRoom]);
 
@@ -214,11 +204,22 @@ const Chat: React.FC = () => {
       if (result.success) {
         setChatRooms(result.data);
         console.log('Chat rooms loaded:', result.data.length);
-        // Auto-select first room if available and no room is currently selected
-        if (result.data.length > 0 && !selectedRoom) {
+        if (result.data.length === 0) {
+          // No rooms exist, clear any stale selectedRoom
+          setSelectedRoom(null);
+          setMessages([]);
+        } else if (!selectedRoom) {
+          // Auto-select first room if available and no room is currently selected
           console.log('Auto-selecting first room:', result.data[0]);
           setSelectedRoom(result.data[0]);
-          // Remove auto scroll - let user control scroll position
+        } else {
+          // Validate that the currently selected room still exists
+          const roomStillExists = result.data.some((r: ChatRoom) => r.room_id === selectedRoom.room_id);
+          if (!roomStillExists) {
+            console.log('Selected room no longer exists, clearing selection');
+            setSelectedRoom(null);
+            setMessages([]);
+          }
         }
       } else {
         setError(result.message || 'Terjadi kesalahan saat mengambil data');
