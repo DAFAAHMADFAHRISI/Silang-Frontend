@@ -28,7 +28,12 @@ const getDefaultPeriod = () => {
   const today = new Date();
   const end = new Date(today);
   end.setDate(end.getDate() + 6);
-  const toYMD = (d: Date) => d.toISOString().split("T")[0];
+  const toYMD = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
   return { period_start: toYMD(today), period_end: toYMD(end) };
 };
 

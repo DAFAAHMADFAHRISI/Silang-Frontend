@@ -624,43 +624,53 @@ const ScheduleValidation: React.FC = () => {
               {entries.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">Belum ada entri. Validasi jadwal untuk expand data.</p>
               ) : (
-                <table className="w-full min-w-max md:min-w-0 text-xs md:text-sm whitespace-nowrap md:whitespace-normal">
-                  <thead className="bg-gray-900 sticky top-0">
+                <table className="w-full text-sm text-left text-gray-300 border-collapse">
+                  <thead className="bg-gray-700/50 text-gray-200 sticky top-0 backdrop-blur-sm z-10">
                     <tr>
-                      <th className="px-3 py-2 text-left text-gray-400">Tanggal</th>
-                      <th className="px-3 py-2 text-left text-gray-400">Siswa</th>
-                      <th className="px-3 py-2 text-left text-gray-400">Lokasi</th>
-                      <th className="px-3 py-2 text-center text-gray-400">Jam</th>
-                      <th className="px-3 py-2 text-center text-gray-400">Status</th>
-                      <th className="px-3 py-2 text-center text-gray-400">Aksi</th>
+                      <th className="px-4 py-3 font-medium whitespace-nowrap w-28">Tanggal</th>
+                      <th className="px-4 py-3 font-medium">Siswa</th>
+                      <th className="px-4 py-3 font-medium">Lokasi</th>
+                      <th className="px-4 py-3 font-medium text-center whitespace-nowrap">Jam</th>
+                      <th className="px-4 py-3 font-medium text-center">Status</th>
+                      <th className="px-4 py-3 font-medium text-center">Aksi</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-gray-700/50">
                     {entries.map((entry) => (
-                      <tr key={entry.id} className={`border-t border-gray-700 ${entry.conflict_flag ? 'bg-red-900/20' : 'hover:bg-gray-700/30'}`}>
-                        <td className="px-3 py-2 text-gray-300">{formatDate(entry.tanggal)}</td>
-                        <td className="px-3 py-2 text-white font-medium">{entry.siswa_nama}</td>
-                        <td className="px-3 py-2 text-gray-300">{entry.lokasi_nama || '-'}</td>
-                        <td className="px-3 py-2 text-center text-gray-400">
-                          {entry.jam_mulai ? `${entry.jam_mulai} - ${entry.jam_selesai || '?'}` : '-'}
+                      <tr key={entry.id} className={`transition-colors ${entry.conflict_flag ? 'bg-red-900/10 hover:bg-red-900/20' : 'hover:bg-gray-700/30'}`}>
+                        <td className="px-4 py-3 whitespace-nowrap text-gray-300">
+                           <div className="flex items-center gap-2">
+                             <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                             {formatDate(entry.tanggal)}
+                           </div>
                         </td>
-                        <td className="px-3 py-2 text-center">
+                        <td className="px-4 py-3 font-medium text-white">{entry.siswa_nama}</td>
+                        <td className="px-4 py-3 text-gray-400">
+                           <div className="flex items-center gap-1.5">
+                             <MapPin className="w-3.5 h-3.5" />
+                             {entry.lokasi_nama || '-'}
+                           </div>
+                        </td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap text-gray-400 text-xs">
+                          {entry.jam_mulai ? `${entry.jam_mulai.substring(0,5)} - ${entry.jam_selesai?.substring(0,5) || '?'}` : '-'}
+                        </td>
+                        <td className="px-4 py-3 text-center">
                           {entry.conflict_flag ? (
-                            <span className="bg-red-600 text-white px-2 py-0.5 rounded text-xs">Konflik</span>
+                            <span className="bg-red-500/10 text-red-400 px-2.5 py-1 rounded border border-red-500/20 text-xs font-medium inline-block">Konflik</span>
                           ) : (
-                            <span className="bg-emerald-700 text-white px-2 py-0.5 rounded text-xs">OK</span>
+                            <span className="bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded border border-emerald-500/20 text-xs font-medium inline-block flex-shrink-0">OK</span>
                           )}
                         </td>
-                        <td className="px-3 py-2 text-center">
-                          {selectedSchedule.status === 'draft' && (
+                        <td className="px-4 py-3 text-center">
+                          {selectedSchedule.status === 'draft' ? (
                             <button
                               onClick={() => handleDeleteEntry(selectedSchedule.id, entry.id)}
-                              className="text-red-400 hover:text-red-300 p-1"
+                              className="text-red-400 hover:text-red-300 p-1.5 hover:bg-red-400/10 rounded-md transition-colors inline-flex justify-center"
                               title="Hapus entri"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
-                          )}
+                          ) : <span className="text-gray-600">-</span>}
                         </td>
                       </tr>
                     ))}
