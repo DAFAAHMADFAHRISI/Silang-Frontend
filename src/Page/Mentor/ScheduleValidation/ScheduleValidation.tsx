@@ -4,7 +4,8 @@ import {
   Shield, CheckCircle, XCircle, AlertTriangle, Lock, Unlock,
   FileSpreadsheet, Download, Upload, RefreshCw, ChevronLeft,
   Calendar, User, MapPin, Clock, Trash2, Eye, EyeOff,
-  FileCheck, AlertCircle, Search, ChevronDown, ChevronUp
+  FileCheck, AlertCircle, Search, ChevronDown, ChevronUp,
+  Sparkles, ArrowRight, Zap
 } from 'lucide-react';
 import api from '../../../services/api';
 
@@ -35,6 +36,7 @@ interface ScheduleEntry {
   jam_mulai: string | null;
   jam_selesai: string | null;
   lokasi_nama: string | null;
+  nama_lokasi: string | null;
   latitude: number | null;
   longitude: number | null;
   radius_meter: number | null;
@@ -355,12 +357,11 @@ const ScheduleValidation: React.FC = () => {
             <button onClick={() => navigate('/mentor/work-assignments')} className="text-gray-400 hover:text-white transition-colors">
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <div className="w-2 h-8 bg-gradient-to-b from-amber-500 to-orange-600 rounded-full" />
+            <div className="w-2 h-8 bg-gradient-to-b from-violet-500 to-blue-600 rounded-full" />
             <div>
               <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
                 Hybrid Validation
               </h1>
-              <p className="text-gray-500 text-xs mt-0.5">Validasi · Lock · Export Excel</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -382,21 +383,96 @@ const ScheduleValidation: React.FC = () => {
 
       <hr className="border-gray-700 mb-6" />
 
-      {/* Flow Explanation */}
-      <div className="mb-6 bg-gray-800/50 border border-gray-700 rounded-xl p-4">
-        <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
-          <Shield className="w-4 h-4 text-amber-400" /> Alur Validasi Jadwal
+      {/* Flow Explanation — Premium Stepper */}
+      <div className="mb-6 bg-gradient-to-br from-gray-800/80 via-gray-800/50 to-gray-900/80 border border-gray-700/60 rounded-2xl p-4 md:p-6 backdrop-blur-sm">
+        <h3 className="text-xs md:text-sm font-semibold text-gray-200 mb-4 flex items-center gap-2">
+          <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-1.5 rounded-lg">
+            <Zap className="w-3 h-3 md:w-3.5 md:h-3.5 text-white" />
+          </div>
+          Alur Validasi Jadwal
         </h3>
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg">1️⃣ AI Generate / Upload</span>
-          <span className="text-gray-600">→</span>
-          <span className="bg-gray-600 text-white px-3 py-1.5 rounded-lg font-medium">Draft</span>
-          <span className="text-gray-600">→</span>
-          <span className="bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-medium">2️⃣ Validate</span>
-          <span className="text-gray-600">→</span>
-          <span className="bg-amber-700 text-white px-3 py-1.5 rounded-lg font-medium">3️⃣ Lock 🔒</span>
-          <span className="text-gray-600">→</span>
-          <span className="bg-blue-700 text-white px-3 py-1.5 rounded-lg font-medium">4️⃣ Apply / Export</span>
+        <div className="flex items-center gap-1.5 sm:gap-0 overflow-x-auto pb-1 scrollbar-hide">
+          {/* Step 1 */}
+          <div className="group flex items-center gap-2 sm:gap-3 flex-1 min-w-0 shrink-0">
+            <div className="relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/30 to-indigo-600/30 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300" />
+              <div className="relative bg-gradient-to-br from-purple-600 to-indigo-700 rounded-lg p-1.5 sm:p-2.5 shadow-lg shadow-purple-900/30 group-hover:scale-105 transition-transform duration-300">
+                <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+              </div>
+            </div>
+            <div className="min-w-0 hidden sm:block">
+              <p className="text-[10px] text-purple-400 font-semibold uppercase tracking-wider">Step 1</p>
+              <p className="text-xs text-white font-medium truncate">AI Generate</p>
+            </div>
+          </div>
+          <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 mx-0.5 sm:mx-2 shrink-0" />
+
+          {/* Step 2: Draft */}
+          <div className="group flex items-center gap-2 sm:gap-3 flex-1 min-w-0 shrink-0">
+            <div className="relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-gray-500/20 to-slate-500/20 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300" />
+              <div className="relative bg-gradient-to-br from-gray-500 to-slate-600 rounded-lg p-1.5 sm:p-2.5 shadow-lg shadow-gray-900/30 group-hover:scale-105 transition-transform duration-300">
+                <FileCheck className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+              </div>
+            </div>
+            <div className="min-w-0 hidden sm:block">
+              <p className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">Status</p>
+              <p className="text-xs text-white font-medium">Draft</p>
+            </div>
+          </div>
+          <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 mx-0.5 sm:mx-2 shrink-0" />
+
+          {/* Step 3: Validate */}
+          <div className="group flex items-center gap-2 sm:gap-3 flex-1 min-w-0 shrink-0">
+            <div className="relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-emerald-600/30 to-green-600/30 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300" />
+              <div className="relative bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg p-1.5 sm:p-2.5 shadow-lg shadow-emerald-900/30 group-hover:scale-105 transition-transform duration-300">
+                <Shield className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+              </div>
+            </div>
+            <div className="min-w-0 hidden sm:block">
+              <p className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">Step 2</p>
+              <p className="text-xs text-white font-medium">Validate</p>
+            </div>
+          </div>
+          <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 mx-0.5 sm:mx-2 shrink-0" />
+
+          {/* Step 4: Lock */}
+          <div className="group flex items-center gap-2 sm:gap-3 flex-1 min-w-0 shrink-0">
+            <div className="relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-amber-600/30 to-orange-600/30 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300" />
+              <div className="relative bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg p-1.5 sm:p-2.5 shadow-lg shadow-amber-900/30 group-hover:scale-105 transition-transform duration-300">
+                <Lock className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+              </div>
+            </div>
+            <div className="min-w-0 hidden sm:block">
+              <p className="text-[10px] text-amber-400 font-semibold uppercase tracking-wider">Step 3</p>
+              <p className="text-xs text-white font-medium">Lock</p>
+            </div>
+          </div>
+          <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 mx-0.5 sm:mx-2 shrink-0" />
+
+          {/* Step 5: Apply / Export */}
+          <div className="group flex items-center gap-2 sm:gap-3 flex-1 min-w-0 shrink-0">
+            <div className="relative">
+              <div className="absolute -inset-1 bg-gradient-to-r from-blue-600/30 to-cyan-600/30 rounded-lg blur-sm opacity-0 group-hover:opacity-100 transition-all duration-300" />
+              <div className="relative bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg p-1.5 sm:p-2.5 shadow-lg shadow-blue-900/30 group-hover:scale-105 transition-transform duration-300">
+                <FileSpreadsheet className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+              </div>
+            </div>
+            <div className="min-w-0 hidden sm:block">
+              <p className="text-[10px] text-blue-400 font-semibold uppercase tracking-wider">Step 4</p>
+              <p className="text-xs text-white font-medium">Apply / Export</p>
+            </div>
+          </div>
+        </div>
+        {/* Mobile step labels */}
+        <div className="flex items-center justify-between mt-2 sm:hidden text-[9px] text-gray-500 px-0.5">
+          <span>Generate</span>
+          <span>Draft</span>
+          <span>Validate</span>
+          <span>Lock</span>
+          <span>Export</span>
         </div>
       </div>
 
@@ -435,7 +511,7 @@ const ScheduleValidation: React.FC = () => {
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-white text-sm">Jadwal #{schedule.id}</span>
+                        <span className="font-semibold text-white text-sm">Jadwal</span>
                         <StatusBadge status={schedule.status} />
                       </div>
                       <p className="text-gray-400 text-xs mt-0.5">
@@ -609,73 +685,77 @@ const ScheduleValidation: React.FC = () => {
 
       {/* ===== ENTRIES MODAL ===== */}
       {showEntries && selectedSchedule && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-gray-700 flex items-center justify-between">
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <Eye className="w-5 h-5 text-blue-400" />
-                Detail Entri — Jadwal #{selectedSchedule.id}
+        <div className="fixed inset-0 bg-black/80 flex items-end sm:items-center justify-center z-50 sm:p-4">
+          <div className="bg-gray-800 rounded-t-2xl sm:rounded-xl w-full sm:max-w-4xl max-h-[92vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="px-4 py-3 border-b border-gray-700 flex items-center justify-between shrink-0">
+              <h2 className="text-sm font-bold flex items-center gap-2">
+                <Eye className="w-4 h-4 text-blue-400" />
+                Detail Entri
               </h2>
               <button onClick={() => { setShowEntries(false); setSelectedSchedule(null); }} className="text-gray-400 hover:text-white p-1">
-                <XCircle className="w-5 h-5" />
+                <XCircle className="w-4 h-4" />
               </button>
             </div>
-            <div className="overflow-auto flex-1 p-4">
+            <div className="overflow-auto flex-1 p-3">
               {entries.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">Belum ada entri. Validasi jadwal untuk expand data.</p>
+                <p className="text-gray-500 text-center py-6 text-xs">Belum ada entri.</p>
               ) : (
-                <table className="w-full text-sm text-left text-gray-300 border-collapse">
-                  <thead className="bg-gray-700/50 text-gray-200 sticky top-0 backdrop-blur-sm z-10">
-                    <tr>
-                      <th className="px-4 py-3 font-medium whitespace-nowrap w-28">Tanggal</th>
-                      <th className="px-4 py-3 font-medium">Siswa</th>
-                      <th className="px-4 py-3 font-medium">Lokasi</th>
-                      <th className="px-4 py-3 font-medium text-center whitespace-nowrap">Jam</th>
-                      <th className="px-4 py-3 font-medium text-center">Status</th>
-                      <th className="px-4 py-3 font-medium text-center">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-700/50">
-                    {entries.map((entry) => (
-                      <tr key={entry.id} className={`transition-colors ${entry.conflict_flag ? 'bg-red-900/10 hover:bg-red-900/20' : 'hover:bg-gray-700/30'}`}>
-                        <td className="px-4 py-3 whitespace-nowrap text-gray-300">
-                           <div className="flex items-center gap-2">
-                             <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                             {formatDate(entry.tanggal)}
-                           </div>
-                        </td>
-                        <td className="px-4 py-3 font-medium text-white">{entry.siswa_nama}</td>
-                        <td className="px-4 py-3 text-gray-400">
-                           <div className="flex items-center gap-1.5">
-                             <MapPin className="w-3.5 h-3.5" />
-                             {entry.lokasi_nama || '-'}
-                           </div>
-                        </td>
-                        <td className="px-4 py-3 text-center whitespace-nowrap text-gray-400 text-xs">
-                          {entry.jam_mulai ? `${entry.jam_mulai.substring(0,5)} - ${entry.jam_selesai?.substring(0,5) || '?'}` : '-'}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {entry.conflict_flag ? (
-                            <span className="bg-red-500/10 text-red-400 px-2.5 py-1 rounded border border-red-500/20 text-xs font-medium inline-block">Konflik</span>
-                          ) : (
-                            <span className="bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded border border-emerald-500/20 text-xs font-medium inline-block flex-shrink-0">OK</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {selectedSchedule.status === 'draft' ? (
-                            <button
-                              onClick={() => handleDeleteEntry(selectedSchedule.id, entry.id)}
-                              className="text-red-400 hover:text-red-300 p-1.5 hover:bg-red-400/10 rounded-md transition-colors inline-flex justify-center"
-                              title="Hapus entri"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          ) : <span className="text-gray-600">-</span>}
-                        </td>
+                <>
+                  {/* Desktop table */}
+                  <table className="hidden sm:table w-full text-xs text-left text-gray-300 border-collapse">
+                    <thead className="bg-gray-700/50 text-gray-400 sticky top-0 backdrop-blur-sm z-10 uppercase tracking-wider">
+                      <tr>
+                        <th className="px-3 py-2 font-medium">Tanggal</th>
+                        <th className="px-3 py-2 font-medium">Siswa</th>
+                        <th className="px-3 py-2 font-medium">Lokasi</th>
+                        <th className="px-3 py-2 font-medium text-center">Jam</th>
+                        <th className="px-3 py-2 font-medium text-center">Status</th>
                       </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-700/40">
+                      {entries.map((entry) => (
+                        <tr key={entry.id} className={`transition-colors ${entry.conflict_flag ? 'bg-red-900/10 hover:bg-red-900/20' : 'hover:bg-gray-700/20'}`}>
+                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-400">{formatDate(entry.tanggal)}</td>
+                          <td className="px-3 py-1.5 text-white">{entry.siswa_nama}</td>
+                          <td className="px-3 py-1.5 text-gray-400">{entry.nama_lokasi || entry.lokasi_nama || '-'}</td>
+                          <td className="px-3 py-1.5 text-center whitespace-nowrap text-gray-400">
+                            {entry.jam_mulai ? `${entry.jam_mulai.substring(0, 5)} – ${entry.jam_selesai?.substring(0, 5) || '?'}` : '-'}
+                          </td>
+                          <td className="px-3 py-1.5 text-center">
+                            {entry.conflict_flag ? (
+                              <span className="text-red-400 font-medium">Konflik</span>
+                            ) : (
+                              <span className="text-emerald-400 font-medium">OK</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* Mobile card list */}
+                  <div className="sm:hidden space-y-2">
+                    {entries.map((entry) => (
+                      <div key={entry.id} className={`rounded-lg p-3 border ${entry.conflict_flag ? 'bg-red-900/10 border-red-800/30' : 'bg-gray-700/30 border-gray-700/50'}`}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-white text-xs font-medium">{entry.siswa_nama}</span>
+                          {entry.conflict_flag ? (
+                            <span className="text-red-400 text-[10px] font-semibold">Konflik</span>
+                          ) : (
+                            <span className="text-emerald-400 text-[10px] font-semibold">OK</span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-gray-400">
+                          <span>{formatDate(entry.tanggal)}</span>
+                          <span>{entry.jam_mulai ? `${entry.jam_mulai.substring(0, 5)} – ${entry.jam_selesai?.substring(0, 5) || '?'}` : '-'}</span>
+                        </div>
+                        {(entry.nama_lokasi || entry.lokasi_nama) && (
+                          <p className="text-[11px] text-gray-500 mt-0.5 truncate">{entry.nama_lokasi || entry.lokasi_nama}</p>
+                        )}
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -689,7 +769,7 @@ const ScheduleValidation: React.FC = () => {
             <div className="p-4 border-b border-gray-700 flex items-center justify-between">
               <h2 className="text-lg font-bold flex items-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-red-400" />
-                Konflik — Jadwal #{selectedSchedule.id}
+                Konflik Jadwal
               </h2>
               <button onClick={() => { setShowConflicts(false); setSelectedSchedule(null); }} className="text-gray-400 hover:text-white p-1">
                 <XCircle className="w-5 h-5" />
@@ -732,7 +812,7 @@ const ScheduleValidation: React.FC = () => {
           <div className="bg-gray-800 rounded-xl max-w-md w-full p-6">
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
               <XCircle className="w-5 h-5 text-red-400" />
-              Reject Jadwal #{selectedSchedule.id}
+              Reject Jadwal
             </h2>
             <div className="mb-4">
               <label className="block text-gray-300 text-sm mb-2">Alasan Penolakan</label>
