@@ -715,14 +715,14 @@ const Dashboard: React.FC = () => {
       value: stats.jumlah_guru || 0,
       icon: <Award className="w-6 h-6 text-white" />,
       color: "bg-gradient-to-br from-purple-500 to-pink-600",
-      trend: "+1",
+      trend: undefined,
     },
     {
       title: "Jumlah Mentor",
       value: stats.jumlah_mentor || 0,
       icon: <Users className="w-6 h-6 text-white" />,
       color: "bg-gradient-to-br from-indigo-500 to-purple-600",
-      trend: "+3",
+      trend: undefined,
     },
     {
       title: institusiData.nama_institusi || "Institusi",
@@ -735,14 +735,14 @@ const Dashboard: React.FC = () => {
       ),
       icon: <Building className="w-6 h-6 text-white" />,
       color: "bg-gradient-to-br from-teal-500 to-cyan-600",
-      trend: "+2",
+      trend: undefined,
     },
     {
       title: "Total Siswa",
       value: allSiswaData.total_all_siswa || 0,
       icon: <Users className="w-6 h-6 text-white" />,
       color: "bg-gradient-to-br from-emerald-500 to-green-600",
-      trend: "+5",
+      trend: undefined,
     },
   ];
 

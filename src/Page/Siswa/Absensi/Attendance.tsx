@@ -34,6 +34,13 @@ interface LocationData {
   accuracy?: number;
 }
 
+interface AttendanceLocationReference {
+  latitude: number;
+  longitude: number;
+  location_name: string;
+  source: 'assignment' | 'schedule';
+}
+
 const Attendance: React.FC = () => {
   const [attendanceData, setAttendanceData] = useState<AttendanceRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,12 +57,39 @@ const Attendance: React.FC = () => {
   const [actionType, setActionType] = useState<'checkin' | 'checkout' | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [locationData, setLocationData] = useState<LocationData | null>(null);
+  const [locationReference, setLocationReference] = useState<AttendanceLocationReference | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const webcamRef = useRef<Webcam>(null);
 
   // Photo modal states
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<{ url: string, type: string, name: string } | null>(null);
+
+  const normalizeAttendanceErrorMessage = (rawMessage?: string) => {
+    const message = (rawMessage || '').toLowerCase();
+    if (
+      message.includes('no such file or directory') ||
+      message.includes('foto_profile') ||
+      message.includes('profile photo not found') ||
+      message.includes('belum mengupload foto wajah')
+    ) {
+      return 'Anda belum mengupload foto wajah di profil.';
+    }
+    return rawMessage || 'Gagal melakukan absensi.';
+  };
+
+  const normalizeFaceVerificationMessage = (rawMessage?: string) => {
+    const message = (rawMessage || '').toLowerCase();
+    if (
+      message.includes('sistem menolak') ||
+      message.includes('spoof') ||
+      message.includes('layar') ||
+      message.includes('kertas')
+    ) {
+      return 'Verifikasi wajah gagal. Wajah terdeteksi dari layar HP/foto kertas. Gunakan wajah asli langsung dari kamera.';
+    }
+    return rawMessage || 'Verifikasi wajah gagal. Pastikan wajah terlihat jelas dan pencahayaan cukup.';
+  };
 
   // Get current GPS location with improved accuracy
   const getCurrentLocation = (): Promise<LocationData> => {
@@ -464,7 +498,7 @@ const Attendance: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        let errorMessage = errorData.message || 'Gagal melakukan absensi.';
+        let errorMessage = normalizeAttendanceErrorMessage(errorData.message);
 
         // Handle specific error cases
         if (errorData.message && errorData.message.includes('face')) {
@@ -479,17 +513,15 @@ const Attendance: React.FC = () => {
 
         // Redirect to main page if face verification fails
         if (errorData.message && (errorData.message.includes('Face verification failed') || errorData.message.includes('Wajah tidak sesuai') || errorData.message.includes('Sistem menolak'))) {
-          Swal.fire({
+          const faceErrorMessage = normalizeFaceVerificationMessage(errorData.message);
+          await Swal.fire({
             icon: 'error',
             title: 'Verifikasi Wajah Gagal!',
-            text: errorData.message,
-            showConfirmButton: false,
-            timer: 4000,
+            text: faceErrorMessage,
+            showConfirmButton: true,
+            confirmButtonText: 'OK',
           });
-
-          setTimeout(() => {
-            window.location.href = '/AttendanceSiswa';
-          }, 4000);
+          window.location.href = '/AttendanceSiswa';
           return;
         }
 
@@ -532,12 +564,12 @@ const Attendance: React.FC = () => {
 
       if (result.success) {
         // Show success message
-        Swal.fire({
+        await Swal.fire({
           icon: 'success',
           title: 'Absensi berhasil!',
           text: result.message,
-          showConfirmButton: false,
-          timer: 3000,
+          showConfirmButton: true,
+          confirmButtonText: 'OK',
         });
 
         setSuccess(result.message);
@@ -546,10 +578,8 @@ const Attendance: React.FC = () => {
         // Clear success message after 5 seconds
         setTimeout(() => setSuccess(null), 5000);
 
-        // Redirect to AttendanceSiswa page after successful attendance
-        setTimeout(() => {
-          window.location.href = '/AttendanceSiswa';
-        }, 3000);
+        // Redirect to AttendanceSiswa page after user confirms success message
+        window.location.href = '/AttendanceSiswa';
 
         // Refresh attendance data
         await fetchAttendance();
@@ -558,23 +588,21 @@ const Attendance: React.FC = () => {
       }
 
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Gagal melakukan absensi.';
+      const errorMessage = normalizeAttendanceErrorMessage(err instanceof Error ? err.message : 'Gagal melakukan absensi.');
       setError(errorMessage);
       console.error('Error during check-in/out:', err);
 
       // Redirect to main page if face verification fails
       if (errorMessage.includes('Face verification failed') || errorMessage.includes('Wajah tidak sesuai') || errorMessage.includes('Sistem menolak')) {
-        Swal.fire({
+        const faceErrorMessage = normalizeFaceVerificationMessage(errorMessage);
+        await Swal.fire({
           icon: 'error',
           title: 'Verifikasi Wajah Gagal!',
-          text: errorMessage,
-          showConfirmButton: false,
-          timer: 4000,
+          text: faceErrorMessage,
+          showConfirmButton: true,
+          confirmButtonText: 'OK',
         });
-
-        setTimeout(() => {
-          window.location.href = '/AttendanceSiswa';
-        }, 4000);
+        window.location.href = '/AttendanceSiswa';
         return;
       }
 
@@ -623,13 +651,40 @@ const Attendance: React.FC = () => {
     }
   };
 
+  const fetchAttendanceLocationReference = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch('http://localhost:3000/api/attendance-location-reference', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) return;
+
+      const result = await response.json();
+      if (result?.success) {
+        setLocationReference(result.data || null);
+      }
+    } catch (err) {
+      console.warn('Failed to get attendance location reference:', err);
+      setLocationReference(null);
+    }
+  };
+
   // Handle check-in/check-out button click
   const handleCheckInOut = async (type: 'checkin' | 'checkout') => {
     setActionType(type);
     setCameraError(null);
     setLocationError(null);
     setLocationData(null);
+    setLocationReference(null);
     setShowCamera(true);
+    fetchAttendanceLocationReference();
 
     // Request location permission when camera opens
     try {
@@ -1007,35 +1062,12 @@ const Attendance: React.FC = () => {
                 </h3>
                 {locationData && (
                   <div className="text-xs text-gray-300 mt-1">
-                    📍 GPS: {locationData.latitude.toFixed(6)}, {locationData.longitude.toFixed(6)}
-                    {locationData.accuracy && (
-                      <span className={`ml-2 ${locationData.accuracy <= 10 ? 'text-green-400' :
-                          locationData.accuracy <= 25 ? 'text-yellow-400' : 'text-red-400'
-                        }`}>
-                        (Akurasi: {locationData.accuracy.toFixed(1)}m)
-                      </span>
-                    )}
+                    📍GPS: {locationData.latitude.toFixed(8)}, {locationData.longitude.toFixed(8)}
+                    {locationReference?.location_name ? ` (${locationReference.location_name})` : ''}
                   </div>
                 )}
               </div>
               <div className="flex items-center space-x-2">
-                {locationData && (
-                  <button
-                    onClick={async () => {
-                      try {
-                        setLocationData(null);
-                        const newLocation = await getAccurateLocation();
-                        setLocationData(newLocation);
-                      } catch (err) {
-                        setLocationError('Gagal mendapatkan lokasi yang akurat. Silakan coba lagi.');
-                      }
-                    }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded text-xs"
-                    title="Refresh GPS location untuk akurasi lebih baik"
-                  >
-                    🔄 GPS
-                  </button>
-                )}
                 <button
                   onClick={() => {
                     setShowCamera(false);
