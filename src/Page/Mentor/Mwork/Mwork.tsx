@@ -46,6 +46,9 @@ const Mwork: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'aktif' | 'selesai'>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'siswa' | 'mentor'>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showManualLocationInput, setShowManualLocationInput] = useState(false);
+  const [locationNoResults, setLocationNoResults] = useState(false);
+  const [manualCoordinates, setManualCoordinates] = useState('');
   const [showPendingModal, setShowPendingModal] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<WorkAssignment | null>(null);
   const [rejectReason, setRejectReason] = useState('');
@@ -114,12 +117,49 @@ const Mwork: React.FC = () => {
 
   const handleCreateAssignment = async (e: React.FormEvent) => {
     e.preventDefault();
+    let latitude = formData.latitude;
+    let longitude = formData.longitude;
+
+    if ((latitude == null || longitude == null) && manualCoordinates.trim()) {
+      const cleaned = manualCoordinates.trim().replace(/\s+/g, '');
+      const [latText, lonText] = cleaned.split(',');
+      const parsedLat = Number(latText);
+      const parsedLon = Number(lonText);
+
+      if (!latText || !lonText || Number.isNaN(parsedLat) || Number.isNaN(parsedLon)) {
+        alert('Format koordinat tidak valid. Gunakan format: -7.18845,113.24691');
+        return;
+      }
+
+      if (parsedLat < -90 || parsedLat > 90 || parsedLon < -180 || parsedLon > 180) {
+        alert('Koordinat di luar rentang valid. Latitude -90..90, longitude -180..180.');
+        return;
+      }
+
+      latitude = parsedLat;
+      longitude = parsedLon;
+      setFormData((prev) => ({
+        ...prev,
+        latitude: parsedLat,
+        longitude: parsedLon,
+      }));
+    }
+
+    if (!formData.nama_lokasi.trim()) {
+      alert('Nama tempat wajib diisi.');
+      return;
+    }
+    if (latitude == null || longitude == null) {
+      alert('Koordinat lokasi wajib diisi.');
+      return;
+    }
+
     try {
       const response = await api.post('/api/mentor/work-assignments/create', {
         siswa_id: parseInt(formData.siswa_id),
         nama_lokasi: formData.nama_lokasi,
-        latitude: formData.latitude,
-        longitude: formData.longitude,
+        latitude,
+        longitude,
         radius_meter: formData.radius_meter ? parseInt(formData.radius_meter) : null,
         mulai: formData.mulai || null,
         selesai: formData.selesai || null
@@ -128,6 +168,9 @@ const Mwork: React.FC = () => {
       if (response.data.success) {
         alert('Penugasan berhasil dibuat');
         setShowCreateModal(false);
+        setShowManualLocationInput(false);
+        setLocationNoResults(false);
+        setManualCoordinates('');
         setFormData({
           siswa_id: '',
           nama_lokasi: '',
@@ -142,6 +185,29 @@ const Mwork: React.FC = () => {
     } catch (err: any) {
       alert(err.response?.data?.message || 'Gagal membuat penugasan');
     }
+  };
+
+  const applyManualCoordinates = () => {
+    const cleaned = manualCoordinates.trim().replace(/\s+/g, '');
+    const [latText, lonText] = cleaned.split(',');
+    const lat = Number(latText);
+    const lon = Number(lonText);
+
+    if (!latText || !lonText || Number.isNaN(lat) || Number.isNaN(lon)) {
+      alert('Format koordinat tidak valid. Gunakan format: -7.18845,113.24691');
+      return;
+    }
+
+    if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+      alert('Koordinat di luar rentang valid. Latitude -90..90, longitude -180..180.');
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      latitude: lat,
+      longitude: lon,
+    }));
   };
 
   const handleApproveRequest = async (id: number) => {
@@ -480,22 +546,84 @@ const Mwork: React.FC = () => {
               </div>
               <div>
                 <label className="block text-gray-300 mb-2">Cari Lokasi</label>
-                <LocationSearch
-                  value={formData.nama_lokasi}
-                  onChange={(location) => {
-                    setFormData({
-                      ...formData,
-                      nama_lokasi: location.nama,
-                      latitude: location.latitude,
-                      longitude: location.longitude
-                    });
-                  }}
-                  placeholder="Cari lokasi (contoh: Kejaksaan Kabupaten Sampang)"
-                  required
-                />
-                <p className="text-gray-400 text-xs mt-1">
-                  Ketik nama lokasi untuk mencari dan otomatis mengambil koordinat GPS
-                </p>
+                {!showManualLocationInput ? (
+                  <>
+                    <LocationSearch
+                      value={formData.nama_lokasi}
+                      onChange={(location) => {
+                        setFormData({
+                          ...formData,
+                          nama_lokasi: location.nama,
+                          latitude: location.latitude,
+                          longitude: location.longitude
+                        });
+                      }}
+                      onNoResultsChange={setLocationNoResults}
+                      placeholder="Cari lokasi (contoh: Kejaksaan Kabupaten Sampang)"
+                      required={!showManualLocationInput}
+                    />
+                    <p className="text-gray-400 text-xs mt-1">
+                      Ketik nama lokasi untuk mencari dan otomatis mengambil koordinat GPS
+                    </p>
+                    {locationNoResults && (
+                      <button
+                        type="button"
+                        onClick={() => setShowManualLocationInput(true)}
+                        className="mt-2 text-sm text-blue-400 hover:text-blue-300 underline"
+                      >
+                        Lokasi tidak ditemukan? Input koordinat manual
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-gray-300 mb-2">Nama Tempat</label>
+                      <input
+                        type="text"
+                        value={formData.nama_lokasi}
+                        onChange={(e) => setFormData({ ...formData, nama_lokasi: e.target.value })}
+                        placeholder="Contoh: Kantor Kecamatan Sampang"
+                        required={showManualLocationInput}
+                        className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-300 mb-2">Koordinat Google Maps (lat,long)</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={manualCoordinates}
+                          onChange={(e) => setManualCoordinates(e.target.value)}
+                          placeholder="Contoh: -7.188450, 113.246910"
+                          className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={applyManualCoordinates}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+                        >
+                          Gunakan
+                        </button>
+                      </div>
+                      {formData.latitude != null && formData.longitude != null && (
+                        <p className="text-gray-400 text-xs mt-1">
+                          GPS: {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowManualLocationInput(false);
+                        setLocationNoResults(false);
+                      }}
+                      className="text-sm text-gray-300 hover:text-white underline"
+                    >
+                      Kembali ke pencarian lokasi
+                    </button>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-gray-300 mb-2">Radius (meter)</label>
@@ -535,7 +663,12 @@ const Mwork: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setShowCreateModal(false)}
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setShowManualLocationInput(false);
+                    setLocationNoResults(false);
+                    setManualCoordinates('');
+                  }}
                   className="flex-1 bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
                 >
                   Batal

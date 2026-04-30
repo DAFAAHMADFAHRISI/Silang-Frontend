@@ -13,13 +13,15 @@ interface LocationSearchProps {
   onChange: (location: { nama: string; latitude: number | null; longitude: number | null }) => void;
   placeholder?: string;
   required?: boolean;
+  onNoResultsChange?: (hasNoResults: boolean) => void;
 }
 
 const LocationSearch: React.FC<LocationSearchProps> = ({ 
   value, 
   onChange, 
   placeholder = "Cari lokasi (contoh: Kejaksaan Kabupaten Sampang)",
-  required = false 
+  required = false,
+  onNoResultsChange
 }) => {
   const [searchQuery, setSearchQuery] = useState(value);
   const [results, setResults] = useState<LocationResult[]>([]);
@@ -46,6 +48,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
     if (!query.trim() || query.length < 3) {
       setResults([]);
       setShowResults(false);
+      onNoResultsChange?.(false);
       return;
     }
 
@@ -64,15 +67,18 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
       if (response.ok) {
         const data = await response.json();
         setResults(data);
-        setShowResults(true);
+        setShowResults(data.length > 0);
+        onNoResultsChange?.(data.length === 0);
       } else {
         setResults([]);
         setShowResults(false);
+        onNoResultsChange?.(true);
       }
     } catch (error) {
       console.error('Error searching location:', error);
       setResults([]);
       setShowResults(false);
+      onNoResultsChange?.(true);
     } finally {
       setLoading(false);
     }
@@ -116,6 +122,7 @@ const LocationSearch: React.FC<LocationSearchProps> = ({
     
     // If user clears the input, clear location data
     if (!newValue.trim()) {
+      onNoResultsChange?.(false);
       onChange({
         nama: '',
         latitude: null,
