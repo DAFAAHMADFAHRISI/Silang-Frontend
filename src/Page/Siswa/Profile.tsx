@@ -722,7 +722,7 @@ const Profile: React.FC = () => {
         <div className="relative group">
           <img
             src={getProfilePictureUrl()}
-            alt="Profile"
+            alt=""
             className="w-32 h-32 rounded-full object-cover border-4 border-gray-700 shadow-lg mb-4 transition-all duration-300 group-hover:border-blue-500 group-hover:shadow-xl"
           />
           {(pictureLoading || uploading) && (
