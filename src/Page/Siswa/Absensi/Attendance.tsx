@@ -997,9 +997,9 @@ const Attendance: React.FC = () => {
 
       {/* Check In/Out Buttons */}
       {getCurrentAction().action !== 'weekend' && getCurrentAction().action !== 'closed' && (
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold text-white">Absensi dengan Kamera</h3>
+        <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-700 mb-6">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h3 className="text-base sm:text-xl font-semibold text-white">Absensi dengan Kamera</h3>
             <div className="flex items-center space-x-3">
             </div>
           </div>
@@ -1007,20 +1007,20 @@ const Attendance: React.FC = () => {
 
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
             {/* Check In Button */}
             <button
               onClick={() => handleCheckInOut('checkin')}
               disabled={isLoading || getCurrentAction().action !== 'checkin'}
-              className={`p-6 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center space-y-3 ${isLoading || getCurrentAction().action !== 'checkin'
+              className={`p-4 sm:p-6 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center space-y-2 sm:space-y-3 ${isLoading || getCurrentAction().action !== 'checkin'
                   ? 'border-gray-600 bg-gray-700 text-gray-400 cursor-not-allowed'
                   : 'border-green-500 bg-green-600 hover:bg-green-700 text-white shadow-lg'
                 }`}
             >
-              <LogIn className={`w-8 h-8 ${getCurrentAction().action === 'checkin' ? 'text-white' : 'text-gray-500'
+              <LogIn className={`w-6 h-6 sm:w-8 sm:h-8 ${getCurrentAction().action === 'checkin' ? 'text-white' : 'text-gray-500'
                 }`} />
               <div className="text-center">
-                <div className="font-semibold text-lg">Check In</div>
+                <div className="font-semibold text-sm sm:text-lg">Check In</div>
               </div>
             </button>
 
@@ -1028,15 +1028,15 @@ const Attendance: React.FC = () => {
             <button
               onClick={() => handleCheckInOut('checkout')}
               disabled={isLoading || getCurrentAction().action !== 'checkout'}
-              className={`p-6 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center space-y-3 ${isLoading || getCurrentAction().action !== 'checkout'
+              className={`p-4 sm:p-6 rounded-lg border-2 transition-all duration-200 flex flex-col items-center justify-center space-y-2 sm:space-y-3 ${isLoading || getCurrentAction().action !== 'checkout'
                   ? 'border-gray-600 bg-gray-700 text-gray-400 cursor-not-allowed'
                   : 'border-blue-500 bg-blue-600 hover:bg-blue-700 text-white shadow-lg'
                 }`}
             >
-              <LogOut className={`w-8 h-8 ${getCurrentAction().action === 'checkout' ? 'text-white' : 'text-gray-500'
+              <LogOut className={`w-6 h-6 sm:w-8 sm:h-8 ${getCurrentAction().action === 'checkout' ? 'text-white' : 'text-gray-500'
                 }`} />
               <div className="text-center">
-                <div className="font-semibold text-lg">Check Out</div>
+                <div className="font-semibold text-sm sm:text-lg">Check Out</div>
               </div>
             </button>
           </div>
@@ -1168,7 +1168,7 @@ const Attendance: React.FC = () => {
       )}
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
         <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
           <div className="flex items-center justify-between">
             <div>
@@ -1238,88 +1238,172 @@ const Attendance: React.FC = () => {
 
       <Divider />
 
-      {/* Attendance Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-xs sm:text-sm min-w-[1300px]">
-          <thead>
-            <tr className="border-b border-gray-700">
-              <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">No.</th>
-              <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Nama Siswa</th>
-              <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Tanggal</th>
-              <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Check In</th>
-              <th className="text-center py-2 px-2 sm:px-4 font-semibold text-gray-300">Foto Check In</th>
-              <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Lokasi In</th>
-              <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Status</th>
-              <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Lokasi Absen</th>
-              <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Check Out</th>
-              <th className="text-center py-2 px-2 sm:px-4 font-semibold text-gray-300">Foto Check Out</th>
-              <th className="text-left py-2 px-2 sm:px-4 font-semibold text-gray-300">Lokasi Out</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredAttendance.length === 0 ? (
-              <tr>
-                <td colSpan={11} className="text-center py-12">
-                  <div className="text-center">
-                    <UserCheck className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-                    {attendanceData.length === 0 ? (
-                      <>
-                        <p className="text-gray-400 text-lg">Belum ada data absensi</p>
-                        <p className="text-gray-500 text-sm">Data absensi akan muncul setelah Anda melakukan check-in</p>
-                      </>
+      {/* Attendance Data */}
+      {filteredAttendance.length === 0 ? (
+        <div className="text-center py-12">
+          <UserCheck className="w-16 h-16 text-gray-500 mx-auto mb-4" />
+          {attendanceData.length === 0 ? (
+            <>
+              <p className="text-gray-400 text-lg">Belum ada data absensi</p>
+              <p className="text-gray-500 text-sm">Data absensi akan muncul setelah Anda melakukan check-in</p>
+            </>
+          ) : (
+            <>
+              <p className="text-gray-400 text-lg">Tidak ada data yang sesuai</p>
+              <p className="text-gray-500 text-sm">Coba ubah filter atau kata kunci pencarian</p>
+            </>
+          )}
+        </div>
+      ) : (
+        <>
+          {/* Mobile Card View */}
+          <div className="flex flex-col gap-4 lg:hidden">
+            {filteredAttendance.map((row, index) => {
+              const lateStatus = getLateStatus(row.status_kehadiran);
+              return (
+                <div key={row.id} className="bg-gray-800/70 rounded-xl border border-gray-700/60 p-4 space-y-3">
+                  {/* Card Header */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-300">{getRowNumber(index)}</span>
+                      <span className="text-white font-semibold text-sm truncate">{row.nama_siswa}</span>
+                    </div>
+                    <span className={`flex-shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full ${
+                      lateStatus.class.includes('green') ? 'bg-green-900/50 text-green-400 border border-green-600/40' :
+                      lateStatus.class.includes('red') ? 'bg-red-900/50 text-red-400 border border-red-600/40' :
+                      lateStatus.class.includes('yellow') ? 'bg-yellow-900/50 text-yellow-400 border border-yellow-600/40' :
+                      'bg-blue-900/50 text-blue-400 border border-blue-600/40'
+                    }`}>{lateStatus.text}</span>
+                  </div>
+
+                  {/* Date & Location Tag */}
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-400 flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" />
+                      {formatDate(row.tanggal_absen)}
+                    </span>
+                    {row.tugas_luar ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-900/50 text-amber-400 border border-amber-600/50">
+                        <MapPin className="w-3 h-3" />
+                        Luar{row.nama_lokasi_tugas_luar ? `: ${row.nama_lokasi_tugas_luar}` : ''}
+                      </span>
                     ) : (
-                      <>
-                        <p className="text-gray-400 text-lg">Tidak ada data yang sesuai</p>
-                        <p className="text-gray-500 text-sm">Coba ubah filter atau kata kunci pencarian</p>
-                      </>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-700/50 text-gray-400 border border-gray-600/50">
+                        Instansi
+                      </span>
                     )}
                   </div>
-                </td>
-              </tr>
-            ) : (
-              filteredAttendance.map((row, index) => {
-                const lateStatus = getLateStatus(row.status_kehadiran);
-                return (
-                  <tr key={row.id} className="border-b border-gray-800 hover:bg-gray-800/50">
-                    <td className="py-3 px-2 sm:px-4 text-gray-400 text-center font-medium">{getRowNumber(index)}</td>
-                    <td className="py-3 px-2 sm:px-4 text-white font-medium">{row.nama_siswa}</td>
-                    <td className="py-3 px-2 sm:px-4 text-gray-300">{formatDate(row.tanggal_absen)}</td>
-                    <td className="py-3 px-2 sm:px-4 text-green-400 font-medium">{formatTime(row.waktu_checkin)}</td>
-                    <td className="py-3 px-2 sm:px-4 text-center">
-                      {renderPhotoCell(row.checkin_face_url, 'checkin', row.nama_siswa)}
-                    </td>
-                    <td className="py-3 px-2 sm:px-4 text-gray-400 text-xs">
-                      {renderLocationCell(row.checkin_location, 'checkin')}
-                    </td>
-                    <td className={`py-3 px-2 sm:px-4 font-medium ${lateStatus.class}`}>
-                      {lateStatus.text}
-                    </td>
-                    <td className="py-3 px-2 sm:px-4">
-                      {row.tugas_luar ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-amber-900/50 text-amber-400 border border-amber-600/50">
-                          <MapPin className="w-3.5 h-3.5" />
-                          Di Luar Instansi{row.nama_lokasi_tugas_luar ? ` (${row.nama_lokasi_tugas_luar})` : ''}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-700/50 text-gray-400 border border-gray-600/50">
-                          Instansi
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 px-2 sm:px-4 text-blue-400 font-medium">{formatTime(row.waktu_checkout)}</td>
-                    <td className="py-3 px-2 sm:px-4 text-center">
-                      {renderPhotoCell(row.checkout_face_url, 'checkout', row.nama_siswa)}
-                    </td>
-                    <td className="py-3 px-2 sm:px-4 text-gray-400 text-xs">
-                      {renderLocationCell(row.checkout_location, 'checkout')}
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+
+                  {/* Check In / Check Out Row */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Check In */}
+                    <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700/40">
+                      <p className="text-[10px] uppercase tracking-wider text-gray-500 mb-1.5 font-semibold flex items-center gap-1">
+                        <LogIn className="w-3 h-3 text-green-500" /> Check In
+                      </p>
+                      <p className="text-green-400 font-bold text-sm">{formatTime(row.waktu_checkin)}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        {row.checkin_face_url && (
+                          <img
+                            src={row.checkin_face_url.startsWith('http') ? row.checkin_face_url : `http://localhost:3000${row.checkin_face_url}`}
+                            alt="Check In"
+                            className="w-9 h-9 object-cover rounded-md border border-gray-600 cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => openPhotoModal(row.checkin_face_url!, 'checkin', row.nama_siswa)}
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          />
+                        )}
+                        <div className="text-xs">{renderLocationCell(row.checkin_location, 'checkin')}</div>
+                      </div>
+                    </div>
+
+                    {/* Check Out */}
+                    <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700/40">
+                      <p className="text-[10px] uppercase tracking-wider text-gray-500 mb-1.5 font-semibold flex items-center gap-1">
+                        <LogOut className="w-3 h-3 text-blue-500" /> Check Out
+                      </p>
+                      <p className="text-blue-400 font-bold text-sm">{formatTime(row.waktu_checkout)}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        {row.checkout_face_url && (
+                          <img
+                            src={row.checkout_face_url.startsWith('http') ? row.checkout_face_url : `http://localhost:3000${row.checkout_face_url}`}
+                            alt="Check Out"
+                            className="w-9 h-9 object-cover rounded-md border border-gray-600 cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => openPhotoModal(row.checkout_face_url!, 'checkout', row.nama_siswa)}
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          />
+                        )}
+                        <div className="text-xs">{renderLocationCell(row.checkout_location, 'checkout')}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden lg:block overflow-x-auto">
+            <table className="w-full text-sm min-w-[1200px]">
+              <thead>
+                <tr className="border-b border-gray-700">
+                  <th className="text-left py-2 px-4 font-semibold text-gray-300">No.</th>
+                  <th className="text-left py-2 px-4 font-semibold text-gray-300">Nama Siswa</th>
+                  <th className="text-left py-2 px-4 font-semibold text-gray-300">Tanggal</th>
+                  <th className="text-left py-2 px-4 font-semibold text-gray-300">Check In</th>
+                  <th className="text-center py-2 px-4 font-semibold text-gray-300">Foto Check In</th>
+                  <th className="text-left py-2 px-4 font-semibold text-gray-300">Lokasi In</th>
+                  <th className="text-left py-2 px-4 font-semibold text-gray-300">Status</th>
+                  <th className="text-left py-2 px-4 font-semibold text-gray-300">Lokasi Absen</th>
+                  <th className="text-left py-2 px-4 font-semibold text-gray-300">Check Out</th>
+                  <th className="text-center py-2 px-4 font-semibold text-gray-300">Foto Check Out</th>
+                  <th className="text-left py-2 px-4 font-semibold text-gray-300">Lokasi Out</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredAttendance.map((row, index) => {
+                  const lateStatus = getLateStatus(row.status_kehadiran);
+                  return (
+                    <tr key={row.id} className="border-b border-gray-800 hover:bg-gray-800/50">
+                      <td className="py-3 px-4 text-gray-400 text-center font-medium">{getRowNumber(index)}</td>
+                      <td className="py-3 px-4 text-white font-medium">{row.nama_siswa}</td>
+                      <td className="py-3 px-4 text-gray-300">{formatDate(row.tanggal_absen)}</td>
+                      <td className="py-3 px-4 text-green-400 font-medium">{formatTime(row.waktu_checkin)}</td>
+                      <td className="py-3 px-4 text-center">
+                        {renderPhotoCell(row.checkin_face_url, 'checkin', row.nama_siswa)}
+                      </td>
+                      <td className="py-3 px-4 text-gray-400 text-xs">
+                        {renderLocationCell(row.checkin_location, 'checkin')}
+                      </td>
+                      <td className={`py-3 px-4 font-medium ${lateStatus.class}`}>
+                        {lateStatus.text}
+                      </td>
+                      <td className="py-3 px-4">
+                        {row.tugas_luar ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-amber-900/50 text-amber-400 border border-amber-600/50">
+                            <MapPin className="w-3.5 h-3.5" />
+                            Di Luar Instansi{row.nama_lokasi_tugas_luar ? ` (${row.nama_lokasi_tugas_luar})` : ''}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-700/50 text-gray-400 border border-gray-600/50">
+                            Instansi
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-blue-400 font-medium">{formatTime(row.waktu_checkout)}</td>
+                      <td className="py-3 px-4 text-center">
+                        {renderPhotoCell(row.checkout_face_url, 'checkout', row.nama_siswa)}
+                      </td>
+                      <td className="py-3 px-4 text-gray-400 text-xs">
+                        {renderLocationCell(row.checkout_location, 'checkout')}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
       <Divider />
 
