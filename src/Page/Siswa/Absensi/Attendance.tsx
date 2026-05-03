@@ -60,6 +60,7 @@ const Attendance: React.FC = () => {
   const [locationReference, setLocationReference] = useState<AttendanceLocationReference | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const webcamRef = useRef<Webcam>(null);
+  const [isLowLight, setIsLowLight] = useState(false);
 
   // Photo modal states
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -335,6 +336,61 @@ const Attendance: React.FC = () => {
     return { action: 'closed', message: 'Jam kerja telah selesai' };
   };
 
+  // Effect to monitor lighting conditions when camera is open
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (showCamera && webcamRef.current) {
+      interval = setInterval(() => {
+        if (webcamRef.current) {
+          const imageSrc = webcamRef.current.getScreenshot();
+          if (imageSrc) {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+              canvas.width = img.width;
+              canvas.height = img.height;
+              ctx?.drawImage(img, 0, 0);
+
+              const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
+              if (imageData) {
+                const data = imageData.data;
+                let totalBrightness = 0;
+                let sampleCount = 0;
+
+                // Sample pixels for performance (check every 4th pixel, which means += 16 in RGBA array)
+                for (let i = 0; i < data.length; i += 16) {
+                  const r = data[i];
+                  const g = data[i + 1];
+                  const b = data[i + 2];
+                  
+                  const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+                  totalBrightness += brightness;
+                  sampleCount++;
+                }
+
+                const averageBrightness = totalBrightness / sampleCount;
+                if (averageBrightness < 50) {
+                  setIsLowLight(true);
+                } else {
+                  setIsLowLight(false);
+                }
+              }
+            };
+            img.src = imageSrc;
+          }
+        }
+      }, 1000); // Check every second
+    } else {
+      setIsLowLight(false);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [showCamera, webcamRef]);
+
   // Capture photo using react-webcam
   const capturePhoto = useCallback(() => {
     if (webcamRef.current) {
@@ -364,12 +420,17 @@ const Attendance: React.FC = () => {
             const data = imageData.data;
             let skinPixels = 0;
             let totalPixels = 0;
+            let totalBrightness = 0;
 
-            // Calculate skin tone pixels (simple face detection)
+            // Calculate skin tone pixels (simple face detection) and image brightness
             for (let i = 0; i < data.length; i += 4) {
               const r = data[i];
               const g = data[i + 1];
               const b = data[i + 2];
+
+              // Calculate perceived brightness
+              const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+              totalBrightness += brightness;
 
               // Simple skin tone detection
               const isSkinTone =
@@ -383,7 +444,18 @@ const Attendance: React.FC = () => {
               totalPixels++;
             }
 
+            const averageBrightness = totalBrightness / totalPixels;
             const skinRatio = skinPixels / totalPixels;
+
+            // Check if the image is too dark (average brightness below threshold)
+            if (averageBrightness < 50) {
+              Swal.fire({
+                icon: 'warning',
+                title: 'Pencahayaan Kurang!',
+                text: 'Ruangan terlalu gelap. Silakan cari tempat yang lebih terang agar wajah dapat terdeteksi dengan baik.',
+              });
+              return;
+            }
 
             // Check if there's enough skin tone (indicating a face)
             if (skinRatio < 0.05) { // Less than 5% skin tone
@@ -1106,6 +1178,14 @@ const Attendance: React.FC = () => {
                   console.log('Camera stream obtained successfully');
                 }}
               />
+              {isLowLight && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black bg-opacity-40">
+                  <div className="bg-red-600 bg-opacity-90 text-white px-4 py-3 rounded-lg text-center max-w-[80%] animate-pulse border border-red-400 shadow-xl">
+                    <p className="font-bold text-lg mb-1">⚠️ Pencahayaan Kurang!</p>
+                    <p className="text-sm">Ruangan terlalu gelap. Silakan cari tempat yang lebih terang.</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="mt-4 text-center">
