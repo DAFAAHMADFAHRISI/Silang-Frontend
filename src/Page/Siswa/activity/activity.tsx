@@ -204,7 +204,7 @@ const ActivityPage: React.FC = () => {
   );
 
   const filteredHistory = pointsHistory.filter((item) =>
-    item.reason.toLowerCase().includes(searchTerm.toLowerCase())
+    (item.reason || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
