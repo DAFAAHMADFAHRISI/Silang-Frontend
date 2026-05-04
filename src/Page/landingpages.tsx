@@ -8,6 +8,7 @@ import {
   GraduationCap,
   Building2,
   UserCheck,
+  Award,
   TrendingUp,
   Activity
 } from 'lucide-react';
@@ -16,6 +17,7 @@ interface DashboardData {
   institusi: any[];
   siswaAktif: { total: number };
   siswaTidakAktif: { total: number };
+  siswaLulus: { total: number };
   guru: { total: number };
 }
 
@@ -29,10 +31,11 @@ const Dashboard: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [institusiData, siswaAktifData, siswaTidakAktifData, guruData] = await Promise.all([
+        const [institusiData, siswaAktifData, siswaTidakAktifData, siswaLulusData, guruData] = await Promise.all([
           landingPageAPI.getInstitusi(),
           landingPageAPI.getSiswaAktif(),
           landingPageAPI.getSiswaTidakAktif(),
+          landingPageAPI.getSiswaLulus(),
           landingPageAPI.getGuru()
         ]);
 
@@ -40,6 +43,7 @@ const Dashboard: React.FC = () => {
           institusi: institusiData,
           siswaAktif: siswaAktifData,
           siswaTidakAktif: siswaTidakAktifData,
+          siswaLulus: siswaLulusData,
           guru: guruData
         });
       } catch (err) {
@@ -57,6 +61,7 @@ const Dashboard: React.FC = () => {
   const barChartData = data ? [
     { name: 'Siswa Aktif', value: data.siswaAktif.total },
     { name: 'Siswa Tidak Aktif', value: data.siswaTidakAktif.total },
+    { name: 'Siswa Lulus', value: data.siswaLulus.total },
     { name: 'Guru', value: data.guru.total },
     { name: 'Institusi', value: data.institusi.length }
   ] : [];
@@ -131,7 +136,7 @@ const Dashboard: React.FC = () => {
         {/* KPI Cards */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-white mb-6 text-center">Statistik Sistem</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
             <KPICard
               title="Siswa Aktif"
               value={data?.siswaAktif.total || 0}
@@ -144,6 +149,13 @@ const Dashboard: React.FC = () => {
               value={data?.siswaTidakAktif.total || 0}
               icon={<UserCheck className="w-6 h-6" />}
               color="text-red-400"
+              bgColor="bg-gray-800"
+            />
+            <KPICard
+              title="Siswa Lulus"
+              value={data?.siswaLulus.total || 0}
+              icon={<Award className="w-6 h-6" />}
+              color="text-purple-400"
               bgColor="bg-gray-800"
             />
             <KPICard

@@ -221,6 +221,17 @@ export const landingPageAPI = {
     }
   },
 
+  // Get siswa lulus data
+  getSiswaLulus: async () => {
+    try {
+      const response = await api.get('/api/landingpage/siswa-lulus');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch siswa lulus data:', error);
+      throw error;
+    }
+  },
+
   // Get guru data
   getGuru: async () => {
     try {
