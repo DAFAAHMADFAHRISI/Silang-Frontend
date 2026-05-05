@@ -226,6 +226,36 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  const handleAccept = async (id?: number) => {
+    if (!id) { setNotif('ID user tidak valid'); return; }
+    if (!window.confirm('Apakah anda ingin memverifikasi (accept) akun ini?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      const url = `http://localhost:3000/api/superadmin/users/verify/${id}`;
+      const res = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+      const data = await res.json().catch(async () => ({ message: await res.text() }));
+      if (res.ok) {
+        setNotif('User berhasil diverifikasi!');
+        const rolePath = activeTab === 'superadmin' ? 'superadmin' : activeTab;
+        const listUrl = `http://localhost:3000/api/superadmin/users/role/${rolePath}`;
+        const r = await fetch(listUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' } });
+        const j = await r.json();
+        setUserData(Array.isArray(j) ? j : []);
+        setTimeout(() => setNotif(null), 1500);
+      } else {
+        setNotif(data?.message || 'Gagal memverifikasi user');
+      }
+    } catch (e) {
+      setNotif('Gagal memverifikasi user');
+    }
+  };
+
   // Delete by role + email (body)
   const deleteByRoleEmailBody = async (email: string) => {
     if (!email) { setNotif('Email tidak valid'); return; }
@@ -324,38 +354,7 @@ const UserManagement: React.FC = () => {
 
   // Filter users based on active tab
   const getFilteredUsers = () => {
-    let filteredByRole;
-    switch (activeTab) {
-      case 'superadmin':
-        filteredByRole = userData.filter(user => user.role && (user.role.toLowerCase() === 'superadmin' || user.role === '1'));
-        break;
-      case 'mentor':
-        filteredByRole = userData.filter(user => user.role && (user.role.toLowerCase() === 'mentor' || user.role === '3'));
-        break;
-      case 'guru':
-        filteredByRole = userData.filter(user => user.role && (user.role.toLowerCase() === 'guru' || user.role === '4'));
-        break;
-      case 'siswa':
-        filteredByRole = userData.filter(user => user.role && (user.role.toLowerCase() === 'siswa' || user.role === '5'));
-        break;
-      case 'belum_diverifikasi':
-        // More comprehensive filtering for unverified users
-        filteredByRole = userData.filter(user => {
-          const role = user.role;
-          return !role || 
-                 role === '' || 
-                 role === 'null' || 
-                 role === 'NULL' || 
-                 role === 'undefined' || 
-                 role === 'Undefined' ||
-                 role === null ||
-                 role === undefined ||
-                 (typeof role === 'string' && role.trim() === '');
-        });
-        break;
-      default:
-        filteredByRole = userData;
-    }
+    let filteredByRole = userData;
 
     // Apply search filter on the role-filtered data
     if (searchTerm.trim() === '') {
@@ -381,22 +380,11 @@ const UserManagement: React.FC = () => {
   const filteredUsers = getFilteredUsers();
 
   const tabs = [
-    { id: 'superadmin', label: 'Superadmin', count: userData.filter(u => u.role && u.role.toLowerCase() === 'superadmin' || u.role === '1').length },
-    { id: 'mentor', label: 'Mentor', count: userData.filter(u => u.role && u.role.toLowerCase() === 'mentor' || u.role === '3').length },
-    { id: 'guru', label: 'Guru', count: userData.filter(u => u.role && u.role.toLowerCase() === 'guru' || u.role === '4').length },
-    { id: 'siswa', label: 'Siswa', count: userData.filter(u => u.role && u.role.toLowerCase() === 'siswa' || u.role === '5').length },
-    { id: 'belum_diverifikasi', label: 'Belum Diverifikasi', count: userData.filter(u => {
-      const role = u.role;
-      return !role || 
-             role === '' || 
-             role === 'null' || 
-             role === 'NULL' || 
-             role === 'undefined' || 
-             role === 'Undefined' ||
-             role === null ||
-             role === undefined ||
-             (typeof role === 'string' && role.trim() === '');
-    }).length },
+    { id: 'superadmin', label: 'Superadmin', count: activeTab === 'superadmin' ? userData.length : 0 },
+    { id: 'mentor', label: 'Mentor', count: activeTab === 'mentor' ? userData.length : 0 },
+    { id: 'guru', label: 'Guru', count: activeTab === 'guru' ? userData.length : 0 },
+    { id: 'siswa', label: 'Siswa', count: activeTab === 'siswa' ? userData.length : 0 },
+    { id: 'belum_diverifikasi', label: 'Belum Diverifikasi', count: activeTab === 'belum_diverifikasi' ? userData.length : 0 },
   ];
 
   // Clear search when changing tabs
@@ -503,12 +491,16 @@ const UserManagement: React.FC = () => {
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Role</th>
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Asal Institusi</th>
                 {/* Kolom khusus untuk siswa */}
-                {activeTab === 'siswa' && (
+                {(activeTab === 'siswa' || activeTab === 'belum_diverifikasi') && (
                   <>
                     <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Tanggal Mulai</th>
                     <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Tanggal Selesai</th>
-                    <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Status</th>
-                    <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Status Magang</th>
+                    {activeTab === 'siswa' && (
+                      <>
+                        <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Status</th>
+                        <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Status Magang</th>
+                      </>
+                    )}
                   </>
                 )}
                 {activeTab !== 'superadmin' && (
@@ -556,8 +548,8 @@ const UserManagement: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap text-gray-300 font-medium">{row.asal_institusi}</td>
-                    {/* Kolom khusus untuk siswa */}
-                    {activeTab === 'siswa' && (
+                    {/* Kolom khusus untuk siswa dan belum diverifikasi */}
+                    {(activeTab === 'siswa' || activeTab === 'belum_diverifikasi') && (
                       <>
                         <td className="px-3 py-2 whitespace-nowrap text-gray-300">
                           {row.tanggal_mulai_magang ? 
@@ -579,40 +571,54 @@ const UserManagement: React.FC = () => {
                             <span className="text-gray-500 italic">-</span>
                           }
                         </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs rounded-full font-semibold shadow-sm ${
-                            row.status === 'aktif' 
-                              ? 'bg-green-500/20 text-green-300 border border-green-400/30' 
-                              : 'bg-red-500/20 text-red-300 border border-red-400/30'
-                          }`}>
-                            {row.status || '-'}
-                          </span>
-                        </td>
-                        <td className="px-3 py-2 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs rounded-full font-semibold shadow-sm ${
-                            row.status_magang === 'Aktif' 
-                              ? 'bg-green-500/20 text-green-300 border border-green-400/30' :
-                            row.status_magang === 'Selesai' 
-                              ? 'bg-blue-500/20 text-blue-300 border border-blue-400/30' :
-                            row.status_magang === 'Belum Dimulai' 
-                              ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-400/30' :
-                            row.status_magang === 'Belum Ditentukan' 
-                              ? 'bg-gray-500/20 text-gray-300 border border-gray-400/30' :
-                              'bg-gray-700/20 text-gray-400 border border-gray-600/30'
-                          }`}>
-                            {row.status_magang || '-'}
-                          </span>
-                        </td>
+                        {activeTab === 'siswa' && (
+                          <>
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <span className={`px-2 py-1 text-xs rounded-full font-semibold shadow-sm ${
+                                row.status === 'aktif' 
+                                  ? 'bg-green-500/20 text-green-300 border border-green-400/30' 
+                                  : 'bg-red-500/20 text-red-300 border border-red-400/30'
+                              }`}>
+                                {row.status || '-'}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2 whitespace-nowrap">
+                              <span className={`px-2 py-1 text-xs rounded-full font-semibold shadow-sm ${
+                                row.status_magang === 'Aktif' 
+                                  ? 'bg-green-500/20 text-green-300 border border-green-400/30' :
+                                row.status_magang === 'Selesai' 
+                                  ? 'bg-blue-500/20 text-blue-300 border border-blue-400/30' :
+                                row.status_magang === 'Belum Dimulai' 
+                                  ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-400/30' :
+                                row.status_magang === 'Belum Ditentukan' 
+                                  ? 'bg-gray-500/20 text-gray-300 border border-gray-400/30' :
+                                  'bg-gray-700/20 text-gray-400 border border-gray-600/30'
+                              }`}>
+                                {row.status_magang || '-'}
+                              </span>
+                            </td>
+                          </>
+                        )}
                       </>
                     )}
                     {activeTab !== 'superadmin' && (
                       <td className="px-3 py-2 whitespace-nowrap text-center">
                         <div className="flex items-center justify-center gap-1">
+                          {activeTab === 'belum_diverifikasi' && (
+                            <button
+                              type="button"
+                              onClick={() => handleAccept(userId as number)}
+                              className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-[10px] font-bold shadow-sm"
+                              title="Accept (Verifikasi) user ini"
+                            >
+                              Accept
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={() => deleteByRoleEmailBody(row.email)}
                             className="bg-red-700 hover:bg-red-800 text-white px-2 py-1 rounded text-[10px] font-bold shadow-sm"
-                            title="Hapus user berdasarkan role + email (body)"
+                            title="Hapus user"
                           >
                             Hapus
                           </button>
