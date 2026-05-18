@@ -253,6 +253,17 @@ export const landingPageAPI = {
       throw error;
     }
   },
+
+  // Get top 3 pet streak students per year
+  getTopStreak: async () => {
+    try {
+      const response = await api.get('/api/landingpage/top-streak');
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch top streak data:', error);
+      throw error;
+    }
+  },
 };
 
 // Root API endpoint
