@@ -10,7 +10,14 @@ import {
   UserCheck,
   Award,
   TrendingUp,
-  Activity
+  Activity,
+  Trophy,
+  Flame,
+  Star,
+  Medal,
+  Crown,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 interface DashboardData {
@@ -21,9 +28,27 @@ interface DashboardData {
   guru: { total: number };
 }
 
+interface TopStreakStudent {
+  id: number;
+  nama: string;
+  foto_profile: string | null;
+  status: string;
+  nama_institusi: string;
+  streak_terbaik: number;
+  streak_saat_ini: number;
+  total_poin: number;
+}
+
+interface TopStreakYear {
+  tahun: number;
+  top_siswa: TopStreakStudent[];
+}
+
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [data, setData] = useState<DashboardData | null>(null);
+  const [topStreak, setTopStreak] = useState<TopStreakYear[]>([]);
+  const [selectedYearIndex, setSelectedYearIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,12 +56,13 @@ const Dashboard: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [institusiData, siswaAktifData, siswaTidakAktifData, siswaLulusData, guruData] = await Promise.all([
+        const [institusiData, siswaAktifData, siswaTidakAktifData, siswaLulusData, guruData, topStreakData] = await Promise.all([
           landingPageAPI.getInstitusi(),
           landingPageAPI.getSiswaAktif(),
           landingPageAPI.getSiswaTidakAktif(),
           landingPageAPI.getSiswaLulus(),
-          landingPageAPI.getGuru()
+          landingPageAPI.getGuru(),
+          landingPageAPI.getTopStreak().catch(() => ({ data: [] }))
         ]);
 
         setData({
@@ -46,6 +72,12 @@ const Dashboard: React.FC = () => {
           siswaLulus: siswaLulusData,
           guru: guruData
         });
+
+        setTopStreak(topStreakData.data || []);
+        // Default to the newest year (last index since sorted ascending)
+        if (topStreakData.data && topStreakData.data.length > 0) {
+          setSelectedYearIndex(topStreakData.data.length - 1);
+        }
       } catch (err) {
         setError('Gagal memuat data dashboard');
         console.error('Error fetching dashboard data:', err);
@@ -65,6 +97,49 @@ const Dashboard: React.FC = () => {
     { name: 'Guru', value: data.guru.total },
     { name: 'Institusi', value: data.institusi.length }
   ] : [];
+
+  const getMedalStyle = (rank: number) => {
+    switch (rank) {
+      case 0: return {
+        gradient: 'from-yellow-400 via-amber-400 to-yellow-600',
+        border: 'border-yellow-400/50',
+        glow: 'shadow-yellow-500/30',
+        text: 'text-yellow-400',
+        bg: 'bg-yellow-400/10',
+        icon: <Crown className="w-6 h-6" />,
+        label: '🥇 1st'
+      };
+      case 1: return {
+        gradient: 'from-gray-300 via-slate-300 to-gray-400',
+        border: 'border-gray-300/50',
+        glow: 'shadow-gray-400/20',
+        text: 'text-gray-300',
+        bg: 'bg-gray-300/10',
+        icon: <Medal className="w-6 h-6" />,
+        label: '🥈 2nd'
+      };
+      case 2: return {
+        gradient: 'from-orange-400 via-orange-500 to-orange-700',
+        border: 'border-orange-500/50',
+        glow: 'shadow-orange-500/20',
+        text: 'text-orange-400',
+        bg: 'bg-orange-500/10',
+        icon: <Star className="w-6 h-6" />,
+        label: '🥉 3rd'
+      };
+      default: return {
+        gradient: 'from-blue-400 to-blue-600',
+        border: 'border-blue-400/50',
+        glow: 'shadow-blue-500/20',
+        text: 'text-blue-400',
+        bg: 'bg-blue-400/10',
+        icon: <Star className="w-5 h-5" />,
+        label: `#${rank + 1}`
+      };
+    }
+  };
+
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
   if (loading) {
     return (
@@ -92,6 +167,8 @@ const Dashboard: React.FC = () => {
       </div>
     );
   }
+
+  const currentYearData = topStreak[selectedYearIndex] || null;
 
   return (
     <div className="min-h-screen bg-gray-900">
@@ -182,6 +259,159 @@ const Dashboard: React.FC = () => {
             title="Distribusi Data Sistem"
           />
         </div>
+
+        {/* ===== HALL OF FAME - TOP 3 PET STREAK PER TAHUN ===== */}
+        {topStreak.length > 0 && (
+          <div className="mb-12">
+            <div className="bg-gradient-to-br from-gray-800 via-gray-850 to-gray-900 rounded-2xl p-8 shadow-2xl border border-gray-700 relative overflow-hidden">
+              {/* Background decorations */}
+              <div className="absolute top-0 right-0 w-40 h-40 bg-yellow-500 bg-opacity-5 rounded-full -translate-y-20 translate-x-20"></div>
+              <div className="absolute bottom-0 left-0 w-32 h-32 bg-amber-500 bg-opacity-5 rounded-full translate-y-16 -translate-x-16"></div>
+              <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-purple-500 bg-opacity-[0.03] rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+
+              <div className="relative z-10">
+                {/* Section Title */}
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center justify-center gap-3 mb-4">
+                    <div className="bg-gradient-to-r from-yellow-500 via-amber-500 to-orange-500 p-3 rounded-xl shadow-lg shadow-amber-500/20">
+                      <Trophy className="w-7 h-7 text-white" />
+                    </div>
+                    <h3 className="text-3xl font-bold text-white">Hall of Fame</h3>
+                  </div>
+                  <p className="text-gray-400 text-lg">Top 3 Siswa Pet Streak Terbaik Setiap Periode Magang</p>
+                </div>
+
+                {/* Year Selector - Single Year Display */}
+                <div className="flex items-center justify-center gap-4 mb-8">
+                  <button
+                    onClick={() => setSelectedYearIndex(Math.max(0, selectedYearIndex - 1))}
+                    disabled={selectedYearIndex === 0}
+                    className={`p-2.5 rounded-xl transition-all duration-200 ${
+                      selectedYearIndex === 0
+                        ? 'text-gray-600 cursor-not-allowed'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-700 active:scale-95'
+                    }`}
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+
+                  <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-8 py-3 rounded-xl shadow-lg shadow-amber-500/25">
+                    <span className="text-white font-bold text-lg">
+                      {currentYearData?.tahun || '—'}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => setSelectedYearIndex(Math.min(topStreak.length - 1, selectedYearIndex + 1))}
+                    disabled={selectedYearIndex === topStreak.length - 1}
+                    className={`p-2.5 rounded-xl transition-all duration-200 ${
+                      selectedYearIndex === topStreak.length - 1
+                        ? 'text-gray-600 cursor-not-allowed'
+                        : 'text-gray-400 hover:text-white hover:bg-gray-700 active:scale-95'
+                    }`}
+                  >
+                    <ChevronRight className="w-6 h-6" />
+                  </button>
+                </div>
+
+                {/* Top 3 Cards */}
+                {currentYearData && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                    {currentYearData.top_siswa.map((student, rank) => {
+                      const medal = getMedalStyle(rank);
+                      return (
+                        <div
+                          key={student.id}
+                          className={`group relative bg-gradient-to-br from-gray-700/80 to-gray-800/80 rounded-2xl p-6 border ${medal.border} hover:border-opacity-100 transition-all duration-500 transform hover:-translate-y-3 hover:shadow-2xl ${medal.glow} backdrop-blur-sm ${
+                            rank === 0 ? 'md:col-start-2 md:row-start-1 md:-mt-4 md:mb-4' : ''
+                          }`}
+                          style={{
+                            order: rank === 0 ? -1 : rank,
+                          }}
+                        >
+                          {/* Rank badge */}
+                          <div className={`absolute -top-3 -right-3 bg-gradient-to-r ${medal.gradient} rounded-full w-12 h-12 flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-300`}>
+                            <span className="text-white font-bold text-lg">{rank + 1}</span>
+                          </div>
+
+                          {/* Glow effect on hover */}
+                          <div className={`absolute inset-0 bg-gradient-to-r ${medal.gradient} opacity-0 group-hover:opacity-5 rounded-2xl transition-opacity duration-500`}></div>
+
+                          <div className="relative z-10 text-center">
+                            {/* Medal Icon */}
+                            <div className={`inline-flex items-center gap-1.5 ${medal.bg} ${medal.text} px-3 py-1 rounded-full text-xs font-bold mb-3`}>
+                              {medal.icon}
+                              <span>{medal.label}</span>
+                            </div>
+
+                            {/* Student Name */}
+                            <h4 className={`${medal.text} font-bold text-lg mb-1 group-hover:brightness-125 transition-all duration-300 line-clamp-2 min-h-[3.5rem]`}>
+                              {student.nama}
+                            </h4>
+
+                            {/* Institution */}
+                            <p className="text-gray-400 text-xs mb-4 truncate">
+                              {student.nama_institusi || 'Institusi Tidak Diketahui'}
+                            </p>
+
+                            {/* Stats */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between bg-gray-800/60 rounded-xl px-4 py-2.5">
+                                <div className="flex items-center gap-2">
+                                  <Flame className="w-4 h-4 text-orange-400" />
+                                  <span className="text-gray-400 text-xs">Best Streak</span>
+                                </div>
+                                <span className="text-orange-400 font-bold text-sm">{student.streak_terbaik} hari</span>
+                              </div>
+                              <div className="flex items-center justify-between bg-gray-800/60 rounded-xl px-4 py-2.5">
+                                <div className="flex items-center gap-2">
+                                  <TrendingUp className="w-4 h-4 text-green-400" />
+                                  <span className="text-gray-400 text-xs">Total Poin</span>
+                                </div>
+                                <span className="text-green-400 font-bold text-sm">{student.total_poin} pts</span>
+                              </div>
+                              <div className="flex items-center justify-between bg-gray-800/60 rounded-xl px-4 py-2.5">
+                                <div className="flex items-center gap-2">
+                                  <Activity className="w-4 h-4 text-blue-400" />
+                                  <span className="text-gray-400 text-xs">Streak Saat Ini</span>
+                                </div>
+                                <span className="text-blue-400 font-bold text-sm">{student.streak_saat_ini} hari</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Reorder for mobile: show 1st place at top */}
+                <style>{`
+                  @media (max-width: 768px) {
+                    .grid > div[style*="order: -1"] {
+                      order: -1 !important;
+                    }
+                  }
+                  @media (min-width: 768px) {
+                    .grid > div {
+                      order: unset !important;
+                    }
+                  }
+                `}</style>
+
+                {/* Summary footer */}
+                <div className="mt-8 pt-6 border-t border-gray-700/50">
+                  <div className="flex items-center justify-center gap-6 text-sm text-gray-500">
+                    <div className="flex items-center gap-2">
+                      <Flame className="w-4 h-4 text-orange-400/60" />
+                      <span>Peringkat berdasarkan streak terbaik selama periode magang</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Institusi Information */}
         {data?.institusi && data.institusi.length > 0 && (
