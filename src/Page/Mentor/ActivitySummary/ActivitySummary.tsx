@@ -38,9 +38,72 @@ const ActivitySummary: React.FC = () => {
     siswa_nama: string;
     summary: string;
   } | null>(null);
-  const [generatingSummary, setGeneratingSummary] = useState(false);
+  const [generatingSummaryId, setGeneratingSummaryId] = useState<number | null>(null);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const navigate = useNavigate();
+
+  const toDateString = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+
+  const getLast7DaysRange = () => {
+    const today = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 6);
+    return { start: toDateString(sevenDaysAgo), end: toDateString(today) };
+  };
+
+  const getThisMonthRange = () => {
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    return { start: toDateString(firstDay), end: toDateString(lastDay) };
+  };
+
+  const formatSummaryText = (text: string) => {
+    const lines = text.split("\n");
+    return lines.map((line, index) => {
+      const trimmed = line.trim();
+      if (!trimmed) return <br key={`br-${index}`} />;
+
+      if (trimmed.startsWith("**") && trimmed.endsWith("**")) {
+        return (
+          <h3
+            key={index}
+            className="text-lg font-bold text-purple-300 mt-4 mb-2"
+          >
+            {trimmed.replace(/\*\*/g, "")}
+          </h3>
+        );
+      }
+
+      if (/^[-•*]\s/.test(trimmed)) {
+        return (
+          <li key={index} className="ml-4 text-gray-200 list-disc">
+            {trimmed.replace(/^[-•*]\s/, "")}
+          </li>
+        );
+      }
+
+      const boldParts = trimmed.split(/(\*\*[^*]+\*\*)/g);
+      return (
+        <p key={index} className="text-gray-200 mb-2 leading-relaxed">
+          {boldParts.map((part, i) =>
+            part.startsWith("**") && part.endsWith("**") ? (
+              <strong key={i} className="text-white font-semibold">
+                {part.replace(/\*\*/g, "")}
+              </strong>
+            ) : (
+              <span key={i}>{part}</span>
+            )
+          )}
+        </p>
+      );
+    });
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -52,14 +115,7 @@ const ActivitySummary: React.FC = () => {
       return;
     }
 
-    const today = new Date();
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(today.getDate() - 6);
-
-    const toDateString = (d: Date) => d.toISOString().split("T")[0];
-
-    const defaultStart = toDateString(sevenDaysAgo);
-    const defaultEnd = toDateString(today);
+    const { start: defaultStart, end: defaultEnd } = getLast7DaysRange();
 
     setStart(defaultStart);
     setEnd(defaultEnd);
@@ -103,15 +159,17 @@ const ActivitySummary: React.FC = () => {
   };
 
   const handleResetPeriod = () => {
-    const today = new Date();
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(today.getDate() - 6);
-    const toDateString = (d: Date) => d.toISOString().split("T")[0];
-    const defaultStart = toDateString(sevenDaysAgo);
-    const defaultEnd = toDateString(today);
+    const { start: defaultStart, end: defaultEnd } = getLast7DaysRange();
     setStart(defaultStart);
     setEnd(defaultEnd);
     fetchSummary(defaultStart, defaultEnd);
+  };
+
+  const handleThisMonth = () => {
+    const { start: monthStart, end: monthEnd } = getThisMonthRange();
+    setStart(monthStart);
+    setEnd(monthEnd);
+    fetchSummary(monthStart, monthEnd);
   };
 
   const filteredData = data.filter((row) => {
@@ -129,8 +187,7 @@ const ActivitySummary: React.FC = () => {
     }
 
     try {
-      setGeneratingSummary(true);
-      setError(null);
+      setGeneratingSummaryId(siswaId);
 
       const response = await api.post("/api/mentor/rekap-mentor/ai-summary", {
         siswa_id: siswaId,
@@ -153,10 +210,9 @@ const ActivitySummary: React.FC = () => {
         err.response?.data?.message ||
         err.message ||
         "Gagal generate ringkasan aktivitas.";
-      setError(msg);
       alert(msg);
     } finally {
-      setGeneratingSummary(false);
+      setGeneratingSummaryId(null);
     }
   };
 
@@ -172,11 +228,11 @@ const ActivitySummary: React.FC = () => {
   const rataRataNilaiGlobal =
     filteredData.length > 0
       ? (
-          filteredData.reduce(
-            (sum, row) => sum + (row.rata_rata_nilai || 0),
-            0
-          ) / filteredData.length
-        ).toFixed(2)
+        filteredData.reduce(
+          (sum, row) => sum + (row.rata_rata_nilai || 0),
+          0
+        ) / filteredData.length
+      ).toFixed(2)
       : "0";
 
   if (initializing) {
@@ -287,6 +343,15 @@ const ActivitySummary: React.FC = () => {
           </button>
           <button
             type="button"
+            onClick={handleThisMonth}
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 text-sm transition-all disabled:opacity-60"
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Ringkasan Bulan Ini</span>
+          </button>
+          <button
+            type="button"
             onClick={handleResetPeriod}
             className="w-full bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg flex items-center justify-center space-x-2 text-sm transition-colors"
           >
@@ -341,7 +406,7 @@ const ActivitySummary: React.FC = () => {
             </p>
             <p className="text-2xl font-bold text-white">{totalTelat}</p>
           </div>
-          <div className="p-3 bg.white/20 rounded-lg">
+          <div className="p-3 bg-white/20 rounded-lg">
             <TrendingUp className="w-6 h-6 text-white" />
           </div>
         </div>
@@ -397,57 +462,66 @@ const ActivitySummary: React.FC = () => {
                   <th className="px-4 py-3 text-center font-semibold text-gray-200">
                     Total Nilai
                   </th>
-                    <th className="px-4 py-3 text-center font-semibold text-gray-200">
-                      Rata-rata Nilai
-                    </th>
-                    <th className="px-4 py-3 text-center font-semibold text-gray-200">
-                      Aksi
-                    </th>
+                  <th className="px-4 py-3 text-center font-semibold text-gray-200">
+                    Rata-rata Nilai
+                  </th>
+                  <th className="px-4 py-3 text-center font-semibold text-gray-200">
+                    Aksi
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData.map((row, idx) => (
+                  <tr
+                    key={row.siswa_id}
+                    className={idx % 2 === 0 ? "bg-gray-900" : "bg-gray-900/70"}
+                  >
+                    <td className="px-4 py-3 text-left text-gray-100">
+                      {row.siswa_nama}
+                    </td>
+                    <td className="px-4 py-3 text-left text-gray-300">
+                      {row.institusi}
+                    </td>
+                    <td className="px-4 py-3 text-center text-gray-100">
+                      {row.total_hari_hadir}
+                    </td>
+                    <td className="px-4 py-3 text-center text-gray-100">
+                      {row.late_days}
+                    </td>
+                    <td className="px-4 py-3 text-center text-gray-100">
+                      {row.total_tugas_diberikan}
+                    </td>
+                    <td className="px-4 py-3 text-center text-gray-100">
+                      {row.total_tugas_selesai}
+                    </td>
+                    <td className="px-4 py-3 text-center text-gray-100">
+                      {row.total_nilai}
+                    </td>
+                    <td className="px-4 py-3 text-center text-blue-300 font-semibold">
+                      {row.rata_rata_nilai}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={() => generateAISummary(row.siswa_id, row.siswa_nama)}
+                        disabled={generatingSummaryId !== null}
+                        className="px-3 py-1.5 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-lg text-xs font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed flex items-center space-x-1 mx-auto"
+                      >
+                        {generatingSummaryId === row.siswa_id ? (
+                          <>
+                            <RefreshCw className="w-3 h-3 animate-spin" />
+                            <span>Membuat...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-3 h-3" />
+                            <span>AI Summary</span>
+                          </>
+                        )}
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {filteredData.map((row, idx) => (
-                    <tr
-                      key={row.siswa_id}
-                      className={idx % 2 === 0 ? "bg-gray-900" : "bg-gray-900/70"}
-                    >
-                      <td className="px-4 py-3 text-left text-gray-100">
-                        {row.siswa_nama}
-                      </td>
-                      <td className="px-4 py-3 text-left text-gray-300">
-                        {row.institusi}
-                      </td>
-                      <td className="px-4 py-3 text-center text-gray-100">
-                        {row.total_hari_hadir}
-                      </td>
-                      <td className="px-4 py-3 text-center text-gray-100">
-                        {row.late_days}
-                      </td>
-                      <td className="px-4 py-3 text-center text-gray-100">
-                        {row.total_tugas_diberikan}
-                      </td>
-                      <td className="px-4 py-3 text-center text-gray-100">
-                        {row.total_tugas_selesai}
-                      </td>
-                      <td className="px-4 py-3 text-center text-gray-100">
-                        {row.total_nilai}
-                      </td>
-                      <td className="px-4 py-3 text-center text-blue-300 font-semibold">
-                        {row.rata_rata_nilai}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <button
-                          onClick={() => generateAISummary(row.siswa_id, row.siswa_nama)}
-                          disabled={generatingSummary}
-                          className="px-3 py-1.5 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-lg text-xs font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed flex items-center space-x-1 mx-auto"
-                        >
-                          <Sparkles className="w-3 h-3" />
-                          <span>AI Summary</span>
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+                ))}
+              </tbody>
             </table>
           </div>
         )}
@@ -480,8 +554,8 @@ const ActivitySummary: React.FC = () => {
               </p>
             </div>
             <div className="prose prose-invert max-w-none">
-              <div className="text-gray-200 whitespace-pre-wrap leading-relaxed">
-                {aiSummary.summary}
+              <div className="text-gray-200 leading-relaxed">
+                {formatSummaryText(aiSummary.summary)}
               </div>
             </div>
             <div className="mt-6 flex justify-end">
