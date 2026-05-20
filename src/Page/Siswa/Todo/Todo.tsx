@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, TrendingUp, CheckCircle, AlertCircle, Award, Users, Clock, Search, Filter, RefreshCw, X, FileText, Download, Eye, Plus, Upload, Send } from 'lucide-react';
 import SubmitModal from './SubmitModal/SubmitModal';
+import { getDeadlineStatus, isDeadlineLate } from '../../../utils/deadlineStatus';
 
 const Divider = () => <div className="border-t border-gray-700/50 my-6 sm:my-8 w-full" />;
 
@@ -69,34 +70,7 @@ const TaskCard = ({ task, onTaskClick, navigate }: TaskCardProps) => {
     }
   };
 
-  const getTimeDifference = (dueDate: string) => {
-    if (!dueDate) return "Tidak ada deadline";
-    try {
-      const now = new Date();
-      const due = new Date(dueDate);
-      if (isNaN(due.getTime())) {
-        return "Format deadline tidak valid";
-      }
-      const diff = due.getTime() - now.getTime();
-      
-      if (diff < 0) {
-        return 'Terlambat';
-      }
-      
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      
-      if (days > 0) {
-        return `dalam ${days} hari`;
-      } else if (hours > 0) {
-        return `dalam ${hours} jam`;
-      } else {
-        return 'dalam beberapa menit';
-      }
-    } catch (error) {
-      return "Error menghitung deadline";
-    }
-  };
+  const deadlineStatus = getDeadlineStatus(task.batas_waktu, task.tanggal_mengumpulkan);
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
@@ -201,11 +175,11 @@ const TaskCard = ({ task, onTaskClick, navigate }: TaskCardProps) => {
       <div className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg">
         <span className="text-sm text-gray-400">Deadline Status</span>
         <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-          getTimeDifference(task.batas_waktu).includes('Terlambat') 
+          isDeadlineLate(task.batas_waktu, task.tanggal_mengumpulkan)
             ? 'text-red-400 bg-red-500/10 border border-red-500/20' 
             : 'text-green-400 bg-green-500/10 border border-green-500/20'
         }`}>
-          {getTimeDifference(task.batas_waktu)}
+          {deadlineStatus}
         </span>
       </div>
 

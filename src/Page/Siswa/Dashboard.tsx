@@ -2,6 +2,7 @@ import type React from "react"
 import { Users, UserCheck, Clock, CheckCircle, AlertCircle, Calendar, Mail, Award, TrendingUp, Building, Flame } from "lucide-react"
 import { useState, useEffect } from "react"
 import { landingPageAPI } from "../../services/api"
+import { getDeadlineStatus } from "../../utils/deadlineStatus"
 
 interface StatCardProps {
   title: string
@@ -609,36 +610,6 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  // Calculate time difference for due dates
-  const getTimeDifference = (dueDate: string) => {
-    if (!dueDate) return "Tidak ada deadline";
-    try {
-      const now = new Date();
-      const due = new Date(dueDate);
-      if (isNaN(due.getTime())) {
-        return "Format deadline tidak valid";
-      }
-      const diff = due.getTime() - now.getTime();
-      
-      if (diff < 0) {
-        return 'Terlambat';
-      }
-      
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      
-      if (days > 0) {
-        return `dalam ${days} hari`;
-      } else if (hours > 0) {
-        return `dalam ${hours} jam`;
-      } else {
-        return 'dalam beberapa menit';
-      }
-    } catch (error) {
-      return "Error menghitung deadline";
-    }
-  };
-
   // Calculate magang progress
   const calculateMagangProgress = (magangData: MagangDatesData) => {
     if (!magangData.tanggal_mulai_magang || !magangData.tanggal_selesai_magang) {
@@ -748,7 +719,9 @@ const Dashboard: React.FC = () => {
 
   const transformedTasks = tasks.map(task => ({
     title: task.judul || 'Tugas Tanpa Judul',
-    dueDate: task.batas_waktu ? getTimeDifference(task.batas_waktu) : 'Tidak ada deadline',
+    dueDate: task.batas_waktu
+      ? getDeadlineStatus(task.batas_waktu, task.tanggal_mengumpulkan)
+      : 'Tidak ada deadline',
     status: task.status_tugas === "Sudah Dinilai" ? "completed" as const : "pending" as const,
     score: task.nilai || 0,
     completedTime: task.tanggal_mengumpulkan ? formatTime(task.tanggal_mengumpulkan) : undefined,
