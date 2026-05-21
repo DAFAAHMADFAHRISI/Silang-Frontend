@@ -81,7 +81,7 @@ const SubmitModal: React.FC<SubmitModalProps> = ({ isOpen, onClose, onSubmitSucc
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-800 rounded-xl p-6 w-full max-w-xl border border-gray-700">
+      <div className="bg-gray-800 rounded-xl p-4 sm:p-6 w-full max-w-xl max-h-[90vh] overflow-y-auto border border-gray-700">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-semibold text-white">{selectedTask ? `Submit: ${selectedTask.judul}` : 'Submit Task'}</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-white text-2xl">✕</button>
@@ -110,7 +110,7 @@ const SubmitModal: React.FC<SubmitModalProps> = ({ isOpen, onClose, onSubmitSucc
               <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-300">{error}</div>
             )}
 
-            <div className="flex justify-end space-x-3 pt-2">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:gap-3 pt-2">
               <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg bg-gray-600 hover:bg-gray-700 text-white">Batal</button>
               <button
                 type="submit"

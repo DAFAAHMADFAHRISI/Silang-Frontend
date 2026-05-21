@@ -10,7 +10,7 @@ interface KPICardProps {
 
 const KPICard: React.FC<KPICardProps> = ({ title, value, icon, color, bgColor }) => {
   return (
-    <div className={`${bgColor} rounded-lg p-6 shadow-lg border border-gray-700 hover:shadow-xl transition-all duration-300`}>
+    <div className={`${bgColor} rounded-lg p-4 sm:p-6 shadow-lg border border-gray-700 hover:shadow-xl transition-all duration-300`}>
       <div className="flex items-center justify-between">
         <div>
           <p className="text-gray-300 text-sm font-medium mb-2">{title}</p>

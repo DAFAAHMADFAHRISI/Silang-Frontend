@@ -20,6 +20,8 @@ import {
   Send, 
   ArrowLeft 
 } from 'lucide-react';
+import { SiswaLoading, SiswaError, SISWA_PAGE_CLASS } from '../../components/SiswaLayout';
+import { getDeadlineStatus, isDeadlineLate } from '../../../../utils/deadlineStatus';
 
 // ============================================================================
 // INTERFACES
@@ -284,30 +286,16 @@ const Detail: React.FC = () => {
   // ============================================================================
 
   if (loading) {
-    return (
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-400 text-lg">Loading task details...</p>
-        </div>
-      </div>
-    );
+    return <SiswaLoading message="Memuat detail tugas..." />;
   }
 
   if (error || !task) {
     return (
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6 min-h-screen flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <p className="text-red-400 mb-6 text-lg">{error || 'Task not found'}</p>
-          <button 
-            onClick={() => navigate('/siswa/todo')}
-            className="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg transition-colors text-base font-medium"
-          >
-            Back to Todo List
-          </button>
-        </div>
-      </div>
+      <SiswaError
+        error={error || 'Tugas tidak ditemukan'}
+        onRetry={() => navigate('/siswa/todo')}
+        retryLabel="Kembali ke Daftar Tugas"
+      />
     );
   }
 
@@ -317,28 +305,36 @@ const Detail: React.FC = () => {
   // MAIN RENDER
   // ============================================================================
 
+  const deadlineLabel = getDeadlineStatus(task.batas_waktu, task.tanggal_mengumpulkan);
+  const submissionLate = isDeadlineLate(task.batas_waktu, task.tanggal_mengumpulkan);
+
   return (
-    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6 min-h-screen">
-      
-      {/* ========================================================================
-          HEADER SECTION
-      ========================================================================= */}
-      
-      <div className="mb-8">
-        <div className="flex items-center space-x-4 mb-6">
+    <div className={SISWA_PAGE_CLASS}>
+      <div className="mb-6 sm:mb-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
           <button
-            onClick={() => navigate('/Todosiswa')}
-            className="bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white p-3 rounded-xl transition-all duration-200"
+            type="button"
+            onClick={() => navigate('/siswa/todo')}
+            className="self-start bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white p-2.5 sm:p-3 rounded-xl transition-all"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="flex items-center space-x-4">
-            <div className={`${statusConfig.bg} rounded-xl p-3`}>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4 min-w-0 flex-1">
+            <div className={`${statusConfig.bg} rounded-xl p-3 flex-shrink-0 self-start`}>
               {statusConfig.icon}
             </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-white">{task.judul}</h1>
-              <p className="text-gray-400">{statusConfig.statusText}</p>
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white break-words">{task.judul}</h1>
+              <p className="text-gray-400 text-sm sm:text-base">{statusConfig.statusText}</p>
+              {task.tanggal_mengumpulkan && (
+                <span className={`inline-block mt-2 text-xs font-semibold px-2.5 py-1 rounded-full border ${
+                  submissionLate
+                    ? 'bg-red-900/50 text-red-400 border-red-600/40'
+                    : 'bg-green-900/50 text-green-400 border-green-600/40'
+                }`}>
+                  {deadlineLabel}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -351,7 +347,7 @@ const Detail: React.FC = () => {
       <div className="space-y-6">
         
         {/* Description Card */}
-        <div className="bg-gray-800/50 rounded-xl p-6">
+        <div className="bg-gray-800/50 rounded-xl p-4 sm:p-6">
           <h3 className="text-lg font-semibold text-white mb-3 flex items-center">
             <FileText className="w-5 h-5 mr-2 text-blue-400" />
             Description
@@ -363,7 +359,7 @@ const Detail: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           {/* Task Information */}
-          <div className="bg-gray-800/50 rounded-xl p-6">
+          <div className="bg-gray-800/50 rounded-xl p-4 sm:p-6">
             <h3 className="text-lg font-semibold text-white mb-4">Task Information</h3>
             <div className="space-y-4">
               <div className="flex justify-between">
@@ -384,7 +380,7 @@ const Detail: React.FC = () => {
           </div>
 
           {/* Timeline */}
-          <div className="bg-gray-800/50 rounded-xl p-6">
+          <div className="bg-gray-800/50 rounded-xl p-4 sm:p-6">
             <h3 className="text-lg font-semibold text-white mb-4">Timeline</h3>
             <div className="space-y-4">
               <div>
@@ -406,7 +402,7 @@ const Detail: React.FC = () => {
         </div>
 
         {/* Files Section */}
-        <div className="bg-gray-800/50 rounded-xl p-6">
+        <div className="bg-gray-800/50 rounded-xl p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-white">Files</h3>
             <button

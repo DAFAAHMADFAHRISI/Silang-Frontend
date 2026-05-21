@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AlertCircle, CheckCircle, X, FileText, Upload, Send, ArrowLeft } from 'lucide-react';
+import { SiswaLoading, SiswaError, SISWA_PAGE_CLASS } from '../../components/SiswaLayout';
 
 interface Task {
   id: number;
@@ -147,35 +148,21 @@ const SubmitPage: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-400 text-lg">Loading task details...</p>
-        </div>
-      </div>
-    );
+    return <SiswaLoading message="Memuat tugas..." />;
   }
 
   if (error || !task) {
     return (
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6 min-h-screen flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <p className="text-red-400 mb-6 text-lg">{error || 'Task not found'}</p>
-          <button 
-            onClick={() => navigate('/TodoSiswa')}
-            className="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg transition-colors text-base font-medium"
-          >
-            Back to Todo List
-          </button>
-        </div>
-      </div>
+      <SiswaError
+        error={error || 'Tugas tidak ditemukan'}
+        onRetry={() => navigate('/siswa/todo')}
+        retryLabel="Kembali ke Daftar Tugas"
+      />
     );
   }
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6 min-h-screen">
+    <div className={SISWA_PAGE_CLASS}>
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center space-x-4 mb-6">
