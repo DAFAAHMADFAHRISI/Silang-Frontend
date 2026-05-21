@@ -244,7 +244,7 @@ const PetStreak: React.FC = () => {
     <div className="fixed z-50 bottom-6 right-6">
       <div className="relative">
         {/* Pet bubble */}
-        <div className="rounded-2xl shadow-xl border border-gray-700/60 bg-gray-900/95 backdrop-blur-md text-white w-72 p-3 select-none">
+        <div className="rounded-2xl shadow-xl border border-gray-700/60 bg-gray-900/95 backdrop-blur-md text-white w-[min(18rem,calc(100vw-2rem))] max-w-sm p-3 select-none">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div

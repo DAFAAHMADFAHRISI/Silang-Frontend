@@ -8,7 +8,6 @@ import {
   TrendingUp,
   Award,
   RefreshCw,
-  Search,
   UserCheck,
   AlertCircle,
   Grid3x3,
@@ -16,6 +15,12 @@ import {
 } from "lucide-react";
 import api from "../../../services/api";
 import Calendar from "../../../components/Calendar/Calendar";
+import {
+  SiswaLoading,
+  SiswaError,
+  SiswaSearchFilter,
+  SISWA_PAGE_CLASS,
+} from "../components/SiswaLayout";
 
 interface WorkAssignment {
   id: number;
@@ -208,37 +213,15 @@ const ActivityPage: React.FC = () => {
   );
 
   if (loading) {
-    return (
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-400" />
-          <p className="text-gray-400">Memuat data aktivitas...</p>
-        </div>
-      </div>
-    );
+    return <SiswaLoading message="Memuat data aktivitas..." />;
   }
 
   if (error) {
-    return (
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6 min-h-screen">
-        <div className="flex items-center justify-center min-h-[300px]">
-          <div className="text-center">
-            <div className="w-10 h-10 text-red-500 mx-auto mb-4">⚠️</div>
-            <p className="text-red-400 mb-4 text-lg font-semibold">Error: {error}</p>
-            <button
-              onClick={loadData}
-              className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors font-semibold"
-            >
-              Coba Lagi
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+    return <SiswaError error={error} onRetry={loadData} />;
   }
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6 min-h-screen">
+    <div className={SISWA_PAGE_CLASS}>
       {/* Header */}
       <div className="mb-4 sm:mb-6">
         <div className="flex items-center space-x-2 sm:space-x-3">
@@ -255,7 +238,7 @@ const ActivityPage: React.FC = () => {
       <div className="border-t border-gray-700/50 my-4 sm:my-6 w-full" />
 
       {/* Top Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6">
         <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl p-4 flex items-center justify-between">
           <div>
             <p className="text-white/80 text-xs sm:text-sm font-medium">
@@ -385,12 +368,12 @@ const ActivityPage: React.FC = () => {
 
       {/* Calendar View atau List View */}
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl sm:text-2xl font-bold flex items-center space-x-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+          <h2 className="text-lg sm:text-2xl font-bold flex items-center space-x-2">
             <CalendarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" />
             <span>Aktivitas Harian</span>
           </h2>
-          <div className="flex items-center space-x-2 bg-gray-800 rounded-lg p-1">
+          <div className="flex items-center space-x-2 bg-gray-800 rounded-lg p-1 w-full sm:w-auto">
             <button
               onClick={() => setViewMode("calendar")}
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
@@ -508,18 +491,11 @@ const ActivityPage: React.FC = () => {
           </h2>
         </div>
 
-        <div className="mb-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Cari berdasarkan alasan poin (absensi, tugas, dll)..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 sm:py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm sm:text-base"
-            />
-          </div>
-        </div>
+        <SiswaSearchFilter
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          searchPlaceholder="Cari alasan poin (absensi, tugas, dll)..."
+        />
 
         {filteredHistory.length === 0 ? (
           <div className="bg-gray-800/50 rounded-xl p-4 sm:p-6 text-center">
@@ -529,7 +505,27 @@ const ActivityPage: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="bg-gray-900/60 border border-gray-700 rounded-xl overflow-hidden">
+          <>
+          <div className="flex flex-col gap-3 lg:hidden">
+            {filteredHistory.map((item) => (
+              <div
+                key={item.id}
+                className="bg-gray-800/70 rounded-xl border border-gray-700/60 p-4 space-y-2"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs text-gray-400">{formatDateTime(item.event_date)}</span>
+                  <span className={`text-sm font-bold ${item.points > 0 ? 'text-green-400' : 'text-gray-400'}`}>
+                    {item.points > 0 ? '+' : ''}{item.points} poin
+                  </span>
+                </div>
+                <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-gray-700 text-gray-300">
+                  {item.source_type === 'absensi' ? 'Absensi' : 'Tugas'}
+                </span>
+                <p className="text-sm text-gray-200">{item.reason}</p>
+              </div>
+            ))}
+          </div>
+          <div className="hidden lg:block bg-gray-900/60 border border-gray-700 rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full text-xs sm:text-sm">
                 <thead className="bg-gray-800">
@@ -581,6 +577,7 @@ const ActivityPage: React.FC = () => {
               </table>
             </div>
           </div>
+          </>
         )}
       </div>
 

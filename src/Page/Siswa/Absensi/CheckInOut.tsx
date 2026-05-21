@@ -161,27 +161,25 @@ const CheckInOut: React.FC = () => {
   const { action, message } = getCurrentAction();
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6 min-h-screen">
-      {/* Header */}
-      <div className="mb-6 mt-0">
-        <div className="flex items-center space-x-3">
-          <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6">
+      <div className="mb-4 sm:mb-6">
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="w-1 sm:w-2 h-6 sm:h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
             Absensi
           </h1>
         </div>
-        <p className="text-gray-400 mt-2 ml-5">Lakukan check-in dan check-out harian Anda.</p>
+        <p className="text-gray-400 mt-2 ml-3 sm:ml-5 text-sm sm:text-base">Lakukan check-in dan check-out harian Anda.</p>
       </div>
 
-      {/* Current Time and Date */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 mb-6 sm:mb-8">
+        <div className="bg-gray-800 rounded-lg p-4 sm:p-6 border border-gray-700">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">Waktu Sekarang</h3>
-            <Clock className="w-6 h-6 text-blue-400" />
+            <h3 className="text-base sm:text-lg font-semibold text-white">Waktu Sekarang</h3>
+            <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-blue-400 mb-2">{timeString}</div>
+            <div className="text-2xl sm:text-3xl font-bold text-blue-400 mb-2">{timeString}</div>
             <div className="text-gray-300">{dateString}</div>
           </div>
         </div>
@@ -239,7 +237,7 @@ const CheckInOut: React.FC = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6">
             {/* Check In Button */}
             {action === 'checkin' && (
               <button

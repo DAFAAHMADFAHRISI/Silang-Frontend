@@ -5,6 +5,7 @@ import axios from 'axios';
 import moment from 'moment';
 import Swal from 'sweetalert2';
 import { authAPI } from '../../services/api';
+import { SiswaLoading, SiswaError, SiswaPageHeader, SiswaDivider, SISWA_PAGE_CLASS } from './components/SiswaLayout';
 
 interface ProfileData {
   id: number;
@@ -597,30 +598,12 @@ const Profile: React.FC = () => {
   
 
   if (loading) {
-    return (
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Memuat data profil...</p>
-        </div>
-      </div>
-    );
+    return <SiswaLoading message="Memuat data profil..." />;
   }
 
   if (error) {
     return (
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-500 text-xl mb-4">⚠️</div>
-          <p className="text-red-400 mb-4">{error}</p>
-          <button 
-            onClick={() => navigate('/Login')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-          >
-            Kembali ke Login
-          </button>
-        </div>
-      </div>
+      <SiswaError error={error} onRetry={() => navigate('/Login')} retryLabel="Kembali ke Login" />
     );
   }
 
@@ -635,18 +618,11 @@ const Profile: React.FC = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6">
-      <div className="mb-6 mt-0">
-        <div className="flex items-center space-x-3">
-          <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-            Profile
-          </h1>
-        </div>
-        <p className="text-gray-400 mt-2 ml-5">Kelola data dan keamanan akun Anda.</p>
-      </div>
-      <hr className="border-gray-700 mb-8" />
-      <div className="flex flex-col items-center mb-8">
+    <div className={SISWA_PAGE_CLASS}>
+      <SiswaPageHeader title="Profile" subtitle="Kelola data dan keamanan akun Anda." />
+      <SiswaDivider />
+      <div className="max-w-2xl mx-auto">
+      <div className="flex flex-col items-center mb-6 sm:mb-8">
         {/* Camera UI */}
         {showCameraButton && (
           <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
@@ -723,7 +699,7 @@ const Profile: React.FC = () => {
           <img
             src={getProfilePictureUrl()}
             alt=""
-            className="w-32 h-32 rounded-full object-cover border-4 border-gray-700 shadow-lg mb-4 transition-all duration-300 group-hover:border-blue-500 group-hover:shadow-xl"
+            className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-gray-700 shadow-lg mb-4 transition-all duration-300 group-hover:border-blue-500 group-hover:shadow-xl"
           />
           {(pictureLoading || uploading) && (
             <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full">
@@ -902,10 +878,7 @@ const Profile: React.FC = () => {
           {passwordLoading ? 'Updating...' : 'Update Password'}
         </button>
       </form>
-      
-      
-
-
+      </div>
     </div>
   );
 };

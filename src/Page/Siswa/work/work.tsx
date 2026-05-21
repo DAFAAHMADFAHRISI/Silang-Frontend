@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { 
   MapPin, Calendar, Clock, CheckCircle, XCircle, AlertCircle, 
-  Plus, Search, RefreshCw, Edit, Trash2, User, 
+  Plus, RefreshCw, Edit, Trash2, User, 
   Map, Navigation, Send, MessageSquare
 } from 'lucide-react';
 import api from '../../../services/api';
 import LocationSearch from '../../../components/LocationSearch';
+import { SiswaLoading, SiswaSearchFilter, SISWA_PAGE_CLASS } from '../components/SiswaLayout';
 
 interface WorkAssignment {
   id: number;
@@ -244,18 +245,11 @@ const Work: React.FC = () => {
   });
 
   if (loading) {
-    return (
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-400" />
-          <p className="text-gray-400">Memuat data...</p>
-        </div>
-      </div>
-    );
+    return <SiswaLoading message="Memuat data penugasan..." />;
   }
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6 min-h-screen">
+    <div className={SISWA_PAGE_CLASS}>
       {/* Header */}
       <div className="mb-4 sm:mb-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
@@ -266,6 +260,7 @@ const Work: React.FC = () => {
             </h1>
           </div>
           <button
+            type="button"
             onClick={() => {
               // Set mentor_id dari assignment pertama jika ada, atau kosongkan
               const firstMentor = uniqueMentors[0];
@@ -280,7 +275,7 @@ const Work: React.FC = () => {
               });
               setShowRequestModal(true);
             }}
-            className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-3 sm:px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
+            className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300 text-sm sm:text-base"
           >
             <Plus className="w-4 h-4" />
             <span>Ajukan Penugasan</span>
@@ -291,45 +286,33 @@ const Work: React.FC = () => {
 
       <hr className="border-gray-700 mb-4 sm:mb-6" />
 
-      {/* Search and Filters */}
-      <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder="Cari nama lokasi atau mentor..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 sm:py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm sm:text-base"
-          />
-        </div>
+      <SiswaSearchFilter
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Cari nama lokasi atau mentor..."
+        filterValue={statusFilter}
+        onFilterChange={(v) => setStatusFilter(v as typeof statusFilter)}
+        filterOptions={[
+          { value: 'all', label: 'Semua Status' },
+          { value: 'pending', label: 'Menunggu Approve' },
+          { value: 'aktif', label: 'Aktif' },
+          { value: 'selesai', label: 'Selesai' },
+        ]}
+      >
+        <button
+          type="button"
+          onClick={fetchAssignments}
+          className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm w-full sm:w-auto"
+        >
+          <RefreshCw className="w-4 h-4" />
+          <span>Refresh</span>
+        </button>
+      </SiswaSearchFilter>
 
-        <div className="flex items-center space-x-3 sm:space-x-4 flex-wrap">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
-            className="bg-gray-800 border border-gray-700 rounded-lg px-3 sm:px-4 py-2 text-white focus:outline-none focus:border-blue-500 text-sm sm:text-base"
-          >
-            <option value="all">Semua Status</option>
-            <option value="pending">Menunggu Approve</option>
-            <option value="aktif">Aktif</option>
-            <option value="selesai">Selesai</option>
-          </select>
-          <button
-            onClick={fetchAssignments}
-            className="bg-gray-700 hover:bg-gray-600 text-white px-3 sm:px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors text-sm sm:text-base"
-          >
-            <RefreshCw className="w-4 h-4" />
-            <span>Refresh</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Assignments List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 xl:grid-cols-3 lg:gap-4 xl:gap-6">
         {filteredAssignments.map((assignment) => (
-          <div key={assignment.id} className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 rounded-xl p-4 sm:p-6 border border-gray-700 hover:border-gray-600 transition-all duration-300 hover:shadow-lg">
-            <div className="flex items-start justify-between mb-4">
+          <div key={assignment.id} className="bg-gray-800/70 rounded-xl p-4 sm:p-5 border border-gray-700/60 hover:border-gray-600/80 transition-colors">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between mb-4">
               <div className="flex-1 min-w-0">
                 <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 truncate">{assignment.nama_lokasi || 'Lokasi Luar Instansi'}</h3>
                 {/* Lokasi akan diambil langsung dari GPS/Maps */}

@@ -3,6 +3,7 @@ import { Users, UserCheck, Clock, CheckCircle, AlertCircle, Calendar, Mail, Awar
 import { useState, useEffect } from "react"
 import { landingPageAPI } from "../../services/api"
 import { getDeadlineStatus } from "../../utils/deadlineStatus"
+import { SiswaLoading, SiswaError, SiswaDivider, SISWA_PAGE_CLASS } from "./components/SiswaLayout"
 
 interface StatCardProps {
   title: string
@@ -100,12 +101,10 @@ interface PointsSummary {
   }
 }
 
-const Divider: React.FC = () => <div className="border-t border-gray-700/50 my-8 w-full" />
-
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon, color, trend }) => {
   return (
     <div
-      className={`${color} rounded-xl p-4 sm:p-6 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl`}
+      className={`${color} rounded-xl p-4 sm:p-6 sm:transform sm:hover:scale-105 transition-all duration-300 shadow-lg sm:hover:shadow-xl`}
     >
       <div className="flex items-center justify-between mb-3 sm:mb-4">
         <div className="p-2 sm:p-3 bg-white/20 rounded-lg backdrop-blur-sm">{icon}</div>
@@ -202,8 +201,8 @@ const AttendanceCard: React.FC<AttendanceCardProps> = ({ name, email, checkIn, l
   return (
   <div className="bg-gray-800/50 rounded-xl p-4 sm:p-6 backdrop-blur-sm border border-gray-700/50 hover:border-gray-600/50 transition-all duration-300 mb-4 sm:mb-6">
     {/* Header with user info and status */}
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center space-x-3 sm:space-x-4">
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+      <div className="flex items-center space-x-3 sm:space-x-4 min-w-0">
         <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
           <span className="text-white font-bold text-sm sm:text-base">{name.charAt(0).toUpperCase()}</span>
         </div>
@@ -212,7 +211,7 @@ const AttendanceCard: React.FC<AttendanceCardProps> = ({ name, email, checkIn, l
           {email && <p className="text-xs sm:text-sm text-gray-400 truncate">{email}</p>}
         </div>
       </div>
-      <div className={`px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
+      <div className={`self-start sm:self-auto px-3 py-1 rounded-full text-xs sm:text-sm font-medium flex-shrink-0 ${
         lateTime.includes('Telat') || lateTime.includes('Terlambat') ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'
       }`}>
         {lateTime}
@@ -729,47 +728,30 @@ const Dashboard: React.FC = () => {
   }));
 
   if (loading) {
-    return (
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Memuat data dashboard...</p>
-        </div>
-      </div>
-    );
+    return <SiswaLoading message="Memuat data dashboard..." />;
   }
 
   if (error) {
     return (
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-6 min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-400 mb-4">{error}</p>
-          {error.includes('Unauthorized') || error.includes('login') ? (
-            <button 
-              onClick={() => {
+      <SiswaError
+        error={error}
+        onRetry={
+          error.includes('Unauthorized') || error.includes('login')
+            ? () => {
                 localStorage.removeItem('token');
                 window.location.href = '/login';
-              }} 
-              className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg transition-colors mr-2"
-            >
-              Login
-            </button>
-          ) : (
-            <button 
-              onClick={() => window.location.reload()} 
-              className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg transition-colors"
-            >
-              Coba Lagi
-            </button>
-          )}
-        </div>
-      </div>
+              }
+            : () => window.location.reload()
+        }
+        retryLabel={
+          error.includes('Unauthorized') || error.includes('login') ? 'Login' : 'Coba Lagi'
+        }
+      />
     );
   }
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6">
+    <div className={SISWA_PAGE_CLASS}>
       {/* Header */}
       <div className="mb-4 sm:mb-6 mt-0">
         <div className="flex items-center space-x-2 sm:space-x-3">
@@ -781,7 +763,7 @@ const Dashboard: React.FC = () => {
         <p className="text-gray-400 mt-2 ml-3 sm:ml-5 text-sm sm:text-base">Selamat datang, {userName}! sebagai <span className="text-blue-400 font-semibold">{getRoleLabel(userRole)}</span>. Berikut rekap hari ini.</p>
       </div>
 
-      <Divider />
+      <SiswaDivider />
 
       {/* Statistics Section */}
       <div className="mb-6 sm:mb-8">
@@ -789,14 +771,14 @@ const Dashboard: React.FC = () => {
           <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
           <span>Statistik</span>
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           {statsCards.map((stat, index) => (
             <StatCard key={index} {...stat} />
           ))}
         </div>
       </div>
 
-      <Divider />
+      <SiswaDivider />
 
       {/* Today's Activities Section - Side by Side */}
       <div className="mb-6 sm:mb-8">
@@ -873,7 +855,7 @@ const Dashboard: React.FC = () => {
             const progress = calculateMagangProgress(magangData);
             return (
               <div key={magangData.id || index} className="mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
                   <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl p-4 sm:p-6 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
                     <div className="flex items-center justify-between mb-3 sm:mb-4">
                       <div className="p-2 sm:p-3 bg-white/20 rounded-lg backdrop-blur-sm">
@@ -955,11 +937,11 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      <Divider />
+      <SiswaDivider />
 
 
 
-      <Divider />
+      <SiswaDivider />
     </div>
   )
 }
