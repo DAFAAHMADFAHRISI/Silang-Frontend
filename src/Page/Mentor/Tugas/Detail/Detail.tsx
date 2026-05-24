@@ -541,10 +541,10 @@ const DetailTugas: React.FC = () => {
 
       <div className="border-t border-gray-700/50 my-8 w-full" />
 
-      <div className="max-w-6xl mx-auto">
+      <div className="w-full">
         <div className="space-y-6">
           {/* Task Information */}
-          <div className="bg-gray-700 rounded-lg p-6">
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6 shadow-2xl">
             <h4 className="text-lg font-semibold text-white mb-4 flex items-center">
               <FileText className="w-5 h-5 mr-2 text-blue-400" />
               Informasi Tugas
@@ -596,7 +596,7 @@ const DetailTugas: React.FC = () => {
           </div>
 
           {/* Assigned Students Section */}
-          <div className="bg-gray-700 rounded-lg p-6">
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6 shadow-2xl">
             <h4 className="text-lg font-semibold text-white mb-4 flex items-center">
               <Users className="w-5 h-5 mr-2 text-blue-400" />
               Siswa yang Ditugaskan
@@ -608,57 +608,59 @@ const DetailTugas: React.FC = () => {
                 <span className="ml-3 text-gray-400">Memuat data siswa...</span>
               </div>
             ) : (
-              <div className="space-y-3">
-                {(() => {
-                  const assignedStudents = students.filter(student => 
-                    task.total_submissions > 0 || 
-                    submissions.some(sub => sub.siswa_id === student.id)
-                  );
-                  
-                  if (assignedStudents.length === 0) {
-                    return (
-                      <div className="text-center py-4">
-                        <Users className="w-8 h-8 text-gray-500 mx-auto mb-2" />
-                        <p className="text-gray-400">Belum ada siswa yang ditugaskan</p>
-                      </div>
+              <div className="bg-gray-700/30 rounded-xl border border-gray-600/50 overflow-hidden">
+                <div className="divide-y divide-gray-600/50">
+                  {(() => {
+                    const assignedStudents = students.filter(student => 
+                      task.total_submissions > 0 || 
+                      submissions.some(sub => sub.siswa_id === student.id)
                     );
-                  }
-                  
-                  return assignedStudents.map((student) => (
-                    <div key={student.id} className="flex items-center justify-between bg-gray-600 rounded-lg p-3">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                          <span className="text-white font-semibold text-sm">
-                            {student.nama.charAt(0)}
-                          </span>
+                    
+                    if (assignedStudents.length === 0) {
+                      return (
+                        <div className="text-center py-8">
+                          <Users className="w-8 h-8 text-gray-500 mx-auto mb-2" />
+                          <p className="text-gray-400 text-sm">Belum ada siswa yang ditugaskan</p>
                         </div>
-                        <div>
-                          <p className="text-white font-semibold">{student.nama}</p>
-                          <p className="text-gray-400 text-xs">{student.nama_institusi}</p>
+                      );
+                    }
+                    
+                    return assignedStudents.map((student) => (
+                      <div key={student.id} className="flex items-center justify-between p-4 hover:bg-gray-600/20 transition-colors duration-200">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                            <span className="text-white font-semibold text-sm">
+                              {student.nama.charAt(0)}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-white font-semibold">{student.nama}</p>
+                            <p className="text-gray-400 text-xs">{student.nama_institusi}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          {submissions.some(sub => sub.siswa_id === student.id) ? (
+                            <div className="flex items-center text-green-400">
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              <span className="text-xs">Submitted</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center text-yellow-400">
+                              <Clock className="w-4 h-4 mr-1" />
+                              <span className="text-xs">Pending</span>
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        {submissions.some(sub => sub.siswa_id === student.id) ? (
-                          <div className="flex items-center text-green-400">
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            <span className="text-xs">Submitted</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center text-yellow-400">
-                            <Clock className="w-4 h-4 mr-1" />
-                            <span className="text-xs">Pending</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ));
-                })()}
+                    ));
+                  })()}
+                </div>
               </div>
             )}
           </div>
 
           {/* Submissions Section */}
-          <div className="bg-gray-700 rounded-lg p-6">
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50 p-6 shadow-2xl">
             <h4 className="text-lg font-semibold text-white mb-4 flex items-center">
               <Users className="w-5 h-5 mr-2 text-green-400" />
               Submissions Siswa ({submissions.length})
@@ -677,7 +679,7 @@ const DetailTugas: React.FC = () => {
             ) : (
               <div className="space-y-4">
                 {submissions.map((submission) => (
-                  <div key={submission.id} className="bg-gray-600 rounded-lg p-4 border border-gray-500">
+                  <div key={submission.id} className="bg-gray-700/30 rounded-xl border border-gray-600/50 p-4 shadow-sm">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center space-x-3">
                         <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
@@ -725,11 +727,11 @@ const DetailTugas: React.FC = () => {
                       </div>
                       <div className="md:col-span-2">
                         <label className="text-gray-400 text-xs">Catatan Siswa</label>
-                        <p className="text-white bg-gray-500 p-2 rounded">{submission.catatan_siswa}</p>
+                        <p className="text-white bg-gray-800/40 border border-gray-700/50 p-2.5 rounded-lg">{submission.catatan_siswa || '-'}</p>
                       </div>
                       <div className="md:col-span-2">
                         <label className="text-gray-400 text-xs">Catatan Guru</label>
-                        <p className="text-white bg-gray-500 p-2 rounded">{submission.catatan_guru}</p>
+                        <p className="text-white bg-gray-800/40 border border-gray-700/50 p-2.5 rounded-lg">{submission.catatan_guru || '-'}</p>
                       </div>
                     </div>
 
@@ -745,7 +747,7 @@ const DetailTugas: React.FC = () => {
                             max={100}
                             value={gradeInputs[submission.id]?.nilai ?? ''}
                             onChange={(e) => handleGradeInputChange(submission.id, 'nilai', e.target.value)}
-                            className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-400"
+                            className="w-full bg-gray-700/50 border border-gray-600/50 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                             placeholder="Masukkan nilai"
                           />
                         </div>
@@ -755,7 +757,7 @@ const DetailTugas: React.FC = () => {
                             type="text"
                             value={gradeInputs[submission.id]?.catatan_guru ?? ''}
                             onChange={(e) => handleGradeInputChange(submission.id, 'catatan_guru', e.target.value)}
-                            className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-400"
+                            className="w-full bg-gray-700/50 border border-gray-600/50 rounded px-3 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
                             placeholder="Contoh: bagus"
                           />
                         </div>
