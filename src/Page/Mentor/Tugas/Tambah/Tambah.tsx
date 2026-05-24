@@ -272,7 +272,7 @@ const Tambah: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <div className="max-w-4xl mx-auto">
+        <div className="w-full">
           {error && (
             <div className="mb-8 p-4 bg-red-900/50 border border-red-700/50 rounded-xl flex items-center space-x-3">
               <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
