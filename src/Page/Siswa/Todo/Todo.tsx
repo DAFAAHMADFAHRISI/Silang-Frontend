@@ -39,6 +39,7 @@ interface Task {
   catatan_guru: string;
   mentor_nama: string;
   status_tugas: string;
+  status?: string;
 }
 
 interface TaskCardProps {
@@ -67,8 +68,8 @@ const TaskCard = ({ task, onTaskClick, navigate }: TaskCardProps) => {
   };
 
   const config = statusConfig[task.status_tugas] || statusConfig['In Progress'];
-  const late = isDeadlineLate(task.batas_waktu, task.tanggal_mengumpulkan);
-  const deadlineStatus = getDeadlineStatus(task.batas_waktu, task.tanggal_mengumpulkan);
+  const late = task.tanggal_mengumpulkan ? (task.status === 'Terlambat') : isDeadlineLate(task.batas_waktu, null);
+  const deadlineStatus = task.tanggal_mengumpulkan ? (task.status || 'Tepat Waktu') : getDeadlineStatus(task.batas_waktu, null);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Tidak ada tanggal';
@@ -117,12 +118,6 @@ const TaskCard = ({ task, onTaskClick, navigate }: TaskCardProps) => {
             {task.deskripsi}
           </p>
         </div>
-        <span
-          className={`${config.bg} self-start flex-shrink-0 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-2 text-xs font-semibold text-white shadow-md`}
-        >
-          {config.icon}
-          <span>{config.statusText}</span>
-        </span>
       </div>
 
       {/* Meta row */}
@@ -154,15 +149,16 @@ const TaskCard = ({ task, onTaskClick, navigate }: TaskCardProps) => {
         <span className="text-gray-400 truncate max-w-[140px] sm:max-w-none">
           Mentor: <span className="text-white">{task.mentor_nama}</span>
         </span>
-        <span
-          className={`ml-auto flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold border ${
-            late
-              ? 'bg-red-900/50 text-red-400 border-red-600/40'
-              : 'bg-green-900/50 text-green-400 border-green-600/40'
-          }`}
-        >
-          {deadlineStatus}
-        </span>
+        {task.tanggal_mengumpulkan && (
+          <span
+            className={`ml-auto flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-semibold border ${late
+                ? 'bg-red-900/50 text-red-400 border-red-600/40'
+                : 'bg-green-900/50 text-green-400 border-green-600/40'
+              }`}
+          >
+            {deadlineStatus}
+          </span>
+        )}
       </div>
 
       {task.tanggal_mengumpulkan && (
@@ -293,10 +289,10 @@ const Todo: React.FC = () => {
     submitted: tasks.filter((t) => t.status_tugas === 'Belum Dinilai').length,
     completed: tasks.filter((t) => t.status_tugas === 'Sudah Dinilai').length,
     onTime: tasks.filter(
-      (t) => t.tanggal_mengumpulkan && !isDeadlineLate(t.batas_waktu, t.tanggal_mengumpulkan)
+      (t) => t.tanggal_mengumpulkan && t.status === 'Tepat Waktu'
     ).length,
     late: tasks.filter(
-      (t) => t.tanggal_mengumpulkan && isDeadlineLate(t.batas_waktu, t.tanggal_mengumpulkan)
+      (t) => t.tanggal_mengumpulkan && t.status === 'Terlambat'
     ).length,
   };
 
@@ -318,7 +314,7 @@ const Todo: React.FC = () => {
 
   return (
     <div className={SISWA_PAGE_CLASS}>
-      <SiswaPageHeader title="To Do List" subtitle="Kelola tugas dan aktivitas Anda." />
+      <SiswaPageHeader title="List Tugas" subtitle="Kelola tugas dan aktivitas Anda." />
 
       {/* Statistics */}
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 mb-6">

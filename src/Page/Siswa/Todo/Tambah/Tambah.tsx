@@ -38,13 +38,13 @@ const SubmitPage: React.FC = () => {
 
   const fetchTaskDetails = async () => {
     if (!id) return;
-    
+
     try {
       setLoading(true);
       setError(null);
-      
+
       const token = localStorage.getItem('token');
-      
+
       const response = await fetch(`http://localhost:3000/api/tugas-siswa/${id}`, {
         method: 'GET',
         headers: {
@@ -80,7 +80,7 @@ const SubmitPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!task) {
       setError('Task not found');
       return;
@@ -103,10 +103,10 @@ const SubmitPage: React.FC = () => {
 
       const token = localStorage.getItem('token');
       const formData = new FormData();
-      
+
       // Add file_jawaban (required)
       formData.append('file_jawaban', file);
-      
+
       // Add catatan_siswa (required)
       formData.append('catatan_siswa', catatanSiswa);
 
@@ -115,7 +115,7 @@ const SubmitPage: React.FC = () => {
       console.log('File:', file.name);
       console.log('Catatan Siswa:', catatanSiswa);
       console.log('Task ID:', task.id);
-      
+
       // Log FormData entries
       console.log('FormData entries:');
       Array.from(formData.entries()).forEach(([key, value]) => {
@@ -178,9 +178,9 @@ const SubmitPage: React.FC = () => {
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-white">
-                Submit Task: {task.judul}
+                judul Tugas: {task.judul}
               </h1>
-              <p className="text-gray-400">Upload your answer and submit task</p>
+              <p className="text-gray-400">Upload jawaban Kamu Dan jangan Lupa Berikan Komentar</p>
             </div>
           </div>
         </div>
@@ -190,7 +190,7 @@ const SubmitPage: React.FC = () => {
       <div className="max-w-4xl mx-auto">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Task Display */}
-          <div className="bg-gray-800/50 rounded-xl p-6">
+          {/* <div className="bg-gray-800/50 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
               <FileText className="w-5 h-5 mr-2 text-blue-400" />
               Selected Task to Submit
@@ -203,13 +203,13 @@ const SubmitPage: React.FC = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* File Upload */}
           <div className="bg-gray-800/50 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
               <Upload className="w-5 h-5 mr-2 text-green-400" />
-              Upload Answer File <span className="text-red-400 ml-1">*</span>
+              Upload file jawaban <span className="text-red-400 ml-1">*</span>
             </h3>
             <div className="border-2 border-dashed border-gray-600 rounded-xl p-8 text-center hover:border-blue-500 transition-colors">
               <input
@@ -223,7 +223,7 @@ const SubmitPage: React.FC = () => {
               <label htmlFor="file-upload" className="cursor-pointer">
                 <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-white font-medium mb-2">
-                  {file ? file.name : 'Click to upload or drag and drop'}
+                  {file ? file.name : 'Pilih file jawaban atau tarik jawaban'}
                 </p>
                 <p className="text-gray-400 text-sm">
                   PDF, DOC, DOCX, or TXT files (max 10MB) - Required
@@ -258,7 +258,7 @@ const SubmitPage: React.FC = () => {
           <div className="bg-gray-800/50 rounded-xl p-6">
             <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
               <FileText className="w-5 h-5 mr-2 text-blue-400" />
-              Student Notes <span className="text-red-400 ml-1">*</span>
+              Catatan siswa <span className="text-red-400 ml-1">*</span>
             </h3>
             <textarea
               value={catatanSiswa}
@@ -271,8 +271,8 @@ const SubmitPage: React.FC = () => {
               rows={4}
               required
             />
-            {/* Debug: Show current value */}
-            {catatanSiswa && (
+
+            {/* {catatanSiswa && (
               <div className="mt-2 p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                 <p className="text-xs text-blue-400">Current value: "{catatanSiswa}"</p>
               </div>
@@ -281,7 +281,7 @@ const SubmitPage: React.FC = () => {
               <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded-lg">
                 <p className="text-xs text-red-400">Comment is required</p>
               </div>
-            )}
+            )} */}
           </div>
 
           {/* Error Message */}

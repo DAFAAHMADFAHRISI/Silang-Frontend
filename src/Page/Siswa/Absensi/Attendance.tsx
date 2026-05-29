@@ -780,8 +780,8 @@ const Attendance: React.FC = () => {
       item.tanggal_absen.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus = statusFilter === 'all' ||
-      (statusFilter === 'late' && item.status_kehadiran.toLowerCase().includes('terlambat')) ||
-      (statusFilter === 'ontime' && !item.status_kehadiran.toLowerCase().includes('terlambat'));
+      (statusFilter === 'late' && item.status_kehadiran?.toLowerCase().includes('terlambat')) ||
+      (statusFilter === 'ontime' && !item.status_kehadiran?.toLowerCase().includes('terlambat'));
 
     return matchesSearch && matchesStatus;
   });
@@ -1263,7 +1263,7 @@ const Attendance: React.FC = () => {
             <div>
               <p className="text-gray-400 text-sm">Tepat Waktu</p>
               <p className="text-2xl font-bold text-green-400">
-                {filteredAttendance.filter(item => !item.status_kehadiran.toLowerCase().includes('terlambat')).length}
+                {filteredAttendance.filter(item => !item.status_kehadiran?.toLowerCase().includes('terlambat')).length}
               </p>
             </div>
             <CheckCircle className="w-8 h-8 text-green-400" />
@@ -1274,7 +1274,7 @@ const Attendance: React.FC = () => {
             <div>
               <p className="text-gray-400 text-sm">Terlambat</p>
               <p className="text-2xl font-bold text-red-400">
-                {filteredAttendance.filter(item => item.status_kehadiran.toLowerCase().includes('terlambat')).length}
+                {filteredAttendance.filter(item => item.status_kehadiran?.toLowerCase().includes('terlambat')).length}
               </p>
             </div>
             <AlertCircle className="w-8 h-8 text-red-400" />

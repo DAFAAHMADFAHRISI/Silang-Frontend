@@ -80,6 +80,7 @@ interface TaskData {
   catatan_guru: string
   mentor_nama: string
   status_tugas: string
+  status?: string
 }
 
 interface MagangDatesData {
@@ -718,9 +719,9 @@ const Dashboard: React.FC = () => {
 
   const transformedTasks = tasks.map(task => ({
     title: task.judul || 'Tugas Tanpa Judul',
-    dueDate: task.batas_waktu
-      ? getDeadlineStatus(task.batas_waktu, task.tanggal_mengumpulkan)
-      : 'Tidak ada deadline',
+    dueDate: task.tanggal_mengumpulkan
+      ? (task.status || 'Tepat Waktu')
+      : (task.batas_waktu ? getDeadlineStatus(task.batas_waktu, null) : 'Tidak ada deadline'),
     status: task.status_tugas === "Sudah Dinilai" ? "completed" as const : "pending" as const,
     score: task.nilai || 0,
     completedTime: task.tanggal_mengumpulkan ? formatTime(task.tanggal_mengumpulkan) : undefined,
