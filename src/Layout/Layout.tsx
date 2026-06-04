@@ -47,7 +47,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       { to: '/mentor/tugas', icon: 'fa fa-clipboard-list', label: 'Data Tugas' },
       { to: '/mentor/work-assignments', icon: 'fa fa-map-marker-alt', label: 'Tugas Luar' },
       { to: '/mentor/absensi', icon: 'fa fa-user-check', label: 'Data Absensi' },
-      { to: '/mentor/rekap', icon: 'fa fa-chart-bar', label: 'Data Rekap' },
+      // { to: '/mentor/rekap', icon: 'fa fa-chart-bar', label: 'Data Rekap' },
       { to: '/mentor/activity-summary', icon: 'fa fa-chart-line', label: 'Ringkasan Aktivitas' },
     ];
   } else if (role === 'guru') {
@@ -99,8 +99,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   to={item.to}
                   onClick={() => setSidebarOpen(false)}
                   className={`flex items-center px-4 py-3 rounded-lg font-semibold transition-colors duration-200 ${location.pathname === item.to
-                      ? 'bg-gray-800 text-white'
-                      : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                    ? 'bg-gray-800 text-white'
+                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                     } ${(item.to === '/Sertifikat' || item.to === '/SiswaSertifikat') ? 'border border-yellow-700/40 hover:border-yellow-500/70' : ''}`}
                 >
                   <span className={`mr-3 text-lg ${(item.to === '/Sertifikat' || item.to === '/SiswaSertifikat') ? 'text-yellow-400' : ''}`}>
