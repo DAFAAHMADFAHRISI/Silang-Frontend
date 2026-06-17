@@ -8,6 +8,7 @@ interface StreakData {
 
 interface PointsSummary {
   total_points: number
+  koin: number
   streak: StreakData
 }
 
@@ -24,7 +25,7 @@ interface PointsHistoryItem {
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000'
 
 const PetStreak: React.FC = () => {
-  const [data, setData] = useState<PointsSummary>({ total_points: 0, streak: { current_streak: 0, best_streak: 0, last_activity_date: null } })
+  const [data, setData] = useState<PointsSummary>({ total_points: 0, koin: 0, streak: { current_streak: 0, best_streak: 0, last_activity_date: null } })
   const [hidden, setHidden] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const [isBouncing, setIsBouncing] = useState(false)
@@ -107,9 +108,10 @@ const PetStreak: React.FC = () => {
       }
       
       const json = await res.json()
-      if (json && json.success && json.data) {
+       if (json && json.success && json.data) {
         setData({ 
           total_points: json.data.total_points || 0, 
+          koin: json.data.koin || 0,
           streak: json.data.streak || { 
             current_streak: 0, 
             best_streak: 0, 
@@ -178,6 +180,13 @@ const PetStreak: React.FC = () => {
   useEffect(() => {
     fetchPoints()
     fetchRanking()
+
+    const handlePointsUpdate = () => {
+      fetchPoints()
+      fetchRanking()
+    }
+    window.addEventListener('points-updated', handlePointsUpdate)
+    return () => window.removeEventListener('points-updated', handlePointsUpdate)
   }, [])
 
   // Auto-refresh data every 30 seconds when expanded
@@ -373,6 +382,16 @@ const PetStreak: React.FC = () => {
               </div>
               <div className="text-right">
                 <div className="text-lg font-extrabold">{data.total_points}</div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between bg-gray-800/70 rounded-lg p-2 mt-2">
+              <div className="flex items-center gap-2">
+                <span className="text-yellow-400">🪙</span>
+                <span className="text-sm">Koin Saya</span>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-extrabold text-yellow-400">{data.koin}</div>
               </div>
             </div>
 

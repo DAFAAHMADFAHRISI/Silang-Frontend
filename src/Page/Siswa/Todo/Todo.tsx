@@ -46,9 +46,10 @@ interface TaskCardProps {
   task: Task;
   onTaskClick: (task: Task) => void;
   navigate: (path: string) => void;
+  onExtendClick: (task: Task) => void;
 }
 
-const TaskCard = ({ task, onTaskClick, navigate }: TaskCardProps) => {
+const TaskCard = ({ task, onTaskClick, navigate, onExtendClick }: TaskCardProps) => {
   const statusConfig: Record<string, { bg: string; icon: React.ReactElement; statusText: string }> = {
     'In Progress': {
       bg: 'bg-gradient-to-br from-orange-500 to-red-500',
@@ -203,7 +204,7 @@ const TaskCard = ({ task, onTaskClick, navigate }: TaskCardProps) => {
           <Eye className="w-4 h-4" />
           <span>Detail</span>
         </button>
-        {task.tanggal_mengumpulkan && (
+        {task.tanggal_mengumpulkan ? (
           <button
             type="button"
             onClick={() => navigate(`/siswa/todo/edit/${task.id}`)}
@@ -211,6 +212,15 @@ const TaskCard = ({ task, onTaskClick, navigate }: TaskCardProps) => {
           >
             <Send className="w-4 h-4" />
             <span>Edit</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onExtendClick(task)}
+            className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white px-3 py-2.5 sm:py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-300 text-sm font-medium border border-orange-500/30 shadow-lg shadow-orange-500/10 hover:shadow-orange-500/20"
+          >
+            <span className="text-base leading-none">🪙</span>
+            <span>Perpanjang (+1 Hari)</span>
           </button>
         )}
       </div>
@@ -302,6 +312,46 @@ const Todo: React.FC = () => {
 
   const handleSubmitSuccess = () => {
     fetchTasks();
+  };
+
+  const handleExtendClick = async (task: Task) => {
+    const confirmExtend = window.confirm(
+      `Apakah Anda yakin ingin memperpanjang tenggat waktu tugas "${task.judul}" selama 1 hari dengan biaya 50 Koin?`
+    );
+    if (!confirmExtend) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Silakan login terlebih dahulu');
+        return;
+      }
+
+      const response = await fetch('http://localhost:3000/api/siswa/points/use/extend-task', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ tugasId: task.id }),
+      });
+
+      const resData = await response.json();
+      if (!response.ok || !resData.success) {
+        throw new Error(resData.message || 'Gagal memperpanjang tugas');
+      }
+
+      alert(resData.message || 'Batas waktu tugas berhasil diperpanjang +1 hari!');
+      
+      // Trigger update on global PetStreak widget
+      window.dispatchEvent(new Event('points-updated'));
+      
+      // Refresh task list
+      fetchTasks();
+    } catch (err) {
+      console.error(err);
+      alert(err instanceof Error ? err.message : 'Terjadi kesalahan saat memperpanjang tugas');
+    }
   };
 
   if (loading) {
@@ -418,6 +468,7 @@ const Todo: React.FC = () => {
               task={task}
               onTaskClick={handleTaskClick}
               navigate={navigate}
+              onExtendClick={handleExtendClick}
             />
           ))}
         </div>
