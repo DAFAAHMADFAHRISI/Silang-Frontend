@@ -61,6 +61,8 @@ const Attendance: React.FC = () => {
   const [locationError, setLocationError] = useState<string | null>(null);
   const webcamRef = useRef<Webcam>(null);
   const [isLowLight, setIsLowLight] = useState(false);
+  const [isFaceNotDetected, setIsFaceNotDetected] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(false);
 
   // Photo modal states
   const [showPhotoModal, setShowPhotoModal] = useState(false);
@@ -336,11 +338,11 @@ const Attendance: React.FC = () => {
     return { action: 'closed', message: 'Jam kerja telah selesai' };
   };
 
-  // Effect to monitor lighting conditions when camera is open
+  // Effect to monitor lighting conditions and face detection when camera is open
   useEffect(() => {
     let interval: NodeJS.Timeout;
     
-    if (showCamera && webcamRef.current) {
+    if (showCamera && isCameraActive && webcamRef.current) {
       interval = setInterval(() => {
         if (webcamRef.current) {
           const imageSrc = webcamRef.current.getScreenshot();
@@ -352,13 +354,14 @@ const Attendance: React.FC = () => {
               canvas.width = img.width;
               canvas.height = img.height;
               ctx?.drawImage(img, 0, 0);
-
+ 
               const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
               if (imageData) {
                 const data = imageData.data;
                 let totalBrightness = 0;
+                let skinPixels = 0;
                 let sampleCount = 0;
-
+ 
                 // Sample pixels for performance (check every 4th pixel, which means += 16 in RGBA array)
                 for (let i = 0; i < data.length; i += 16) {
                   const r = data[i];
@@ -367,14 +370,32 @@ const Attendance: React.FC = () => {
                   
                   const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
                   totalBrightness += brightness;
+ 
+                  // Simple skin tone detection (stricter check to avoid beige background walls)
+                  const isSkinTone =
+                    r > 95 && g > 40 && b > 20 &&
+                    Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
+                    r - g > 22 && r > b;
+ 
+                  if (isSkinTone) {
+                    skinPixels++;
+                  }
                   sampleCount++;
                 }
-
+ 
                 const averageBrightness = totalBrightness / sampleCount;
+                const skinRatio = skinPixels / sampleCount;
+ 
                 if (averageBrightness < 50) {
                   setIsLowLight(true);
+                  setIsFaceNotDetected(false);
                 } else {
                   setIsLowLight(false);
+                  if (skinRatio < 0.05) {
+                    setIsFaceNotDetected(true);
+                  } else {
+                    setIsFaceNotDetected(false);
+                  }
                 }
               }
             };
@@ -384,12 +405,13 @@ const Attendance: React.FC = () => {
       }, 1000); // Check every second
     } else {
       setIsLowLight(false);
+      setIsFaceNotDetected(false);
     }
-
+ 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [showCamera, webcamRef]);
+  }, [showCamera, isCameraActive, webcamRef]);
 
   // Capture photo using react-webcam
   const capturePhoto = useCallback(() => {
@@ -432,11 +454,11 @@ const Attendance: React.FC = () => {
               const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
               totalBrightness += brightness;
 
-              // Simple skin tone detection
+              // Simple skin tone detection (stricter check to avoid beige background walls)
               const isSkinTone =
                 r > 95 && g > 40 && b > 20 &&
                 Math.max(r, g, b) - Math.min(r, g, b) > 15 &&
-                Math.abs(r - g) > 15 && r > g && r > b;
+                r - g > 22 && r > b;
 
               if (isSkinTone) {
                 skinPixels++;
@@ -720,6 +742,7 @@ const Attendance: React.FC = () => {
       setIsLoading(false);
       setActionType(null);
       setShowCamera(false);
+      setIsCameraActive(false);
     }
   };
 
@@ -756,6 +779,7 @@ const Attendance: React.FC = () => {
     setLocationData(null);
     setLocationReference(null);
     setShowCamera(true);
+    setIsCameraActive(false);
     fetchAttendanceLocationReference();
 
     // Request location permission when camera opens
@@ -1144,6 +1168,7 @@ const Attendance: React.FC = () => {
                   onClick={() => {
                     setShowCamera(false);
                     setActionType(null);
+                    setIsCameraActive(false);
                   }}
                   className="text-gray-400 hover:text-white"
                 >
@@ -1168,6 +1193,7 @@ const Attendance: React.FC = () => {
                 onUserMediaError={(error) => {
                   console.error('Webcam error:', error);
                   setCameraError('Tidak dapat mengakses kamera.');
+                  setIsCameraActive(false);
                   Swal.fire({
                     icon: 'error',
                     title: 'Kamera tidak dapat diakses!',
@@ -1176,6 +1202,7 @@ const Attendance: React.FC = () => {
                 }}
                 onUserMedia={() => {
                   console.log('Camera stream obtained successfully');
+                  setIsCameraActive(true);
                 }}
               />
               {isLowLight && (
@@ -1183,6 +1210,14 @@ const Attendance: React.FC = () => {
                   <div className="bg-red-600 bg-opacity-90 text-white px-4 py-3 rounded-lg text-center max-w-[80%] animate-pulse border border-red-400 shadow-xl">
                     <p className="font-bold text-lg mb-1">⚠️ Pencahayaan Kurang!</p>
                     <p className="text-sm">Ruangan terlalu gelap. Silakan cari tempat yang lebih terang.</p>
+                  </div>
+                </div>
+              )}
+              {isFaceNotDetected && !isLowLight && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black bg-opacity-40">
+                  <div className="bg-red-600 bg-opacity-90 text-white px-4 py-3 rounded-lg text-center max-w-[80%] animate-pulse border border-red-400 shadow-xl">
+                    <p className="font-bold text-lg mb-1">⚠️ Wajah Tidak Terdeteksi!</p>
+                    <p className="text-sm">Wajah tidak terdeteksi di kamera. Posisikan wajah Anda dengan benar.</p>
                   </div>
                 </div>
               )}
@@ -1236,6 +1271,7 @@ const Attendance: React.FC = () => {
                 onClick={() => {
                   setShowCamera(false);
                   setActionType(null);
+                  setIsCameraActive(false);
                 }}
                 className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded font-semibold"
               >
