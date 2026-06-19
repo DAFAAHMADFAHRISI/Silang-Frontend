@@ -489,20 +489,36 @@ const Attendance: React.FC = () => {
               return;
             }
 
-            // If validation passes, proceed with upload
-            fetch(imageSrc)
-              .then(res => res.blob())
-              .then(blob => {
-                handleCheckInOutWithPhoto(blob);
-              })
-              .catch(error => {
-                console.error('Error processing photo:', error);
-                Swal.fire({
-                  icon: 'error',
-                  title: 'Gagal memproses foto!',
-                  text: 'Terjadi kesalahan saat memproses foto. Silakan coba lagi.',
-                });
-              });
+            // If validation passes, show confirmation modal first
+            Swal.fire({
+              title: 'Konfirmasi Foto',
+              text: 'Apakah foto ini sudah siap dibandingkan?',
+              imageUrl: imageSrc,
+              imageWidth: 320,
+              imageHeight: 240,
+              imageAlt: 'Foto Absensi',
+              showCancelButton: true,
+              confirmButtonText: 'Lanjut',
+              cancelButtonText: 'Ulang Foto',
+              confirmButtonColor: '#3085d6',
+              cancelButtonColor: '#6e7881',
+            }).then((result) => {
+              if (result.isConfirmed) {
+                fetch(imageSrc)
+                  .then(res => res.blob())
+                  .then(blob => {
+                    handleCheckInOutWithPhoto(blob);
+                  })
+                  .catch(error => {
+                    console.error('Error processing photo:', error);
+                    Swal.fire({
+                      icon: 'error',
+                      title: 'Gagal memproses foto!',
+                      text: 'Terjadi kesalahan saat memproses foto. Silakan coba lagi.',
+                    });
+                  });
+              }
+            });
           }
         };
 
@@ -624,7 +640,7 @@ const Attendance: React.FC = () => {
           Swal.fire({
             icon: 'error',
             title: 'Jarak Terlalu Jauh!',
-            text: 'Anda berada di luar area absensi. Silakan datang ke lokasi sekolah.',
+            text: `Anda berada di luar area absensi. Silakan datang ke lokasi ${locationReference?.location_name || 'sekolah'}.`,
             showConfirmButton: false,
             timer: 3000,
           });
@@ -705,7 +721,7 @@ const Attendance: React.FC = () => {
         Swal.fire({
           icon: 'error',
           title: 'Jarak Terlalu Jauh!',
-          text: 'Anda berada di luar area absensi. Silakan datang ke lokasi sekolah.',
+          text: `Anda berada di luar area absensi. Silakan datang ke lokasi ${locationReference?.location_name || 'sekolah'}.`,
           showConfirmButton: false,
           timer: 3000,
         });
