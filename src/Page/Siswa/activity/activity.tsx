@@ -513,7 +513,7 @@ const ActivityPage: React.FC = () => {
                 className="bg-gray-800/70 rounded-xl border border-gray-700/60 p-4 space-y-2"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs text-gray-400">{formatDateTime(item.event_date)}</span>
+                  <span className="text-xs text-gray-400">{formatDateTime(item.created_at || item.event_date)}</span>
                   <span className={`text-sm font-bold ${item.points > 0 ? 'text-green-400' : 'text-gray-400'}`}>
                     {item.points > 0 ? '+' : ''}{item.points} poin
                   </span>
@@ -551,7 +551,7 @@ const ActivityPage: React.FC = () => {
                       className={idx % 2 === 0 ? "bg-gray-900" : "bg-gray-900/70"}
                     >
                       <td className="px-4 py-2 text-left text-gray-300">
-                        {formatDateTime(item.event_date)}
+                        {formatDateTime(item.created_at || item.event_date)}
                       </td>
                       <td className="px-4 py-2 text-left text-gray-300">
                         {item.source_type === "absensi" ? "Absensi" : "Tugas"}

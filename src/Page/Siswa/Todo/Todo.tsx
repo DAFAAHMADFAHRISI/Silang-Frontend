@@ -12,6 +12,7 @@ import {
   Send,
   FileText,
   ListTodo,
+  RefreshCw,
 } from 'lucide-react';
 import SubmitModal from './SubmitModal/SubmitModal';
 import { getDeadlineStatus, isDeadlineLate } from '../../../utils/deadlineStatus';
@@ -46,9 +47,11 @@ interface TaskCardProps {
   task: Task;
   onTaskClick: (task: Task) => void;
   navigate: (path: string) => void;
+  onExtendClick: (task: Task) => void;
+  extendingTaskId: number | null;
 }
 
-const TaskCard = ({ task, onTaskClick, navigate }: TaskCardProps) => {
+const TaskCard = ({ task, onTaskClick, navigate, onExtendClick, extendingTaskId }: TaskCardProps) => {
   const statusConfig: Record<string, { bg: string; icon: React.ReactElement; statusText: string }> = {
     'In Progress': {
       bg: 'bg-gradient-to-br from-orange-500 to-red-500',
@@ -203,6 +206,25 @@ const TaskCard = ({ task, onTaskClick, navigate }: TaskCardProps) => {
           <Eye className="w-4 h-4" />
           <span>Detail</span>
         </button>
+        {!task.tanggal_mengumpulkan && task.status_tugas !== 'Sudah Dinilai' && (
+          <button
+            type="button"
+            onClick={() => onExtendClick(task)}
+            disabled={extendingTaskId === task.id}
+            className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-gray-900 px-3 py-2.5 sm:py-2 rounded-lg flex items-center justify-center gap-2 transition-all duration-200 text-sm font-semibold disabled:opacity-60 cursor-pointer shadow-md"
+          >
+            {extendingTaskId === task.id ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin text-gray-900" />
+                <span>Memproses...</span>
+              </>
+            ) : (
+              <>
+                <span>🪙 Perpanjang (+1 Hari)</span>
+              </>
+            )}
+          </button>
+        )}
         {task.tanggal_mengumpulkan && (
           <button
             type="button"
@@ -226,7 +248,41 @@ const Todo: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [extendingTaskId, setExtendingTaskId] = useState<number | null>(null);
   const navigate = useNavigate();
+
+  const handleExtendClick = async (task: Task) => {
+    const confirmExtend = window.confirm(
+      `Apakah Anda yakin ingin memperpanjang batas waktu tugas "${task.judul}" selama +1 hari dengan biaya 50 koin?`
+    );
+    if (!confirmExtend) return;
+
+    try {
+      setExtendingTaskId(task.id);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:3000/api/siswa/points/use/extend-task`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ tugasId: task.id }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Gagal memperpanjang batas waktu.');
+      }
+
+      alert(data.message || 'Batas waktu tugas berhasil diperpanjang +1 hari.');
+      fetchTasks();
+    } catch (err: any) {
+      console.error('Error extending task deadline:', err);
+      alert(err.message || 'Terjadi kesalahan saat memperpanjang batas waktu.');
+    } finally {
+      setExtendingTaskId(null);
+    }
+  };
 
   const fetchTasks = async () => {
     try {
@@ -418,6 +474,8 @@ const Todo: React.FC = () => {
               task={task}
               onTaskClick={handleTaskClick}
               navigate={navigate}
+              onExtendClick={handleExtendClick}
+              extendingTaskId={extendingTaskId}
             />
           ))}
         </div>

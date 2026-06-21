@@ -74,6 +74,7 @@ const Detail: React.FC = () => {
   const [fileViewerOpen, setFileViewerOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<SelectedFile | null>(null);
   const [fileLoading, setFileLoading] = useState(false);
+  const [extending, setExtending] = useState(false);
 
   // ============================================================================
   // EFFECTS
@@ -121,6 +122,40 @@ const Detail: React.FC = () => {
       setError(error instanceof Error ? error.message : 'Failed to load task details');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExtendDeadline = async () => {
+    if (!task) return;
+    const confirmExtend = window.confirm(
+      "Apakah Anda yakin ingin memperpanjang batas waktu tugas ini selama +1 hari dengan biaya 50 koin?"
+    );
+    if (!confirmExtend) return;
+
+    try {
+      setExtending(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://localhost:3000/api/siswa/points/use/extend-task`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ tugasId: task.id }),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Gagal memperpanjang batas waktu.');
+      }
+
+      alert(data.message || 'Batas waktu tugas berhasil diperpanjang +1 hari.');
+      fetchTaskDetails(); // Refresh details
+    } catch (err: any) {
+      console.error('Error extending task deadline:', err);
+      alert(err.message || 'Terjadi kesalahan saat memperpanjang batas waktu.');
+    } finally {
+      setExtending(false);
     }
   };
 
@@ -390,6 +425,25 @@ const Detail: React.FC = () => {
               <div>
                 <span className="text-gray-400 text-sm">Batas Waktu</span>
                 <p className="text-white">{formatDate(task.batas_waktu)}</p>
+                {!task.tanggal_mengumpulkan && task.status_tugas !== 'Sudah Dinilai' && (
+                  <button
+                    type="button"
+                    onClick={handleExtendDeadline}
+                    disabled={extending}
+                    className="mt-2 text-xs font-semibold px-3 py-1.5 rounded-lg bg-yellow-500 hover:bg-yellow-600 text-gray-900 transition-all duration-200 flex items-center gap-1.5 disabled:opacity-60 cursor-pointer shadow-md"
+                  >
+                    {extending ? (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-gray-900" />
+                        <span>Memproses...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>🪙 Perpanjang (+1 Hari) - 50 Koin</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
               {task.tanggal_mengumpulkan && (
                 <div>
