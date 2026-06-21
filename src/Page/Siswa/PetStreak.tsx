@@ -8,6 +8,7 @@ interface StreakData {
 
 interface PointsSummary {
   total_points: number
+  koin: number
   streak: StreakData
 }
 
@@ -24,7 +25,7 @@ interface PointsHistoryItem {
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000'
 
 const PetStreak: React.FC = () => {
-  const [data, setData] = useState<PointsSummary>({ total_points: 0, streak: { current_streak: 0, best_streak: 0, last_activity_date: null } })
+  const [data, setData] = useState<PointsSummary>({ total_points: 0, koin: 0, streak: { current_streak: 0, best_streak: 0, last_activity_date: null } })
   const [hidden, setHidden] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const [isBouncing, setIsBouncing] = useState(false)
@@ -60,7 +61,7 @@ const PetStreak: React.FC = () => {
     const level = Math.max(levelFromStreak, levelFromPoints)
 
     const sizeMap = { 1: 40, 2: 52, 3: 66, 4: 82, 5: 100 }
-    const petSizePx = sizeMap[level as 1|2|3|4|5]
+    const petSizePx = sizeMap[level as 1 | 2 | 3 | 4 | 5]
     const emojiSizePx = Math.round(petSizePx * 0.55)
     // Skin: telur -> anak ayam -> ayam kecil -> ayam sedang -> ayam besar
     const skinMap: Record<number, string> = {
@@ -94,27 +95,28 @@ const PetStreak: React.FC = () => {
         setError('Token tidak ditemukan')
         return
       }
-      
+
       const res = await fetch(`${API_BASE_URL}/api/siswa/points/me`, {
-        headers: { 
-          'Content-Type': 'application/json', 
-          'Authorization': `Bearer ${token}` 
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         }
       })
-      
+
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`)
       }
-      
+
       const json = await res.json()
       if (json && json.success && json.data) {
-        setData({ 
-          total_points: json.data.total_points || 0, 
-          streak: json.data.streak || { 
-            current_streak: 0, 
-            best_streak: 0, 
-            last_activity_date: null 
-          } 
+        setData({
+          total_points: json.data.total_points || 0,
+          koin: json.data.koin || 0,
+          streak: json.data.streak || {
+            current_streak: 0,
+            best_streak: 0,
+            last_activity_date: null
+          }
         })
       }
     } catch (e) {
@@ -129,21 +131,21 @@ const PetStreak: React.FC = () => {
     try {
       const token = localStorage.getItem('token')
       if (!token) return
-      
+
       const res = await fetch(`${API_BASE_URL}/api/siswa/streak/ranking`, {
-        headers: { 
-          'Content-Type': 'application/json', 
-          'Authorization': `Bearer ${token}` 
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         }
       })
-      
+
       if (!res.ok) return
-      
+
       const json = await res.json()
       if (json && json.success && json.data) {
-        setRanking({ 
-          rank: json.data.rank || 0, 
-          total_siswa: json.data.total_siswa || 0 
+        setRanking({
+          rank: json.data.rank || 0,
+          total_siswa: json.data.total_siswa || 0
         })
       }
     } catch (e) {
@@ -155,17 +157,17 @@ const PetStreak: React.FC = () => {
     try {
       const token = localStorage.getItem('token')
       if (!token) return
-      
+
       // Fetch only today's points
       const res = await fetch(`${API_BASE_URL}/api/siswa/points/history?today=true`, {
-        headers: { 
-          'Content-Type': 'application/json', 
-          'Authorization': `Bearer ${token}` 
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         }
       })
-      
+
       if (!res.ok) return
-      
+
       const json = await res.json()
       if (json && json.success && json.data) {
         setPointsHistory(json.data || [])
@@ -183,12 +185,12 @@ const PetStreak: React.FC = () => {
   // Auto-refresh data every 30 seconds when expanded
   useEffect(() => {
     if (!expanded) return
-    
+
     const interval = setInterval(() => {
       fetchPoints()
       fetchRanking()
     }, 30000) // Refresh every 30 seconds
-    
+
     return () => clearInterval(interval)
   }, [expanded])
 
@@ -268,12 +270,12 @@ const PetStreak: React.FC = () => {
               </div>
             </div>
             <div className="flex items-center gap-1">
-              <button 
+              <button
                 onClick={() => {
                   setShowHistory(!showHistory)
                   if (!showHistory) fetchPointsHistory()
-                }} 
-                className="text-gray-300 hover:text-white px-2" 
+                }}
+                className="text-gray-300 hover:text-white px-2"
                 title="Riwayat poin"
               >
                 📜
@@ -322,13 +324,18 @@ const PetStreak: React.FC = () => {
                       <div className="flex-1">
                         <div className="text-white/90">{item.reason}</div>
                         <div className="text-gray-400 text-[10px]">
-                          {new Date(item.event_date).toLocaleDateString('id-ID', { 
-                            day: 'numeric', 
-                            month: 'short', 
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
+                          {(() => {
+                            const d = new Date(item.created_at || item.event_date);
+                            return isNaN(d.getTime())
+                              ? 'Tanggal tidak valid'
+                              : d.toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              });
+                          })()}
                           {' • '}
                           {item.source_type === 'absensi' ? '📅 Absensi' : '📝 Tugas'}
                         </div>
@@ -358,7 +365,7 @@ const PetStreak: React.FC = () => {
               <div className="text-right">
                 <div className="text-lg font-extrabold">{data.streak.current_streak}</div>
                 <div className="text-[10px] text-gray-400">
-                  
+
                   {ranking && ranking.total_siswa > 0 && (
                     <span className="block mt-0.5">{ranking.rank} dari {ranking.total_siswa} siswa</span>
                   )}
@@ -373,6 +380,16 @@ const PetStreak: React.FC = () => {
               </div>
               <div className="text-right">
                 <div className="text-lg font-extrabold">{data.total_points}</div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between bg-gray-800/70 rounded-lg p-2 mt-2">
+              <div className="flex items-center gap-2">
+                <span className="text-yellow-400">🪙</span>
+                <span className="text-sm">Koin Saya</span>
+              </div>
+              <div className="text-right">
+                <div className="text-lg font-extrabold text-yellow-400">{data.koin}</div>
               </div>
             </div>
 
