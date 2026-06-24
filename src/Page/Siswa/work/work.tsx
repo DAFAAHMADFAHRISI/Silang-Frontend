@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import api from '../../../services/api';
 import LocationSearch from '../../../components/LocationSearch';
-import { SiswaLoading, SiswaSearchFilter, SISWA_PAGE_CLASS } from '../components/SiswaLayout';
+import { SiswaLoading, SiswaSearchFilter, SiswaPageHeader, SiswaDivider, SISWA_PAGE_CLASS } from '../components/SiswaLayout';
 
 interface WorkAssignment {
   id: number;
@@ -250,41 +250,34 @@ const Work: React.FC = () => {
 
   return (
     <div className={SISWA_PAGE_CLASS}>
-      {/* Header */}
-      <div className="mb-4 sm:mb-6">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            <div className="w-1 sm:w-2 h-6 sm:h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              Penugasan Lokasi Luar
-            </h1>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              // Set mentor_id dari assignment pertama jika ada, atau kosongkan
-              const firstMentor = uniqueMentors[0];
-              setFormData({
-                mentor_id: firstMentor ? firstMentor.id.toString() : '',
-                nama_lokasi: '',
-                latitude: null,
-                longitude: null,
-                mulai: '',
-                selesai: '',
-                alasan: ''
-              });
-              setShowRequestModal(true);
-            }}
-            className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300 text-sm sm:text-base"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Ajukan Penugasan</span>
-          </button>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex-1">
+          <SiswaPageHeader title="Penugasan Lokasi Luar" subtitle="Lihat dan kelola penugasan lokasi luar Anda." />
         </div>
-        <p className="text-gray-400 mt-2 ml-3 sm:ml-5 text-sm sm:text-base">Lihat dan kelola penugasan lokasi luar Anda.</p>
+        <button
+          type="button"
+          onClick={() => {
+            // Set mentor_id dari assignment pertama jika ada, atau kosongkan
+            const firstMentor = uniqueMentors[0];
+            setFormData({
+              mentor_id: firstMentor ? firstMentor.id.toString() : '',
+              nama_lokasi: '',
+              latitude: null,
+              longitude: null,
+              mulai: '',
+              selesai: '',
+              alasan: ''
+            });
+            setShowRequestModal(true);
+          }}
+          className="w-full sm:w-auto self-start sm:self-center bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-3 sm:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-all duration-300 text-sm sm:text-base"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Ajukan Penugasan</span>
+        </button>
       </div>
 
-      <hr className="border-gray-700 mb-4 sm:mb-6" />
+      <SiswaDivider />
 
       <SiswaSearchFilter
         searchValue={searchTerm}

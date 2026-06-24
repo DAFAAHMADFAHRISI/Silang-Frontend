@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { authAPI } from '../../services/api';
+import { SISWA_PAGE_CLASS, SiswaPageHeader, SiswaDivider } from './components/SiswaLayout';
 
 interface ResetPasswordData {
   email: string;
@@ -215,27 +216,21 @@ const ResetPassword: React.FC = () => {
   };
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6 min-h-screen">
+    <div className={SISWA_PAGE_CLASS}>
       <div className="max-w-md mx-auto w-full">
-        <div className="mb-6 sm:mb-8">
-          <div className="flex items-center gap-2 sm:gap-3 mb-4">
-            <button
-              type="button"
-              onClick={goBack}
-              className="text-gray-400 hover:text-white transition-colors p-1"
-            >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <div className="w-1 sm:w-2 h-6 sm:h-8 bg-gradient-to-b from-orange-500 to-red-600 rounded-full flex-shrink-0"></div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              Reset Password
-            </h1>
+        <div className="flex items-start gap-3 mb-6">
+          <button
+            type="button"
+            onClick={goBack}
+            className="mt-1 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white p-2.5 rounded-xl transition-all"
+          >
+            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div className="flex-1">
+            <SiswaPageHeader title="Reset Password" subtitle="Reset password akun Anda melalui email" />
           </div>
-          <p className="text-gray-400 text-sm sm:text-base ml-8 sm:ml-9">
-            Reset password akun Anda melalui email
-          </p>
         </div>
 
         <div className="mb-6 sm:mb-8">

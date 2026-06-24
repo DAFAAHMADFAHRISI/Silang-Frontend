@@ -3,7 +3,16 @@ import { UserCheck, Clock, Calendar, TrendingUp, AlertCircle, CheckCircle, Award
 import Webcam from 'react-webcam';
 import Swal from 'sweetalert2';
 
-const Divider = () => <div className="border-t border-gray-700/50 my-6 sm:my-8 w-full" />;
+import {
+  SISWA_PAGE_CLASS,
+  SiswaDivider,
+  SiswaPageHeader,
+  SiswaLoading,
+  SiswaError,
+  SiswaSearchFilter,
+  SiswaStatCard,
+  SISWA_STATS_GRID
+} from '../components/SiswaLayout';
 
 interface AttendanceRow {
   id: number;
@@ -1012,14 +1021,7 @@ const Attendance: React.FC = () => {
   const { action, message } = getCurrentAction();
 
   if (loading) {
-    return (
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Memuat data absensi...</p>
-        </div>
-      </div>
-    );
+    return <SiswaLoading message="Memuat data absensi..." />;
   }
 
   if (error) {
@@ -1030,45 +1032,28 @@ const Attendance: React.FC = () => {
     }
 
     return (
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="w-12 h-12 text-red-500 mx-auto mb-4">⚠️</div>
-            <p className="text-red-400 mb-4 text-lg font-semibold">Error: {error}</p>
-            <div className="space-y-2">
-              <button
-                onClick={fetchAttendance}
-                className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg transition-colors font-semibold"
-              >
-                Coba Lagi
-              </button>
-              <button
-                onClick={() => window.location.href = '/Login'}
-                className="bg-gray-600 hover:bg-gray-700 px-6 py-3 rounded-lg transition-colors font-semibold ml-2"
-              >
-                Login Ulang
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <SiswaError
+        error={error}
+        onRetry={
+          error.includes('Token') || error.includes('Sesi')
+            ? () => {
+                localStorage.removeItem('token');
+                window.location.href = '/Login';
+              }
+            : fetchAttendance
+        }
+        retryLabel={
+          error.includes('Token') || error.includes('Sesi') ? 'Login' : 'Coba Lagi'
+        }
+      />
     );
   }
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6">
-      {/* Header */}
-      <div className="mb-4 sm:mb-6 mt-0">
-        <div className="flex items-center space-x-2 sm:space-x-3">
-          <div className="w-1 sm:w-2 h-6 sm:h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-            Attendance
-          </h1>
-        </div>
-        <p className="text-gray-400 mt-2 ml-3 sm:ml-5 text-sm sm:text-base">Riwayat kehadiran dan absensi siswa.</p>
-      </div>
+    <div className={SISWA_PAGE_CLASS}>
+      <SiswaPageHeader title="Attendance" subtitle="Riwayat kehadiran dan absensi siswa." />
 
-      <Divider />
+      <SiswaDivider />
 
       {/* Success/Error Messages */}
       {success && (
@@ -1300,75 +1285,47 @@ const Attendance: React.FC = () => {
       )}
 
       {/* Statistics */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-        <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 text-sm">Total Absensi</p>
-              <p className="text-2xl font-bold text-white">{filteredAttendance.length}</p>
-            </div>
-            <UserCheck className="w-8 h-8 text-blue-400" />
-          </div>
-        </div>
-        <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 text-sm">Tepat Waktu</p>
-              <p className="text-2xl font-bold text-green-400">
-                {filteredAttendance.filter(item => !item.status_kehadiran?.toLowerCase().includes('terlambat')).length}
-              </p>
-            </div>
-            <CheckCircle className="w-8 h-8 text-green-400" />
-          </div>
-        </div>
-        <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 text-sm">Terlambat</p>
-              <p className="text-2xl font-bold text-red-400">
-                {filteredAttendance.filter(item => item.status_kehadiran?.toLowerCase().includes('terlambat')).length}
-              </p>
-            </div>
-            <AlertCircle className="w-8 h-8 text-red-400" />
-          </div>
-        </div>
-        <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-400 text-sm">Check Out</p>
-              <p className="text-2xl font-bold text-blue-400">
-                {filteredAttendance.filter(item => item.waktu_checkout).length}
-              </p>
-            </div>
-            <Clock className="w-8 h-8 text-blue-400" />
-          </div>
-        </div>
+      <div className={SISWA_STATS_GRID}>
+        <SiswaStatCard
+          label="Total Absensi"
+          value={filteredAttendance.length}
+          icon={<UserCheck className="w-8 h-8 text-blue-400" />}
+        />
+        <SiswaStatCard
+          label="Tepat Waktu"
+          value={filteredAttendance.filter(item => !item.status_kehadiran?.toLowerCase().includes('terlambat')).length}
+          valueClassName="text-green-400"
+          icon={<CheckCircle className="w-8 h-8 text-green-400" />}
+        />
+        <SiswaStatCard
+          label="Terlambat"
+          value={filteredAttendance.filter(item => item.status_kehadiran?.toLowerCase().includes('terlambat')).length}
+          valueClassName="text-red-400"
+          icon={<AlertCircle className="w-8 h-8 text-red-400" />}
+        />
+        <SiswaStatCard
+          label="Check Out"
+          value={filteredAttendance.filter(item => item.waktu_checkout).length}
+          valueClassName="text-blue-400"
+          icon={<Clock className="w-8 h-8 text-blue-400" />}
+        />
       </div>
 
       {/* Search and Filter */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3 sm:gap-4">
-        <input
-          type="text"
-          placeholder="Cari nama atau tanggal..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="bg-gray-800 text-white px-3 py-2 sm:px-4 sm:py-2 rounded focus:outline-none border border-gray-700 w-full sm:w-64 text-sm sm:text-base"
-        />
-        <div className="flex gap-2 items-center">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-gray-800 text-white px-2 py-2 rounded border border-gray-700 text-xs sm:text-sm"
-          >
-            <option value="all">Semua Status</option>
-            <option value="ontime">Tepat Waktu</option>
-            <option value="late">Terlambat</option>
-          </select>
-          {/* Tombol Check In dihapus sesuai permintaan user */}
-        </div>
-      </div>
+      <SiswaSearchFilter
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Cari nama atau tanggal..."
+        filterValue={statusFilter}
+        onFilterChange={setStatusFilter}
+        filterOptions={[
+          { value: 'all', label: 'Semua Status' },
+          { value: 'ontime', label: 'Tepat Waktu' },
+          { value: 'late', label: 'Terlambat' },
+        ]}
+      />
 
-      <Divider />
+      <SiswaDivider />
 
       {/* Attendance Data */}
       {filteredAttendance.length === 0 ? (
@@ -1537,7 +1494,7 @@ const Attendance: React.FC = () => {
         </>
       )}
 
-      <Divider />
+      <SiswaDivider />
 
       {/* Pagination */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

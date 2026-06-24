@@ -19,6 +19,8 @@ import {
   SiswaLoading,
   SiswaError,
   SiswaSearchFilter,
+  SiswaPageHeader,
+  SiswaDivider,
   SISWA_PAGE_CLASS,
 } from "../components/SiswaLayout";
 
@@ -222,20 +224,12 @@ const ActivityPage: React.FC = () => {
 
   return (
     <div className={SISWA_PAGE_CLASS}>
-      {/* Header */}
-      <div className="mb-4 sm:mb-6">
-        <div className="flex items-center space-x-2 sm:space-x-3">
-          <div className="w-1 sm:w-2 h-6 sm:h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-            Aktivitas Magang
-          </h1>
-        </div>
-        <p className="text-gray-400 mt-2 ml-3 sm:ml-5 text-sm sm:text-base">
-          Rangkuman poin, streak, dan penugasan luar instansi untuk {userName}.
-        </p>
-      </div>
+      <SiswaPageHeader
+        title="Aktivitas Magang"
+        subtitle={`Rangkuman poin, streak, dan penugasan luar instansi untuk ${userName}.`}
+      />
 
-      <div className="border-t border-gray-700/50 my-4 sm:my-6 w-full" />
+      <SiswaDivider />
 
       {/* Top Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mb-6">
@@ -364,7 +358,7 @@ const ActivityPage: React.FC = () => {
         )}
       </div>
 
-      <div className="border-t border-gray-700/50 my-4 sm:my-6 w-full" />
+      <SiswaDivider />
 
       {/* Calendar View atau List View */}
       <div className="mb-6">
@@ -480,7 +474,7 @@ const ActivityPage: React.FC = () => {
         )}
       </div>
 
-      <div className="border-t border-gray-700/50 my-4 sm:my-6 w-full" />
+      <SiswaDivider />
 
       {/* Riwayat poin hari ini */}
       <div>

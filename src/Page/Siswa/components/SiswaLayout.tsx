@@ -11,7 +11,7 @@ export const SiswaDivider: React.FC = () => (
 
 interface SiswaPageHeaderProps {
   title: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
 }
 
 export const SiswaPageHeader: React.FC<SiswaPageHeaderProps> = ({ title, subtitle }) => (

@@ -3,7 +3,7 @@ import { Users, UserCheck, Clock, CheckCircle, AlertCircle, Calendar, Mail, Awar
 import { useState, useEffect } from "react"
 import { landingPageAPI } from "../../services/api"
 import { getDeadlineStatus } from "../../utils/deadlineStatus"
-import { SiswaLoading, SiswaError, SiswaDivider, SISWA_PAGE_CLASS } from "./components/SiswaLayout"
+import { SiswaLoading, SiswaError, SiswaPageHeader, SiswaDivider, SISWA_PAGE_CLASS } from "./components/SiswaLayout"
 
 interface StatCardProps {
   title: string
@@ -753,16 +753,16 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className={SISWA_PAGE_CLASS}>
-      {/* Header */}
-      <div className="mb-4 sm:mb-6 mt-0">
-        <div className="flex items-center space-x-2 sm:space-x-3">
-          <div className="w-1 sm:w-2 h-6 sm:h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-            Dashboard
-          </h1>
-        </div>
-        <p className="text-gray-400 mt-2 ml-3 sm:ml-5 text-sm sm:text-base">Selamat datang, {userName}! sebagai <span className="text-blue-400 font-semibold">{getRoleLabel(userRole)}</span>. Berikut rekap hari ini.</p>
-      </div>
+      <SiswaPageHeader
+        title="Dashboard"
+        subtitle={
+          <>
+            Selamat datang, {userName}! sebagai{" "}
+            <span className="text-blue-400 font-semibold">{getRoleLabel(userRole)}</span>.
+            Berikut rekap hari ini.
+          </>
+        }
+      />
 
       <SiswaDivider />
 
