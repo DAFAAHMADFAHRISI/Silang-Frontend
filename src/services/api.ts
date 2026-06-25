@@ -292,7 +292,7 @@ export const certificateAPI = {
   },
 
   // Siswa endpoints
-  getSiswaMagangStatus: async (): Promise<{ success: boolean; data: { status: string; status_magang: string; tanggal_mulai_magang?: string; tanggal_selesai_magang?: string; nama: string; id: number } }> => {
+  getSiswaMagangStatus: async (): Promise<{ success: boolean; data: { status: string; status_magang: string; tanggal_mulai_magang?: string; tanggal_selesai_magang?: string; nama: string; id: number; institusi?: string } }> => {
     const response = await api.get('/api/siswa/magang-status');
     return response.data;
   },

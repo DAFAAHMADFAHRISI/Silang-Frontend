@@ -37,6 +37,7 @@ const SiswaSertifikat: React.FC = () => {
     const [selesai, setSelesai] = useState<string | undefined>()
     const [nama, setNama] = useState<string>('')
     const [status, setStatus] = useState<string>('')
+    const [institusi, setInstitusi] = useState<string>('')
 
     const [pointsSummary, setPointsSummary] = useState<PointsSummary>({
         total_points: 0,
@@ -59,6 +60,7 @@ const SiswaSertifikat: React.FC = () => {
                 setSelesai(d.tanggal_selesai_magang)
                 setNama(d.nama)
                 setStatus(d.status)
+                setInstitusi(d.institusi || '')
             })
             .catch((e) => setError(e?.response?.data?.message || 'Gagal memuat status magang'))
             .finally(() => setLoading(false))
@@ -176,7 +178,11 @@ const SiswaSertifikat: React.FC = () => {
                     </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-0">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-0">
+                    <div className="px-4 sm:px-5 py-4 border-b sm:border-b-0 sm:border-r border-gray-700/60">
+                        <div className="text-gray-400 text-xs sm:text-sm mb-1">Asal Institusi</div>
+                        <div className="text-gray-200 font-medium text-sm sm:text-base truncate">{institusi || '-'}</div>
+                    </div>
                     <div className="px-4 sm:px-5 py-4 border-b sm:border-b-0 sm:border-r border-gray-700/60">
                         <div className="text-gray-400 text-xs sm:text-sm mb-1">Periode Magang</div>
                         <div className="text-gray-200 font-medium text-sm sm:text-base">
