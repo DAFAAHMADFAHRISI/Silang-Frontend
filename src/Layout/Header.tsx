@@ -11,6 +11,23 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const navigate = useNavigate();
   const [nama, setNama] = useState<string>('User');
   const [role, setRole] = useState<string>('');
+  const [theme, setTheme] = useState<string>(() => {
+    return localStorage.getItem('theme') || 'dark';
+  });
+
+  useEffect(() => {
+    const root = window.document.body;
+    if (theme === 'light') {
+      root.classList.add('light-mode');
+    } else {
+      root.classList.remove('light-mode');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   useEffect(() => {
     const updateUserData = () => {
@@ -59,6 +76,22 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           className="w-8 h-8 object-contain rounded-full"
         />
         <span className="text-lg lg:text-xl font-bold text-white tracking-wide">SILANG</span>
+        {/* Toggle Theme Button */}
+        <button
+          onClick={toggleTheme}
+          className="p-1.5 rounded-full hover:bg-gray-800 dark-toggle-btn text-gray-300 hover:text-white transition-colors duration-200 focus:outline-none flex items-center justify-center"
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        >
+          {theme === 'dark' ? (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.364 17.636l-.707.707M17.636 17.636l.707-.707M6.364 4.364l.707-.707M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+          ) : (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+            </svg>
+          )}
+        </button>
       </div>
       
       {/* User Profile */}

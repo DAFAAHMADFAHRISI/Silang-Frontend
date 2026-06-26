@@ -51,3 +51,289 @@ code {
     min-height: 44px;
   }
 }
+
+/* ==========================================================================
+   LIGHT MODE OVERRIDES
+   ========================================================================== */
+body.light-mode {
+  background-color: #f3f4f6 !important;
+  color: #1f2937 !important;
+}
+
+body.light-mode #root {
+  background-color: #f3f4f6 !important;
+}
+
+/* Background overrides */
+body.light-mode .bg-gray-900 {
+  background-color: #ffffff !important;
+}
+
+body.light-mode .bg-gray-800 {
+  background-color: #ffffff !important;
+}
+
+body.light-mode .bg-gray-700 {
+  background-color: #e5e7eb !important;
+}
+
+body.light-mode .bg-\[\#232834\] {
+  background-color: #ffffff !important;
+}
+
+body.light-mode .bg-\[\#1a1f2c\] {
+  background-color: #f9fafb !important;
+}
+
+body.light-mode .bg-gray-800\/50 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+body.light-mode .bg-gray-900\/50 {
+  background-color: rgba(243, 244, 246, 0.8) !important;
+}
+
+/* Gradients */
+body.light-mode .bg-gradient-to-br.from-gray-900.via-gray-800.to-gray-900,
+body.light-mode .bg-gradient-to-br.from-gray-900.to-gray-800 {
+  background-image: linear-gradient(to bottom right, #f9fafb, #f3f4f6, #f9fafb) !important;
+}
+
+/* Typography overrides */
+body.light-mode .text-white {
+  color: #111827 !important;
+}
+
+body.light-mode .text-gray-100 {
+  color: #1f2937 !important;
+}
+
+body.light-mode .text-gray-200 {
+  color: #374151 !important;
+}
+
+body.light-mode .text-gray-300 {
+  color: #4b5563 !important;
+}
+
+body.light-mode .text-gray-400 {
+  color: #6b7280 !important;
+}
+
+body.light-mode .text-gray-500 {
+  color: #9ca3af !important;
+}
+
+body.light-mode .text-white\/80 {
+  color: rgba(17, 24, 39, 0.8) !important;
+}
+
+body.light-mode .text-white\/60 {
+  color: rgba(17, 24, 39, 0.6) !important;
+}
+
+/* Gradient text overrides */
+body.light-mode .from-white.to-gray-300 {
+  --tw-gradient-from: #111827 !important;
+  --tw-gradient-to: #4b5563 !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+/* Border overrides */
+body.light-mode .border-gray-800,
+body.light-mode .border-gray-700,
+body.light-mode .border-gray-600,
+body.light-mode .border-gray-800\/50,
+body.light-mode .border-gray-700\/50,
+body.light-mode .border-gray-600\/50 {
+  border-color: #e5e7eb !important;
+}
+
+/* Header & Sidebar specificity */
+body.light-mode header,
+body.light-mode aside {
+  background-color: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+
+/* Hover effects */
+body.light-mode .hover\:bg-gray-800:hover {
+  background-color: #f3f4f6 !important;
+}
+
+body.light-mode .hover\:bg-gray-700:hover {
+  background-color: #e5e7eb !important;
+}
+
+body.light-mode .hover\:text-white:hover {
+  color: #111827 !important;
+}
+
+/* Nav links active styles */
+body.light-mode a.bg-gray-800 {
+  background-color: #f3f4f6 !important;
+  color: #111827 !important;
+}
+
+/* Inputs, Selects, Buttons */
+body.light-mode input,
+body.light-mode select,
+body.light-mode textarea {
+  background-color: #ffffff !important;
+  color: #1f2937 !important;
+  border-color: #d1d5db !important;
+}
+
+body.light-mode input::placeholder,
+body.light-mode textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+/* Custom icons in menus */
+body.light-mode .text-gray-300 i,
+body.light-mode .text-gray-400 i {
+  color: #4b5563 !important;
+}
+
+/* Specific button theme classes */
+body.light-mode .dark-toggle-btn {
+  color: #4b5563 !important;
+}
+
+body.light-mode .dark-toggle-btn:hover {
+  background-color: #f3f4f6 !important;
+  color: #111827 !important;
+}
+
+/* Chat page bubble adjustments */
+body.light-mode .chat-bubble-received {
+  background-color: #e5e7eb !important;
+  color: #1f2937 !important;
+}
+body.light-mode .chat-bubble-sent {
+  background-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+/* Opacity-based background overrides */
+body.light-mode .bg-gray-800\/70 {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+body.light-mode .bg-gray-800\/50 {
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+body.light-mode .bg-gray-900\/50 {
+  background-color: rgba(243, 244, 246, 0.5) !important;
+}
+
+/* Opacity-based border overrides */
+body.light-mode .border-gray-700\/60 {
+  border-color: rgba(229, 231, 235, 0.6) !important;
+}
+
+body.light-mode .border-gray-700\/50 {
+  border-color: rgba(229, 231, 235, 0.5) !important;
+}
+
+body.light-mode .border-gray-600\/40 {
+  border-color: rgba(229, 231, 235, 0.4) !important;
+}
+
+body.light-mode .border-gray-600\/30 {
+  border-color: rgba(229, 231, 235, 0.3) !important;
+}
+
+/* Specific status badges in light mode */
+body.light-mode .bg-green-900\/50 {
+  background-color: rgba(220, 252, 231, 0.8) !important;
+  color: #15803d !important;
+  border-color: rgba(187, 247, 208, 0.8) !important;
+}
+
+body.light-mode .bg-yellow-900\/50 {
+  background-color: rgba(254, 240, 138, 0.8) !important;
+  color: #a16207 !important;
+  border-color: rgba(253, 224, 71, 0.8) !important;
+}
+
+/* Colored text overrides for readability in light mode */
+body.light-mode .text-green-400 {
+  color: #15803d !important;
+}
+
+body.light-mode .text-yellow-400 {
+  color: #a16207 !important;
+}
+
+body.light-mode .text-orange-400 {
+  color: #c2410c !important;
+}
+
+body.light-mode .text-purple-400 {
+  color: #7e22ce !important;
+}
+
+body.light-mode .text-blue-400 {
+  color: #1d4ed8 !important;
+}
+
+/* Base tailwind variables override */
+body.light-mode .from-white {
+  --tw-gradient-from: #111827 !important;
+}
+
+body.light-mode .to-gray-300 {
+  --tw-gradient-to: #4b5563 !important;
+}
+
+/* PetStreak Light Mode overrides */
+body.light-mode .bg-gray-900\/95 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  color: #1f2937 !important;
+  border-color: rgba(229, 231, 235, 0.8) !important;
+}
+
+body.light-mode .bg-gray-900\/95 .text-white {
+  color: #111827 !important;
+}
+
+body.light-mode .bg-gray-900\/95 .text-gray-400 {
+  color: #6b7280 !important;
+}
+
+body.light-mode .bg-gray-900\/95 .text-gray-300 {
+  color: #4b5563 !important;
+}
+
+body.light-mode .bg-gray-900\/95 .bg-gray-800\/70 {
+  background-color: rgba(243, 244, 246, 0.9) !important;
+  border-color: rgba(229, 231, 235, 0.8) !important;
+}
+
+body.light-mode .bg-gray-900\/95 .bg-gray-800\/80 {
+  background-color: rgba(243, 244, 246, 0.95) !important;
+  border-color: rgba(229, 231, 235, 0.8) !important;
+}
+
+body.light-mode .bg-gray-900\/95 .border-gray-700\/50,
+body.light-mode .bg-gray-900\/95 .border-gray-700\/70,
+body.light-mode .bg-gray-900\/95 .border-gray-700\/60 {
+  border-color: #e5e7eb !important;
+}
+
+body.light-mode .bg-gray-900\/95 .text-white\/90 {
+  color: #111827 !important;
+}
+
+body.light-mode .bg-gray-900\/95 .text-gray-300\/90 {
+  color: #374151 !important;
+}
+
+body.light-mode .bg-gray-900\/95 .text-pink-300\/80 {
+  color: #db2777 !important;
+}
+
+
+
