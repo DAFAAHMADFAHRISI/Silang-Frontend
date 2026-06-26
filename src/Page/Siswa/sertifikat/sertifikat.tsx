@@ -21,6 +21,8 @@ interface StreakData {
 
 interface PointsSummary {
     total_points: number
+    max_points?: number
+    diff_days?: number
     streak: StreakData
 }
 
@@ -41,6 +43,8 @@ const SiswaSertifikat: React.FC = () => {
 
     const [pointsSummary, setPointsSummary] = useState<PointsSummary>({
         total_points: 0,
+        max_points: 0,
+        diff_days: 0,
         streak: { current_streak: 0, best_streak: 0, last_activity_date: null }
     })
     const [ranking, setRanking] = useState<RankingData | null>(null)
@@ -83,6 +87,8 @@ const SiswaSertifikat: React.FC = () => {
                         const streakRaw = pointsJson.data.streak || {}
                         setPointsSummary({
                             total_points: pointsJson.data.total_points || 0,
+                            max_points: pointsJson.data.max_points || 0,
+                            diff_days: pointsJson.data.diff_days || 0,
                             streak: {
                                 current_streak: streakRaw.current_streak ?? streakRaw.streak_saat_ini ?? 0,
                                 best_streak: streakRaw.best_streak ?? streakRaw.streak_terbaik ?? 0,
@@ -229,13 +235,21 @@ const SiswaSertifikat: React.FC = () => {
                     <div className={SISWA_STATS_GRID}>
                         <SiswaStatCard
                             label="Total Poin"
-                            value={pointsSummary.total_points}
+                            value={
+                                pointsSummary.max_points
+                                    ? `${pointsSummary.total_points} dari ${pointsSummary.max_points} Max Poin`
+                                    : pointsSummary.total_points
+                            }
                             valueClassName="text-yellow-400"
                             icon={<Award className="w-7 h-7 sm:w-8 sm:h-8 text-yellow-400" />}
                         />
                         <SiswaStatCard
                             label="Streak"
-                            value={`${pointsSummary.streak.current_streak} hari`}
+                            value={
+                                pointsSummary.diff_days
+                                    ? `${pointsSummary.streak.current_streak} hari dari ${pointsSummary.diff_days} hari`
+                                    : `${pointsSummary.streak.current_streak} hari`
+                            }
                             valueClassName="text-orange-400"
                             icon={<Flame className="w-7 h-7 sm:w-8 sm:h-8 text-orange-400" />}
                         />
