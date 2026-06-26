@@ -123,11 +123,14 @@ const PetStreak: React.FC = () => {
           koin: json.data.koin || 0,
           max_points: json.data.max_points || 0,
           diff_days: json.data.diff_days || 0,
-          streak: json.data.streak || {
-            current_streak: 0,
-            best_streak: 0,
-            last_activity_date: null
-          }
+          streak: (() => {
+            const raw = json.data.streak || {}
+            return {
+              current_streak: raw.current_streak ?? raw.streak_saat_ini ?? 0,
+              best_streak: raw.best_streak ?? raw.streak_terbaik ?? 0,
+              last_activity_date: raw.last_activity_date ?? raw.tanggal_aktivitas_terakhir ?? null
+            }
+          })()
         })
       }
     } catch (e) {
@@ -316,7 +319,7 @@ const PetStreak: React.FC = () => {
               </ul>
               {data.max_points && (
                 <div className="text-[10px] text-yellow-400 font-semibold pt-1 border-t border-gray-700/50 mt-1">
-                  Maksimal Poin Magang Anda: {data.max_points} poin ({data.diff_days} Hari)
+                  Maksimal Poin Magang Anda: {data.max_points} poin ({data.diff_days} hari kerja)
                 </div>
               )}
             </div>
@@ -373,7 +376,11 @@ const PetStreak: React.FC = () => {
                 <span className="text-sm">Streak</span>
               </div>
               <div className="text-right">
-                <div className="text-lg font-extrabold">{data.streak.current_streak}</div>
+                <div className="text-lg font-extrabold">
+                  {data.diff_days
+                    ? `${data.streak.current_streak} hari dari ${data.diff_days} hari`
+                    : `${data.streak.current_streak} hari`}
+                </div>
                 <div className="text-[10px] text-gray-400">
 
                   {ranking && ranking.total_siswa > 0 && (
@@ -392,7 +399,11 @@ const PetStreak: React.FC = () => {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-lg font-extrabold">{data.total_points}</div>
+                <div className="text-lg font-extrabold">
+                  {data.max_points
+                    ? `${data.total_points} dari ${data.max_points} Max Poin`
+                    : data.total_points}
+                </div>
               </div>
             </div>
 
