@@ -311,6 +311,8 @@ const PetStreak: React.FC = () => {
               <ul className="list-disc list-inside text-gray-300/90 space-y-0.5">
                 <li>Absensi: Masuk 10 poin, Terlambat 5 poin, Tidak masuk 0 poin</li>
                 <li>Tugas: Tepat waktu 20 poin, Terlambat 10 poin, Tidak mengumpulkan 0 poin</li>
+                <li>Total Poin: akumulasi seluruh poin yang pernah didapat</li>
+                <li>Poin Tersedia: sisa poin yang bisa dipakai (total dikurangi poin terpakai)</li>
               </ul>
               {data.max_points && (
                 <div className="text-[10px] text-yellow-400 font-semibold pt-1 border-t border-gray-700/50 mt-1">
@@ -384,7 +386,10 @@ const PetStreak: React.FC = () => {
             <div className="flex items-center justify-between bg-gray-800/70 rounded-lg p-2 mt-2">
               <div className="flex items-center gap-2">
                 <span className="text-yellow-300">🏅</span>
-                <span className="text-sm">Total Poin</span>
+                <div>
+                  <span className="text-sm">Total Poin</span>
+                  <div className="text-[10px] text-gray-400">Akumulasi sepanjang waktu</div>
+                </div>
               </div>
               <div className="text-right">
                 <div className="text-lg font-extrabold">{data.total_points}</div>
@@ -393,11 +398,14 @@ const PetStreak: React.FC = () => {
 
             <div className="flex items-center justify-between bg-gray-800/70 rounded-lg p-2 mt-2">
               <div className="flex items-center gap-2">
-                <span className="text-yellow-400">🪙</span>
-                <span className="text-sm">Koin Saya</span>
+                <span className="text-emerald-400">✨</span>
+                <div>
+                  <span className="text-sm">Poin Tersedia</span>
+                  <div className="text-[10px] text-gray-400">Sisa setelah poin dipakai</div>
+                </div>
               </div>
               <div className="text-right">
-                <div className="text-lg font-extrabold text-yellow-400">{data.koin}</div>
+                <div className="text-lg font-extrabold text-emerald-400">{data.koin}</div>
               </div>
             </div>
 
