@@ -10,6 +10,8 @@ interface PointsSummary {
   total_points: number
   koin: number
   streak: StreakData
+  max_points?: number
+  diff_days?: number
 }
 
 interface PointsHistoryItem {
@@ -37,9 +39,10 @@ const PetStreak: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
 
   // Compute pet growth (evolution) from streak and points
-  const computePetMetrics = (streakVal: number, totalPoints: number) => {
+  const computePetMetrics = (streakVal: number, totalPoints: number, maxPointsVal?: number) => {
     const s = Number(streakVal) || 0
     const p = Number(totalPoints) || 0
+    const maxPoints = Number(maxPointsVal) || 750
 
     // Level via streak (kejar konsistensi)
     let levelFromStreak = 1
@@ -48,14 +51,20 @@ const PetStreak: React.FC = () => {
     else if (s >= 10) levelFromStreak = 3
     else if (s >= 5) levelFromStreak = 2
 
-    // Level via points (sesuai ketentuan):
-    // L1 ≥ 100, L2 ≥ 200, L3 ≥ 350, L4 ≥ 500, L5 ≥ 750
+    // Level via points (sesuai ketentuan, diskalakan berdasarkan maksimal poin):
+    // L1: 13%, L2: 26%, L3: 46%, L4: 66%, L5: 90%
     let levelFromPoints = 1
-    if (p >= 750) levelFromPoints = 5
-    else if (p >= 500) levelFromPoints = 4
-    else if (p >= 350) levelFromPoints = 3
-    else if (p >= 200) levelFromPoints = 2
-    else if (p >= 100) levelFromPoints = 1
+    const l5 = Math.round(maxPoints * 0.9)
+    const l4 = Math.round(maxPoints * 0.66)
+    const l3 = Math.round(maxPoints * 0.46)
+    const l2 = Math.round(maxPoints * 0.26)
+    const l1 = Math.round(maxPoints * 0.13)
+
+    if (p >= l5) levelFromPoints = 5
+    else if (p >= l4) levelFromPoints = 4
+    else if (p >= l3) levelFromPoints = 3
+    else if (p >= l2) levelFromPoints = 2
+    else if (p >= l1) levelFromPoints = 1
 
     // Ambil level tertinggi agar progres terasa rewarding
     const level = Math.max(levelFromStreak, levelFromPoints)
@@ -84,7 +93,7 @@ const PetStreak: React.FC = () => {
     return { level, petSizePx, emojiSizePx, emoji }
   }
 
-  const metrics = computePetMetrics(data.streak.current_streak, data.total_points)
+  const metrics = computePetMetrics(data.streak.current_streak, data.total_points, data.max_points)
 
   const fetchPoints = async () => {
     try {
@@ -112,6 +121,8 @@ const PetStreak: React.FC = () => {
         setData({
           total_points: json.data.total_points || 0,
           koin: json.data.koin || 0,
+          max_points: json.data.max_points || 0,
+          diff_days: json.data.diff_days || 0,
           streak: json.data.streak || {
             current_streak: 0,
             best_streak: 0,
@@ -290,25 +301,22 @@ const PetStreak: React.FC = () => {
             <div className="mt-2 text-xs bg-gray-800/80 border border-gray-700/70 rounded-lg p-3 space-y-2">
               <div className="font-semibold text-white/90">Aturan Level (berdasar poin)</div>
               <ul className="list-disc list-inside text-gray-300/90 space-y-0.5">
-                <li> 🥚 Level 1: ≥ 100 poin</li>
-                <li> 🐣 Level 2: ≥ 200 poin</li>
-                <li> 🐥 Level 3: ≥ 350 poin</li>
-                <li> 🐔 Level 4: ≥ 500 poin</li>
-                <li> 🐓 Level 5: ≥ 750 poin</li>
+                <li> 🥚 Level 1: ≥ {Math.round((data.max_points || 750) * 0.13)} poin</li>
+                <li> 🐣 Level 2: ≥ {Math.round((data.max_points || 750) * 0.26)} poin</li>
+                <li> 🐥 Level 3: ≥ {Math.round((data.max_points || 750) * 0.46)} poin</li>
+                <li> 🐔 Level 4: ≥ {Math.round((data.max_points || 750) * 0.66)} poin</li>
+                <li> 🐓 Level 5: ≥ {Math.round((data.max_points || 750) * 0.9)} poin</li>
               </ul>
-              {/* <div className="font-semibold text-white/90 pt-1">Aturan Level (berdasar streak)</div>
-              <ul className="list-disc list-inside text-gray-300/90 space-y-0.5">
-                <li> 🥚 Level 1: Streak 0-4 hari</li>
-                <li> 🐣 Level 2: Streak 5-9 hari</li>
-                <li> 🐥 Level 3: Streak 10-19 hari</li>
-                <li> 🐔 Level 4: Streak 20-34 hari</li>
-                <li> 🐓 Level 5: Streak ≥ 35 hari</li>
-              </ul> */}
               <div className="font-semibold text-white/90 pt-1">Aturan Poin</div>
               <ul className="list-disc list-inside text-gray-300/90 space-y-0.5">
                 <li>Absensi: Masuk 10 poin, Terlambat 5 poin, Tidak masuk 0 poin</li>
                 <li>Tugas: Tepat waktu 20 poin, Terlambat 10 poin, Tidak mengumpulkan 0 poin</li>
               </ul>
+              {data.max_points && (
+                <div className="text-[10px] text-yellow-400 font-semibold pt-1 border-t border-gray-700/50 mt-1">
+                  Maksimal Poin Magang Anda: {data.max_points} poin ({data.diff_days} Hari)
+                </div>
+              )}
             </div>
           )}
 

@@ -335,5 +335,10 @@ body.light-mode .bg-gray-900\/95 .text-pink-300\/80 {
   color: #db2777 !important;
 }
 
+body.light-mode main {
+  background-color: #f3f4f6 !important;
+}
+
+
 
 
