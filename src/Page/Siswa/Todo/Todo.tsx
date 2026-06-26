@@ -253,7 +253,7 @@ const Todo: React.FC = () => {
 
   const handleExtendClick = async (task: Task) => {
     const confirmExtend = window.confirm(
-      `Apakah Anda yakin ingin memperpanjang batas waktu tugas "${task.judul}" selama +1 hari dengan biaya 50 koin?`
+      `Apakah Anda yakin ingin memperpanjang batas waktu tugas "${task.judul}" selama +1 hari dengan biaya 50 poin tersedia?`
     );
     if (!confirmExtend) return;
 

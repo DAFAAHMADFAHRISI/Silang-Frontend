@@ -128,7 +128,7 @@ const Detail: React.FC = () => {
   const handleExtendDeadline = async () => {
     if (!task) return;
     const confirmExtend = window.confirm(
-      "Apakah Anda yakin ingin memperpanjang batas waktu tugas ini selama +1 hari dengan biaya 50 koin?"
+      "Apakah Anda yakin ingin memperpanjang batas waktu tugas ini selama +1 hari dengan biaya 50 poin tersedia?"
     );
     if (!confirmExtend) return;
 
@@ -439,7 +439,7 @@ const Detail: React.FC = () => {
                       </>
                     ) : (
                       <>
-                        <span>🪙 Perpanjang (+1 Hari) - 50 Koin</span>
+                        <span>✨ Perpanjang (+1 Hari) - 50 Poin</span>
                       </>
                     )}
                   </button>
