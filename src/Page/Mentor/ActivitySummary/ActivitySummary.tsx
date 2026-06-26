@@ -9,7 +9,18 @@ import {
   RefreshCw,
   Sparkles,
   X,
+  LineChart as LineChartIcon,
 } from "lucide-react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ReferenceLine,
+} from "recharts";
 import api from "../../../services/api";
 
 interface ActivitySummaryRow {
@@ -24,6 +35,206 @@ interface ActivitySummaryRow {
   total_nilai: number;
   rata_rata_nilai: number;
 }
+
+interface PerformanceDailyPoint {
+  date: string;
+  label: string;
+  hadir: number;
+  telat: number;
+  aktivitas: number;
+  tugas_selesai: number;
+  poin: number;
+  rata_nilai: number | null;
+}
+
+interface PerformanceChartData {
+  siswa_id: number;
+  siswa_nama: string;
+  period_start: string;
+  period_end: string;
+  daily: PerformanceDailyPoint[];
+  summary: {
+    total_hari_hadir: number;
+    late_days: number;
+    total_tugas_diberikan: number;
+    total_tugas_selesai: number;
+    total_nilai: number;
+    rata_rata_nilai: number;
+    total_aktivitas: number;
+    total_poin: number;
+  };
+}
+
+interface PerformanceChartPoint {
+  date: string;
+  label: string;
+  skor: number;
+  hadir: number;
+  telat: number;
+  aktivitas: number;
+  tugas_selesai: number;
+  poin: number;
+  rata_nilai: number | null;
+}
+
+interface SimpleChartResult {
+  series: PerformanceChartPoint[];
+  mode: "harian" | "mingguan";
+}
+
+const calculateDailyScore = (point: PerformanceDailyPoint): number => {
+  let score = 0;
+  if (point.hadir) {
+    score += point.telat ? 25 : 50;
+  }
+  score += Math.min(point.aktivitas * 10, 20);
+  score += Math.min(point.tugas_selesai * 30, 30);
+  return Math.min(score, 100);
+};
+
+const getScoreLevel = (score: number) => {
+  if (score >= 80) {
+    return {
+      label: "Sangat Baik",
+      color: "text-green-400",
+      bg: "bg-green-900/30 border-green-700/50",
+      stroke: "#22c55e",
+    };
+  }
+  if (score >= 60) {
+    return {
+      label: "Baik",
+      color: "text-blue-400",
+      bg: "bg-blue-900/30 border-blue-700/50",
+      stroke: "#3b82f6",
+    };
+  }
+  if (score >= 40) {
+    return {
+      label: "Cukup",
+      color: "text-yellow-400",
+      bg: "bg-yellow-900/30 border-yellow-700/50",
+      stroke: "#eab308",
+    };
+  }
+  return {
+    label: "Perlu Perhatian",
+    color: "text-red-400",
+    bg: "bg-red-900/30 border-red-700/50",
+    stroke: "#ef4444",
+  };
+};
+
+const buildSimpleChartSeries = (daily: PerformanceDailyPoint[]): SimpleChartResult => {
+  const scored: PerformanceChartPoint[] = daily.map((point) => ({
+    ...point,
+    skor: calculateDailyScore(point),
+  }));
+
+  if (scored.length <= 14) {
+    return { series: scored, mode: "harian" };
+  }
+
+  const weeks: {
+    label: string;
+    skor: number;
+    hadir: number;
+    aktivitas: number;
+    tugas_selesai: number;
+    count: number;
+  }[] = [];
+
+  scored.forEach((point, index) => {
+    const weekIndex = Math.floor(index / 7);
+    if (!weeks[weekIndex]) {
+      weeks[weekIndex] = {
+        label: `Minggu ${weekIndex + 1}`,
+        skor: 0,
+        hadir: 0,
+        aktivitas: 0,
+        tugas_selesai: 0,
+        count: 0,
+      };
+    }
+    weeks[weekIndex].skor += point.skor;
+    weeks[weekIndex].hadir += point.hadir;
+    weeks[weekIndex].aktivitas += point.aktivitas;
+    weeks[weekIndex].tugas_selesai += point.tugas_selesai;
+    weeks[weekIndex].count += 1;
+  });
+
+  return {
+    mode: "mingguan",
+    series: weeks.map((week) => ({
+      label: week.label,
+      date: week.label,
+      skor: Math.round(week.skor / week.count),
+      hadir: week.hadir,
+      aktivitas: week.aktivitas,
+      tugas_selesai: week.tugas_selesai,
+      telat: 0,
+      poin: 0,
+      rata_nilai: null,
+    })),
+  };
+};
+
+const buildPerformanceInsight = (
+  chartData: PerformanceChartData,
+  averageScore: number
+) => {
+  const { summary, daily } = chartData;
+  const scored = daily.map((point) => calculateDailyScore(point));
+  const mid = Math.floor(scored.length / 2);
+  const firstHalf =
+    mid > 0
+      ? scored.slice(0, mid).reduce((sum, value) => sum + value, 0) / mid
+      : averageScore;
+  const secondHalf =
+    scored.length > mid
+      ? scored.slice(mid).reduce((sum, value) => sum + value, 0) / (scored.length - mid)
+      : averageScore;
+
+  let trend = "stabil";
+  if (secondHalf - firstHalf >= 8) trend = "naik";
+  if (firstHalf - secondHalf >= 8) trend = "turun";
+
+  const taskRate =
+    summary.total_tugas_diberikan > 0
+      ? Math.round(
+          (summary.total_tugas_selesai / summary.total_tugas_diberikan) * 100
+        )
+      : 0;
+
+  let message = "";
+  if (averageScore >= 80) {
+    message = "Siswa menunjukkan performa yang konsisten dan aktif selama periode ini.";
+  } else if (averageScore >= 60) {
+    message = "Performa siswa cukup baik, masih ada ruang untuk lebih disiplin dan aktif.";
+  } else if (averageScore >= 40) {
+    message = "Performa siswa perlu ditingkatkan, terutama pada kehadiran dan penyelesaian tugas.";
+  } else {
+    message = "Siswa membutuhkan perhatian mentor karena kehadiran atau aktivitas masih rendah.";
+  }
+
+  if (trend === "naik") {
+    message += " Tren performa menunjukkan peningkatan di akhir periode.";
+  } else if (trend === "turun") {
+    message += " Tren performa menurun di akhir periode, disarankan evaluasi lebih lanjut.";
+  }
+
+  const details = [
+    `Kehadiran ${summary.total_hari_hadir} hari`,
+    summary.late_days > 0 ? `${summary.late_days}x terlambat` : "jarang terlambat",
+    `Tugas selesai ${summary.total_tugas_selesai}/${summary.total_tugas_diberikan} (${taskRate}%)`,
+  ];
+
+  if (summary.rata_rata_nilai > 0) {
+    details.push(`Rata-rata nilai ${summary.rata_rata_nilai}`);
+  }
+
+  return { message, details, trend };
+};
 
 const ActivitySummary: React.FC = () => {
   const [start, setStart] = useState<string>("");
@@ -40,6 +251,9 @@ const ActivitySummary: React.FC = () => {
   } | null>(null);
   const [generatingSummaryId, setGeneratingSummaryId] = useState<number | null>(null);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [chartData, setChartData] = useState<PerformanceChartData | null>(null);
+  const [showChartModal, setShowChartModal] = useState(false);
+  const [loadingChartId, setLoadingChartId] = useState<number | null>(null);
   const navigate = useNavigate();
 
   const toDateString = (d: Date) => {
@@ -215,6 +429,66 @@ const ActivitySummary: React.FC = () => {
       setGeneratingSummaryId(null);
     }
   };
+
+  const fetchPerformanceChart = async (siswaId: number, siswaNama: string) => {
+    if (!start || !end) {
+      alert("Pilih periode terlebih dahulu");
+      return;
+    }
+
+    try {
+      setLoadingChartId(siswaId);
+
+      const response = await api.get("/api/mentor/rekap-mentor/performance-chart", {
+        params: { siswa_id: siswaId, start, end },
+      });
+
+      if (response.data?.success) {
+        setChartData({
+          ...response.data.data,
+          siswa_nama: response.data.data.siswa_nama || siswaNama,
+        });
+        setShowChartModal(true);
+      } else {
+        throw new Error(response.data?.message || "Gagal memuat grafik performa");
+      }
+    } catch (err: any) {
+      const msg =
+        err.response?.data?.message ||
+        err.message ||
+        "Gagal memuat grafik performa.";
+      alert(msg);
+    } finally {
+      setLoadingChartId(null);
+    }
+  };
+
+  const chartTooltipStyle = {
+    backgroundColor: "#1F2937",
+    border: "1px solid #374151",
+    borderRadius: "8px",
+    color: "#F9FAFB",
+    fontSize: "13px",
+  };
+
+  const simpleChart: SimpleChartResult = chartData
+    ? buildSimpleChartSeries(chartData.daily)
+    : { series: [], mode: "harian" };
+
+  const averageScore =
+    simpleChart.series.length > 0
+      ? Math.round(
+          simpleChart.series.reduce(
+            (sum: number, point: PerformanceChartPoint) => sum + point.skor,
+            0
+          ) / simpleChart.series.length
+        )
+      : 0;
+
+  const scoreLevel = getScoreLevel(averageScore);
+  const performanceInsight = chartData
+    ? buildPerformanceInsight(chartData, averageScore)
+    : null;
 
   const totalSiswa = filteredData.length;
   const totalHadir = filteredData.reduce(
@@ -525,19 +799,38 @@ const ActivitySummary: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Action button */}
-                  <div className="pt-1">
+                  {/* Action buttons */}
+                  <div className="pt-1 grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() =>
+                        fetchPerformanceChart(row.siswa_id, row.siswa_nama)
+                      }
+                      disabled={loadingChartId !== null}
+                      className="py-2 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white rounded-lg text-xs font-semibold transition-all duration-300 transform active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center space-x-1.5"
+                    >
+                      {loadingChartId === row.siswa_id ? (
+                        <>
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                          <span>Memuat...</span>
+                        </>
+                      ) : (
+                        <>
+                          <LineChartIcon className="w-3.5 h-3.5" />
+                          <span>Grafik</span>
+                        </>
+                      )}
+                    </button>
                     <button
                       onClick={() =>
                         generateAISummary(row.siswa_id, row.siswa_nama)
                       }
                       disabled={generatingSummaryId !== null}
-                      className="w-full py-2 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-lg text-xs font-semibold transition-all duration-300 transform active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center space-x-1.5"
+                      className="py-2 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-lg text-xs font-semibold transition-all duration-300 transform active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center space-x-1.5"
                     >
                       {generatingSummaryId === row.siswa_id ? (
                         <>
                           <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                          <span>Membuat AI Summary...</span>
+                          <span>Membuat...</span>
                         </>
                       ) : (
                         <>
@@ -616,25 +909,46 @@ const ActivitySummary: React.FC = () => {
                         {row.rata_rata_nilai}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <button
-                          onClick={() =>
-                            generateAISummary(row.siswa_id, row.siswa_nama)
-                          }
-                          disabled={generatingSummaryId !== null}
-                          className="px-3 py-1.5 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-lg text-xs font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed flex items-center space-x-1 mx-auto"
-                        >
-                          {generatingSummaryId === row.siswa_id ? (
-                            <>
-                              <RefreshCw className="w-3 h-3 animate-spin" />
-                              <span>Membuat...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="w-3 h-3" />
-                              <span>AI Summary</span>
-                            </>
-                          )}
-                        </button>
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() =>
+                              fetchPerformanceChart(row.siswa_id, row.siswa_nama)
+                            }
+                            disabled={loadingChartId !== null}
+                            className="px-3 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white rounded-lg text-xs font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed flex items-center space-x-1"
+                          >
+                            {loadingChartId === row.siswa_id ? (
+                              <>
+                                <RefreshCw className="w-3 h-3 animate-spin" />
+                                <span>Memuat...</span>
+                              </>
+                            ) : (
+                              <>
+                                <LineChartIcon className="w-3 h-3" />
+                                <span>Grafik</span>
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={() =>
+                              generateAISummary(row.siswa_id, row.siswa_nama)
+                            }
+                            disabled={generatingSummaryId !== null}
+                            className="px-3 py-1.5 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-lg text-xs font-semibold transition-all duration-300 transform hover:scale-105 disabled:opacity-60 disabled:cursor-not-allowed flex items-center space-x-1"
+                          >
+                            {generatingSummaryId === row.siswa_id ? (
+                              <>
+                                <RefreshCw className="w-3 h-3 animate-spin" />
+                                <span>Membuat...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="w-3 h-3" />
+                                <span>AI Summary</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -644,6 +958,176 @@ const ActivitySummary: React.FC = () => {
           </>
         )}
       </div>
+
+      {/* Performance Chart Modal */}
+      {showChartModal && chartData && performanceInsight && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl p-4 sm:p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2 min-w-0">
+                <LineChartIcon className="w-6 h-6 text-blue-400 flex-shrink-0" />
+                <h2 className="text-xl sm:text-2xl font-bold text-white truncate">
+                  Performa {chartData.siswa_nama}
+                </h2>
+              </div>
+              <button
+                onClick={() => {
+                  setShowChartModal(false);
+                  setChartData(null);
+                }}
+                className="p-2 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
+              >
+                <X className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+
+            <p className="text-sm text-gray-400 mb-4">
+              Periode {chartData.period_start} – {chartData.period_end}
+            </p>
+
+            <div className={`rounded-xl border p-4 mb-4 ${scoreLevel.bg}`}>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-gray-400 mb-1">
+                    Kesimpulan Performa
+                  </p>
+                  <p className={`text-2xl font-bold ${scoreLevel.color}`}>
+                    {scoreLevel.label}
+                  </p>
+                  <p className="text-sm text-gray-300 mt-2 leading-relaxed">
+                    {performanceInsight.message}
+                  </p>
+                </div>
+                <div className="text-center sm:text-right flex-shrink-0">
+                  <p className="text-xs text-gray-400 mb-1">Skor rata-rata</p>
+                  <p className={`text-4xl font-bold ${scoreLevel.color}`}>
+                    {averageScore}
+                  </p>
+                  <p className="text-xs text-gray-500">dari 100</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-4">
+                {performanceInsight.details.map((detail) => (
+                  <span
+                    key={detail}
+                    className="text-xs px-2.5 py-1 rounded-full bg-gray-900/60 text-gray-300 border border-gray-700/50"
+                  >
+                    {detail}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-700/50 mb-4">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-sm font-semibold text-gray-200">
+                  {simpleChart.mode === "harian"
+                    ? "Skor Performa Harian"
+                    : "Skor Performa Mingguan"}
+                </h3>
+                <span className="text-xs text-gray-500">0 = rendah, 100 = sangat baik</span>
+              </div>
+              <p className="text-xs text-gray-500 mb-4">
+                Skor dihitung dari kehadiran, aktivitas kerja, dan penyelesaian tugas.
+              </p>
+              <div className="h-64 sm:h-72">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={simpleChart.series}
+                    margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={scoreLevel.stroke} stopOpacity={0.35} />
+                        <stop offset="95%" stopColor={scoreLevel.stroke} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis
+                      dataKey="label"
+                      stroke="#9CA3AF"
+                      fontSize={11}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis
+                      stroke="#9CA3AF"
+                      fontSize={11}
+                      domain={[0, 100]}
+                      tickCount={6}
+                    />
+                    <ReferenceLine
+                      y={60}
+                      stroke="#6b7280"
+                      strokeDasharray="4 4"
+                      label={{ value: "Baik", position: "insideTopRight", fill: "#9CA3AF", fontSize: 10 }}
+                    />
+                    <ReferenceLine
+                      y={80}
+                      stroke="#22c55e"
+                      strokeDasharray="4 4"
+                      label={{ value: "Sangat Baik", position: "insideTopRight", fill: "#86efac", fontSize: 10 }}
+                    />
+                    <Tooltip
+                      contentStyle={chartTooltipStyle}
+                      formatter={(value: number) => [`${value}/100`, "Skor"]}
+                      labelFormatter={(label) =>
+                        simpleChart.mode === "harian" ? `Tanggal ${label}` : label
+                      }
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="skor"
+                      name="Skor Performa"
+                      stroke={scoreLevel.stroke}
+                      strokeWidth={2.5}
+                      fill="url(#scoreGradient)"
+                      dot={{ r: 3, fill: scoreLevel.stroke, strokeWidth: 0 }}
+                      activeDot={{ r: 5 }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 text-center text-xs sm:text-sm">
+              <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700/50">
+                <p className="text-gray-500 mb-1">Kehadiran</p>
+                <p className="text-white font-bold text-lg">
+                  {chartData.summary.total_hari_hadir}
+                  <span className="text-gray-500 text-sm font-normal"> hari</span>
+                </p>
+              </div>
+              <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700/50">
+                <p className="text-gray-500 mb-1">Tugas Selesai</p>
+                <p className="text-white font-bold text-lg">
+                  {chartData.summary.total_tugas_selesai}
+                  <span className="text-gray-500 text-sm font-normal">
+                    /{chartData.summary.total_tugas_diberikan}
+                  </span>
+                </p>
+              </div>
+              <div className="bg-gray-900/50 rounded-lg p-3 border border-gray-700/50">
+                <p className="text-gray-500 mb-1">Rata-rata Nilai</p>
+                <p className="text-white font-bold text-lg">
+                  {chartData.summary.rata_rata_nilai || "-"}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => {
+                  setShowChartModal(false);
+                  setChartData(null);
+                }}
+                className="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors font-semibold"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* AI Summary Modal */}
       {showSummaryModal && aiSummary && (
