@@ -28,6 +28,7 @@ const UserManagement: React.FC = () => {
   const [notif, setNotif] = useState<string|null>(null);
   const [activeTab, setActiveTab] = useState<string>('superadmin');
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [selectedYear, setSelectedYear] = useState<string>('Semua');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,7 +38,7 @@ const UserManagement: React.FC = () => {
         const token = localStorage.getItem('token');
         
         // Map role tab ke endpoint superadmin baru
-        const rolePath = activeTab === 'superadmin' ? 'superadmin' : activeTab; // sudah sama namanya
+        const rolePath = activeTab === 'siswa_lolos' ? 'siswa' : (activeTab === 'superadmin' ? 'superadmin' : activeTab);
         const apiUrl = `http://localhost:3000/api/superadmin/users/role/${rolePath}`;
         
         console.log('Fetching users from:', apiUrl);
@@ -142,7 +143,7 @@ const UserManagement: React.FC = () => {
       console.log('Token available:', !!token);
       console.log('Token value:', token ? token.substring(0, 20) + '...' : 'No token');
       
-      const rolePath = activeTab === 'superadmin' ? 'superadmin' : activeTab;
+      const rolePath = activeTab === 'siswa_lolos' ? 'siswa' : (activeTab === 'superadmin' ? 'superadmin' : activeTab);
 
       // Bangun URL delete sesuai spesifikasi
       let deleteUrl = '';
@@ -242,7 +243,7 @@ const UserManagement: React.FC = () => {
       const data = await res.json().catch(async () => ({ message: await res.text() }));
       if (res.ok) {
         setNotif('User berhasil diverifikasi!');
-        const rolePath = activeTab === 'superadmin' ? 'superadmin' : activeTab;
+        const rolePath = activeTab === 'siswa_lolos' ? 'siswa' : (activeTab === 'superadmin' ? 'superadmin' : activeTab);
         const listUrl = `http://localhost:3000/api/superadmin/users/role/${rolePath}`;
         const r = await fetch(listUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' } });
         const j = await r.json();
@@ -262,7 +263,7 @@ const UserManagement: React.FC = () => {
     if (!window.confirm('apakah anda ingin menghapus akun ini?')) return;
     try {
       const token = localStorage.getItem('token');
-      const rolePath = activeTab === 'superadmin' ? 'superadmin' : activeTab;
+      const rolePath = activeTab === 'siswa_lolos' ? 'siswa' : (activeTab === 'superadmin' ? 'superadmin' : activeTab);
       const url = `http://localhost:3000/api/users/role/${rolePath}/delete`;
       const res = await fetch(url, {
         method: 'DELETE',
@@ -295,7 +296,7 @@ const UserManagement: React.FC = () => {
     if (!window.confirm('Hapus user berdasarkan role + email (path)?')) return;
     try {
       const token = localStorage.getItem('token');
-      const rolePath = activeTab === 'superadmin' ? 'superadmin' : activeTab;
+      const rolePath = activeTab === 'siswa_lolos' ? 'siswa' : (activeTab === 'superadmin' ? 'superadmin' : activeTab);
       const emailEncoded = encodeURIComponent(email);
       const url = `http://localhost:3000/api/users/role/${rolePath}/delete/${emailEncoded}`;
       const res = await fetch(url, {
@@ -338,7 +339,7 @@ const UserManagement: React.FC = () => {
       const data = await res.json().catch(async () => ({ message: await res.text() }));
       if (res.ok) {
         setNotif('User berhasil dihapus (ID)');
-        const rolePath = activeTab === 'superadmin' ? 'superadmin' : activeTab;
+        const rolePath = activeTab === 'siswa_lolos' ? 'siswa' : (activeTab === 'superadmin' ? 'superadmin' : activeTab);
         const listUrl = `http://localhost:3000/api/superadmin/users/role/${rolePath}`;
         const r = await fetch(listUrl, { headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' } });
         const j = await r.json();
@@ -352,17 +353,43 @@ const UserManagement: React.FC = () => {
     }
   };
 
+  // Get available years for dropdown list
+  const getAvailableYears = () => {
+    const years = userData
+      .filter(user => user.status === 'lulus' && user.tanggal_selesai_magang)
+      .map(user => new Date(user.tanggal_selesai_magang!).getFullYear().toString());
+    return Array.from(new Set(years)).sort((a, b) => b.localeCompare(a));
+  };
+
+  const availableYears = getAvailableYears();
+
   // Filter users based on active tab
   const getFilteredUsers = () => {
-    let filteredByRole = userData;
+    let filtered = userData;
 
-    // Apply search filter on the role-filtered data
+    // Filter by status depending on activeTab
+    if (activeTab === 'siswa') {
+      filtered = userData.filter(user => user.status !== 'lulus');
+    } else if (activeTab === 'siswa_lolos') {
+      filtered = userData.filter(user => user.status === 'lulus');
+      
+      // Filter by selected year
+      if (selectedYear !== 'Semua') {
+        filtered = filtered.filter(user => {
+          if (!user.tanggal_selesai_magang) return false;
+          const year = new Date(user.tanggal_selesai_magang).getFullYear().toString();
+          return year === selectedYear;
+        });
+      }
+    }
+
+    // Apply search filter
     if (searchTerm.trim() === '') {
-      return filteredByRole;
+      return filtered;
     }
 
     const searchLower = searchTerm.toLowerCase();
-    return filteredByRole.filter(user => 
+    return filtered.filter(user => 
       (user.nama && user.nama.toLowerCase().includes(searchLower)) ||
       (user.email && user.email.toLowerCase().includes(searchLower)) ||
       (user.no_hp && user.no_hp.toLowerCase().includes(searchLower)) ||
@@ -383,14 +410,16 @@ const UserManagement: React.FC = () => {
     { id: 'superadmin', label: 'Superadmin', count: activeTab === 'superadmin' ? userData.length : 0 },
     { id: 'mentor', label: 'Mentor', count: activeTab === 'mentor' ? userData.length : 0 },
     { id: 'guru', label: 'Guru', count: activeTab === 'guru' ? userData.length : 0 },
-    { id: 'siswa', label: 'Siswa', count: activeTab === 'siswa' ? userData.length : 0 },
+    { id: 'siswa', label: 'Siswa', count: activeTab === 'siswa' ? userData.filter(u => u.status !== 'lulus').length : 0 },
+    { id: 'siswa_lolos', label: 'Siswa Lolos', count: activeTab === 'siswa_lolos' ? userData.filter(u => u.status === 'lulus').length : 0 },
     { id: 'belum_diverifikasi', label: 'Belum Diverifikasi', count: activeTab === 'belum_diverifikasi' ? userData.length : 0 },
   ];
 
-  // Clear search when changing tabs
+  // Clear search and reset year filter when changing tabs
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
     setSearchTerm('');
+    setSelectedYear('Semua');
   };
 
   return (
@@ -446,6 +475,18 @@ const UserManagement: React.FC = () => {
               </button>
             )}
           </div>
+          {activeTab === 'siswa_lolos' && (
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value)}
+              className="bg-gray-800 text-white px-3 py-2 rounded focus:outline-none border border-gray-700 font-semibold"
+            >
+              <option value="Semua">Semua Tahun Kelulusan</option>
+              {availableYears.map(year => (
+                <option key={year} value={year}>Tahun {year}</option>
+              ))}
+            </select>
+          )}
         </div>
         <div className="flex gap-2 items-center">
           <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center" onClick={() => navigate('/UserManagement/tambah')}>
@@ -491,11 +532,11 @@ const UserManagement: React.FC = () => {
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Role</th>
                 <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Asal Institusi</th>
                 {/* Kolom khusus untuk siswa */}
-                {(activeTab === 'siswa' || activeTab === 'belum_diverifikasi') && (
+                {(activeTab === 'siswa' || activeTab === 'siswa_lolos' || activeTab === 'belum_diverifikasi') && (
                   <>
                     <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Tanggal Mulai</th>
                     <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Tanggal Selesai</th>
-                    {activeTab === 'siswa' && (
+                    {(activeTab === 'siswa' || activeTab === 'siswa_lolos') && (
                       <>
                         <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Status</th>
                         <th className="px-3 py-2 text-left text-xs font-bold uppercase tracking-wider">Status Magang</th>
@@ -549,7 +590,7 @@ const UserManagement: React.FC = () => {
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap text-gray-300 font-medium">{row.asal_institusi}</td>
                     {/* Kolom khusus untuk siswa dan belum diverifikasi */}
-                    {(activeTab === 'siswa' || activeTab === 'belum_diverifikasi') && (
+                    {(activeTab === 'siswa' || activeTab === 'siswa_lolos' || activeTab === 'belum_diverifikasi') && (
                       <>
                         <td className="px-3 py-2 whitespace-nowrap text-gray-300">
                           {row.tanggal_mulai_magang ? 
@@ -571,27 +612,29 @@ const UserManagement: React.FC = () => {
                             <span className="text-gray-500 italic">-</span>
                           }
                         </td>
-                        {activeTab === 'siswa' && (
+                        {(activeTab === 'siswa' || activeTab === 'siswa_lolos') && (
                           <>
                             <td className="px-3 py-2 whitespace-nowrap">
-                              <span className={`px-2 py-1 text-xs rounded-full font-semibold shadow-sm ${
+                              <span className={`px-2 py-1 text-xs rounded-full font-semibold shadow-sm border ${
                                 row.status === 'aktif' 
-                                  ? 'bg-green-500/20 text-green-300 border border-green-400/30' 
-                                  : 'bg-red-500/20 text-red-300 border border-red-400/30'
+                                  ? 'bg-green-500/20 text-green-300 border-green-400/30' :
+                                row.status === 'lulus'
+                                  ? 'bg-blue-500/20 text-blue-300 border-blue-400/30'
+                                  : 'bg-red-500/20 text-red-300 border-red-400/30'
                               }`}>
                                 {row.status || '-'}
                               </span>
                             </td>
                             <td className="px-3 py-2 whitespace-nowrap">
-                              <span className={`px-2 py-1 text-xs rounded-full font-semibold shadow-sm ${
+                              <span className={`px-2 py-1 text-xs rounded-full font-semibold shadow-sm border ${
                                 row.status_magang === 'Aktif' 
-                                  ? 'bg-green-500/20 text-green-300 border border-green-400/30' :
+                                  ? 'bg-green-500/20 text-green-300 border-green-400/30' :
                                 row.status_magang === 'Selesai' 
-                                  ? 'bg-blue-500/20 text-blue-300 border border-blue-400/30' :
+                                  ? 'bg-blue-500/20 text-blue-300 border-blue-400/30' :
                                 row.status_magang === 'Belum Dimulai' 
-                                  ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-400/30' :
+                                  ? 'bg-yellow-500/20 text-yellow-300 border-yellow-400/30' :
                                 row.status_magang === 'Belum Ditentukan' 
-                                  ? 'bg-gray-500/20 text-gray-300 border border-gray-400/30' :
+                                  ? 'bg-gray-500/20 text-gray-300 border-gray-400/30' :
                                   'bg-gray-700/20 text-gray-400 border border-gray-600/30'
                               }`}>
                                 {row.status_magang || '-'}
