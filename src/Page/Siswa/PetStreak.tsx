@@ -372,26 +372,6 @@ const PetStreak: React.FC = () => {
           <div className="mt-3">
             <div className="flex items-center justify-between bg-gray-800/70 rounded-lg p-2">
               <div className="flex items-center gap-2">
-                <span className="text-orange-400">🔥</span>
-                <span className="text-sm">Streak</span>
-              </div>
-              <div className="text-right">
-                <div className="text-lg font-extrabold">
-                  {data.diff_days
-                    ? `${data.streak.current_streak} hari dari ${data.diff_days} hari`
-                    : `${data.streak.current_streak} hari`}
-                </div>
-                <div className="text-[10px] text-gray-400">
-
-                  {ranking && ranking.total_siswa > 0 && (
-                    <span className="block mt-0.5">{ranking.rank} dari {ranking.total_siswa} siswa</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between bg-gray-800/70 rounded-lg p-2 mt-2">
-              <div className="flex items-center gap-2">
                 <span className="text-yellow-300">🏅</span>
                 <div>
                   <span className="text-sm">Total Poin</span>
@@ -399,11 +379,7 @@ const PetStreak: React.FC = () => {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-lg font-extrabold">
-                  {data.max_points
-                    ? `${data.total_points} dari ${data.max_points} Max Poin`
-                    : data.total_points}
-                </div>
+                <div className="text-lg font-extrabold">{data.total_points}</div>
               </div>
             </div>
 

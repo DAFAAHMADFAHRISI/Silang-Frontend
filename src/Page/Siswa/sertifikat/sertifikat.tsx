@@ -237,7 +237,7 @@ const SiswaSertifikat: React.FC = () => {
                             label="Total Poin"
                             value={
                                 pointsSummary.max_points
-                                    ? `${pointsSummary.total_points} dari ${pointsSummary.max_points} Max Poin`
+                                    ? `${pointsSummary.total_points} dari ${pointsSummary.max_points} Max Point`
                                     : pointsSummary.total_points
                             }
                             valueClassName="text-yellow-400"
